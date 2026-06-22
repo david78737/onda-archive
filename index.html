@@ -452,9 +452,7 @@ function render() {
       ? `<a class="onda-btn" href="${row.onda_url}" target="_blank" rel="noopener" title="Download .onda bundle">
            <img src="img/onda-download.png" alt="Download ONDA">
          </a>`
-      : `<span class="onda-btn soon" title="Coming soon">
-           <img src="img/onda-download.png" alt="Download ONDA">
-         </span>`;
+      : '';
 
     const actionRow = `<div class="action-row">${ytBtn}${ondaBtn}</div>`;
 
