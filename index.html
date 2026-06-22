@@ -462,7 +462,12 @@ function render() {
       `<span class="card-tag${state.tags.has(t) ? ' lit' : ''}" data-tag="${t}">${t}</span>`
     ).join('');
 
-    const visual = row.youtube
+    const visual = row.photo
+      ? `<img class="card-avatar" loading="lazy" alt="${row.presenter}"
+             src="${row.photo}" style="width:56px;height:56px;border-radius:50%;object-fit:cover;"
+             data-presenter="${row.presenter.replace(/"/g,'&quot;')}"
+             onerror="window._thumbErr(this)">`
+      : row.youtube
       ? `<img class="card-thumb" loading="lazy" alt=""
              src="https://img.youtube.com/vi/${row.youtube}/hqdefault.jpg"
              data-presenter="${row.presenter.replace(/"/g,'&quot;')}"
