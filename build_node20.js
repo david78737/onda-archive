@@ -29,15 +29,16 @@ initSqlJs().then(SQL => {
       brief     TEXT,
       youtube   TEXT,
       tags      TEXT,
-      photo     TEXT
+      photo     TEXT,
+      onda_url  TEXT
     );
   `);
 
   // FTS5 not supported in sql.js — search handled client-side in index.html
 
   const insert = db.prepare(`
-    INSERT INTO sessions (event, title, presenter, level, format, synopsis, takeaways, who, brief, youtube, tags, photo)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    INSERT INTO sessions (event, title, presenter, level, format, synopsis, takeaways, who, brief, youtube, tags, photo, onda_url)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
   `);
 
   let inserted = 0;
@@ -47,7 +48,7 @@ initSqlJs().then(SQL => {
     insert.run([
       s.event, s.title, s.presenter || '', s.level || '', s.format || '',
       s.synopsis || '', takeawaysJson, s.who || '', s.brief || '',
-      s.youtube || null, tagsJson, s.photo || null
+      s.youtube || null, tagsJson, s.photo || null, s.onda_url || null
     ]);
     inserted++;
   }
