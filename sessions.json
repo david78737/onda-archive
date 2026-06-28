@@ -63,32 +63,92 @@
     "who": "Entrepreneurs who know their expertise but struggle to be seen and trusted at scale",
     "brief": "Content strategist and self-esteem coach Danesha Mo'Nek on why visibility is the missing variable in most business equations.",
     "youtube": "",
-    "onda_url": "",
+    "onda_url": "https://xrxm-29on-xlyt.n7e.xano.io/api:uZtI4amS/onda_share/ef625037-6eca-41b5-8921-bce2ed511ae5",
     "tags": ["content", "visibility", "personal-brand", "trust", "social-media", "7-11-4", "parasocial", "TikTok", "conversion", "authenticity"]
   },
   {
     "event": "Elevate Summit 2026",
-    "title": "Remove the Armor: Rewiring the Brain for Visibility and Growth",
+    "title": "Remove the Armor — Part 1: The Playground & The Helmet",
     "presenter": "Dr. Negin Rajaipour",
     "photo": "img_summit/dr-negin-rajaipour.jpg",
     "level": "",
     "format": "Presentation",
-    "synopsis": "Dr. Negin Rajaipour — mindset coach and neuroscientist — traces every entrepreneur's fear of visibility back to a childhood moment when the brain captured danger and built armor to protect against it. Using live audience exercises (the spider visualization, the inner voice reframe), she teaches how to identify and remove three pieces of armor: the Helmet (worst-case scanning), the Cloak (playing small), and the Shield (avoiding connection). She then plays a private video she recorded for herself — never meant to be seen — from the moment she quit her Silicon Valley job to become a speaker. Jon Cobb was in the room when she won a PR raffle at a sales event. They are now married and run Elevate Summit together.",
+    "synopsis": "Dr. Negin Rajaipour opens with the story of arriving in a new country at age nine — a boy she liked ran up to her on the playground, she couldn't understand a word he said, a red rubber ball hit her in the face, and her brain captured that moment as danger. That snapshot became her first piece of armor: the Helmet. She introduces the neuroscience of how childhood experiences wire the brain to scan for worst-case scenarios and why that protection mechanism becomes a cage for adult entrepreneurs.",
     "takeaways": [
-      "The brain doesn't distinguish between a remembered threat and a real one — your stress response fires the same way either way",
-      "The Helmet: scanning for worst-case scenarios to protect you from pain you experienced as a child",
-      "The Cloak: playing small, downplaying expertise, waiting until you feel ready — which never comes",
-      "The Shield: avoiding the conversation that could change your life because connection feels risky",
-      "Your body gets addicted to familiar emotions the same way it gets addicted to drugs — change feels like withdrawal",
-      "Visualization changes the brain physiologically: basketball players who only visualized free throws improved almost as much as those who practiced daily",
-      "Put distance between yourself and the problem — literally imagine it shrinking across the room — and your nervous system shifts from threat to clarity",
-      "The river of change is real: when your body fights back hardest is when you're halfway there. Don't turn around"
+      "Every entrepreneur is carrying armor built in childhood — it protected you then and holds you back now",
+      "The Helmet is the brain's automatic worst-case scanner: it predicts disaster to keep you safe from pain you once felt",
+      "The body gets addicted to familiar emotions the same way it gets addicted to substances — change feels like withdrawal",
+      "The brain cannot distinguish between a remembered threat and a real one — stress hormones fire identically either way",
+      "90–95% of daily thoughts are either negative or identical to the day before"
     ],
-    "who": "Entrepreneurs who know what to do but can't make themselves do it — and wonder why",
-    "brief": "Dr. Negin Rajaipour on the neuroscience of why smart entrepreneurs stay hidden, and exactly how to take the armor off.",
+    "who": "Entrepreneurs who overthink, procrastinate, or feel blocked by a fear they can't name",
+    "brief": "Dr. Negin Rajaipour on the childhood moment that built your armor — and why your brain is still wearing it.",
     "youtube": "",
     "onda_url": "https://xrxm-29on-xlyt.n7e.xano.io/api:uZtI4amS/onda_share/4a72b35e-c013-466c-abbc-13f23410cdb6",
-    "tags": ["mindset", "neuroscience", "neuroplasticity", "armor", "visibility", "fear", "visualization", "self-sabotage", "personal-brand", "entrepreneurship", "trauma", "resilience"]
+    "tags": ["mindset", "neuroscience", "armor", "helmet", "fear", "childhood", "entrepreneurship", "self-sabotage"]
+  },
+  {
+    "event": "Elevate Summit 2026",
+    "title": "Remove the Armor — Part 2: The Spider, The Voice & The Cloak",
+    "presenter": "Dr. Negin Rajaipour",
+    "photo": "img_summit/dr-negin-rajaipour.jpg",
+    "level": "",
+    "format": "Presentation",
+    "synopsis": "Dr. Rajaipour leads the room through two live exercises: the spider visualization (shrink the threat, cartoon it, put it in the corner) and the inner critic voice reframe (place it on your palm, play it in Mickey Mouse's voice). Both demonstrate that the brain's perspective on a problem is not the problem itself. She then introduces the Cloak — the armor that keeps entrepreneurs playing small, downplaying their expertise, and waiting until they feel ready.",
+    "takeaways": [
+      "Put distance between yourself and the problem — the nervous system shifts from threat to clarity almost instantly",
+      "The inner critic voice is an automatic program, not your actual self — change its tone and it loses its power",
+      "The Cloak: playing small, downplaying expertise, waiting for permission, hiding rather than showing up",
+      "Your body would rather keep you in familiar stress than risk an unfamiliar happiness",
+      "The brain works in maps — if worst-case scenario is your map, that is where it will guide you"
+    ],
+    "who": "Entrepreneurs who know their value but can't bring themselves to claim it publicly",
+    "brief": "Dr. Negin Rajaipour on the live brain exercises that prove your biggest problem is smaller than it looks.",
+    "youtube": "",
+    "onda_url": "https://xrxm-29on-xlyt.n7e.xano.io/api:uZtI4amS/onda_share/9558a562-15aa-43c0-904b-538f27354f85",
+    "tags": ["mindset", "visualization", "inner-critic", "cloak", "neuroplasticity", "visibility", "fear", "entrepreneurship"]
+  },
+  {
+    "event": "Elevate Summit 2026",
+    "title": "Remove the Armor — Part 3: The Shield & The Birthday Party",
+    "presenter": "Dr. Negin Rajaipour",
+    "photo": "img_summit/dr-negin-rajaipour.jpg",
+    "level": "",
+    "format": "Presentation",
+    "synopsis": "Dr. Rajaipour introduces the third piece of armor — the Shield — which keeps entrepreneurs from making the connections that could change their lives. She tells the story of forcing herself to take off the Cloak at a child's birthday party where she knew no one, introducing herself as a speaker before she had ever spoken professionally, and landing her first corporate workshop three days later. The Shield dissolves when you show your body that there is no danger on the other side of a conversation.",
+    "takeaways": [
+      "The Shield: avoiding rooms, conversations, and connections because they feel risky — and missing life-changing opportunities",
+      "Introducing yourself as the future version of you before you feel ready is how you make that future familiar to your body",
+      "Taking one social risk — even at a kid's birthday party — can cascade into your first real opportunity",
+      "Visualization before an event primes the brain as if you have already done it",
+      "Once you remove the armor, intuition gets louder — your body starts picking up signals it was too defended to notice before"
+    ],
+    "who": "Entrepreneurs who avoid networking, hold back in rooms, or wait for someone to give them permission",
+    "brief": "Dr. Negin Rajaipour on the Shield that keeps entrepreneurs hidden — and the birthday party that broke hers.",
+    "youtube": "",
+    "onda_url": "https://xrxm-29on-xlyt.n7e.xano.io/api:uZtI4amS/onda_share/5ac9ae01-2a00-44ec-998c-eecbabd44586",
+    "tags": ["mindset", "shield", "networking", "connection", "visibility", "entrepreneurship", "visualization", "identity"]
+  },
+  {
+    "event": "Elevate Summit 2026",
+    "title": "Remove the Armor — Part 4: The Private Video & The River of Change",
+    "presenter": "Dr. Negin Rajaipour",
+    "photo": "img_summit/dr-negin-rajaipour.jpg",
+    "level": "",
+    "format": "Presentation",
+    "synopsis": "In the most vulnerable moment of the Summit, Dr. Rajaipour plays a video she recorded for herself — alone, never meant for anyone's eyes — from the night she quit her Silicon Valley job to become a speaker. In it she says: 'I am going through a collapse of the old me. I knew that if I didn't listen to it, it really would be self-abandonment.' She closes by teaching the visualization exercise that she promised her former self she would one day share on stage.",
+    "takeaways": [
+      "The river of change is real: when your body fights back hardest is when you are halfway there — do not turn around",
+      "Change feels like physical pain because the body is being starved of the chemicals it was addicted to",
+      "Talking to your future self — and letting them answer — is not a metaphor. It rewires the map",
+      "Visualize yourself a month after completing the scary thing, sitting on your bed proud. Play it as a memory — the brain treats it as experience",
+      "You promised yourself something. Keeping that promise is the only thing that separates where you are from where you're going"
+    ],
+    "who": "Anyone in the middle of a hard change who needs to hear that the pain is the proof they're moving",
+    "brief": "Dr. Negin Rajaipour plays the private video she recorded alone on the night she quit her safe life — and kept her promise to share it.",
+    "youtube": "",
+    "onda_url": "https://xrxm-29on-xlyt.n7e.xano.io/api:uZtI4amS/onda_share/185f6800-c4d9-43bc-8bab-fb40bc2a1d25",
+    "tags": ["mindset", "river-of-change", "vulnerability", "visualization", "neuroplasticity", "identity", "entrepreneurship", "courage", "resilience"]
   },
   {
     "event": "Elevate Summit 2026",
