@@ -363,12 +363,14 @@ function runQuery() {
   const sql = `SELECT * FROM sessions s ${where} ORDER BY s.event DESC, s.id ASC`;
 
   try {
-    const stmt = db.prepare(sql);
-    stmt.bind(params);
-    const rows = [];
-    while (stmt.step()) rows.push(stmt.getAsObject());
-    stmt.free();
-    return rows;
+    const result = db.exec(sql, params);
+    if (!result.length) return [];
+    const cols = result[0].columns;
+    return result[0].values.map(vals => {
+      const obj = {};
+      cols.forEach((col, i) => { obj[col] = vals[i]; });
+      return obj;
+    });
   } catch (e) {
     console.warn('Query error:', e.message);
     return [];
