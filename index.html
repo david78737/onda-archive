@@ -454,7 +454,9 @@ function render() {
          </a>`
       : '';
 
-    const actionRow = `<div class="action-row">${ytBtn}${ondaBtn}</div>`;
+    const actionRow = (ytBtn || ondaBtn)
+      ? `<div class="action-row">${ytBtn}${ondaBtn}</div>`
+      : '';
 
     const tagChips = tags.map(t =>
       `<span class="card-tag${state.tags.has(t) ? ' lit' : ''}" data-tag="${t}">${t}</span>`
