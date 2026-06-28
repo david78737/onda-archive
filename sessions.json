@@ -1,73 +1,139 @@
 [
   {
     "event": "Elevate Summit 2026",
-    "title": "Elevate Summit Introduction",
-    "presenter": "Jon Cobb",
-    "photo": "img_summit/jon-cobb-speaking.jpg",
+    "title": "Opening: The Best Case Scenario",
+    "presenter": "Dee Hankins",
+    "photo": "img_summit/dee-hankins.jpg",
     "level": "",
     "format": "Keynote",
-    "synopsis": "Opening introduction to the Elevate Summit — vision, goals, and what attendees can expect over two days.",
-    "takeaways": [],
-    "who": "Entrepreneurs and business owners ready to scale",
-    "brief": "Jon Cobb opens the Elevate Summit and frames the two-day experience.",
+    "synopsis": "Dee Hankins opens the Elevate Summit by asking every entrepreneur in the room to close their eyes and picture their best case scenario — the hammock, the car, the compound, the freedom. Then he introduces Jon Cobb and sets the tone for two days of honest, grounded work.",
+    "takeaways": [
+      "Your best case scenario is absolutely possible — the only question is whether you'll commit to it",
+      "Entrepreneurship should be a team sport, not a lonely road",
+      "The gap between doers and complainers is growing every day — choose your side",
+      "Invest 5–10% of your revenue back into yourself: conferences, courses, coaching",
+      "Today is day one — not someday"
+    ],
+    "who": "Entrepreneurs who need a reset before they can receive what's coming",
+    "brief": "Inspirational speaker and emcee Dee Hankins on why your best case scenario is closer than you think.",
     "youtube": "",
-    "tags": ["entrepreneurship", "mindset", "scaling", "blueprint"]
+    "onda_url": "",
+    "tags": ["resilience", "mindset", "entrepreneurship", "motivation", "goals", "community"]
   },
   {
     "event": "Elevate Summit 2026",
-    "title": "Leading Business Strategies for Scale",
+    "title": "From Homeless to Harvard: The Master Cycle for Business Growth",
     "presenter": "Jon Cobb",
     "photo": "img_summit/jon-cobb.jpg",
     "level": "",
-    "format": "Presentation",
-    "synopsis": "Jon Cobb shares field-tested strategies for scaling a business beyond the founder bottleneck.",
-    "takeaways": [],
-    "who": "Business owners hitting a growth ceiling",
-    "brief": "Leading Business Strategist Jon Cobb on the critical moves that separate stuck businesses from scaling ones.",
+    "format": "Keynote",
+    "synopsis": "Jon Cobb tells the unvarnished story of dropping out at 16, joining the Marines, crashing the car he was living in, and hearing Les Brown say two words — 'it's possible' — that changed everything. He then introduces the Master Cycle: a seven-bucket framework covering personal development, leadership, sales, operations, marketing, feedback, and vision that any business can use to find and fix its weakest link.",
+    "takeaways": [
+      "You don't need to believe you'll be a millionaire — you just need to crack the door: 'it's possible'",
+      "Edu-action = education + action. Learning without applying is just expensive procrastination",
+      "Every business faces the same seven challenges — the Master Cycle maps all of them",
+      "Self-leadership is the most neglected skill in entrepreneurship: lead yourself first",
+      "Sales is the magic most entrepreneurs are missing — if you can't sell it, you can't prove how good it is",
+      "Anonymous feedback is the only kind that tells the truth",
+      "Write your vision down and make it plain — a goal without specifics is a wish"
+    ],
+    "who": "Business owners who feel stuck, overwhelmed, or like they're carrying it all alone",
+    "brief": "Business strategist and Elevate Summit founder Jon Cobb on the framework that has taken multiple businesses to $100M+.",
     "youtube": "",
-    "tags": ["strategy", "scaling", "leadership", "business growth"]
+    "onda_url": "",
+    "tags": ["strategy", "master-cycle", "leadership", "sales", "operations", "marketing", "vision", "entrepreneurship", "growth", "Marines", "Harvard"]
   },
   {
     "event": "Elevate Summit 2026",
-    "title": "Elite Mindset: The Inner Game of Success",
-    "presenter": "Nurhan Babazade",
-    "photo": "img_summit/nurhan-babazade.jpg",
-    "level": "",
-    "format": "Presentation",
-    "synopsis": "Nurhan Babazade coaches entrepreneurs on the mental frameworks that drive elite performance.",
-    "takeaways": [],
-    "who": "Entrepreneurs held back by self-limiting beliefs",
-    "brief": "Elite Mindset Coach Nurhan Babazade on rewiring how you think about success.",
-    "youtube": "",
-    "tags": ["mindset", "coaching", "performance", "entrepreneurship"]
-  },
-  {
-    "event": "Elevate Summit 2026",
-    "title": "Content Strategy That Converts",
+    "title": "The Market Cannot Reward What It Cannot See",
     "presenter": "Danesha Mo'Nek",
     "photo": "img_summit/danesha-monek.jpg",
     "level": "",
     "format": "Presentation",
-    "synopsis": "Danesha Mo'Nek breaks down how to build a process-driven content strategy that consistently generates leads.",
-    "takeaways": [],
-    "who": "Entrepreneurs struggling to turn content into clients",
-    "brief": "Proven Content Strategist Danesha Mo'Nek on content systems that actually convert.",
+    "synopsis": "Danesha Mo'Nek — psychologist turned $5M content creator — explains why expertise without visibility is invisible money. Starting from a homeless shelter and reaching $10K/day in 90 days by posting consistently, she breaks down the 7-11-4 rule (7 hours of content, 11 touchpoints, 4 platforms) and the neuroscience of parasocial trust. The content doesn't have to be perfect. It has to be present.",
+    "takeaways": [
+      "The 7-11-4 rule: buyers need 7 hours of content, 11 interactions, and 4 platforms before they trust you enough to buy",
+      "Parasocial relationships are real — your audience feels like they know you before they meet you",
+      "You don't need a big following. You need the right following. One thousand true fans beat a million passive scrollers",
+      "Post the same message a thousand different ways — repetition builds the brand, variety keeps it alive",
+      "Personal brand and product brand must be separate — one can outlive the other",
+      "TikTok's algorithm rewards completion rate, not follower count — hook in the first three seconds",
+      "Authenticity is not the same as oversharing — it's consistency of character across every platform"
+    ],
+    "who": "Entrepreneurs who know their expertise but struggle to be seen and trusted at scale",
+    "brief": "Content strategist and self-esteem coach Danesha Mo'Nek on why visibility is the missing variable in most business equations.",
     "youtube": "",
-    "tags": ["content", "strategy", "marketing", "leads"]
+    "onda_url": "",
+    "tags": ["content", "visibility", "personal-brand", "trust", "social-media", "7-11-4", "parasocial", "TikTok", "conversion", "authenticity"]
   },
   {
     "event": "Elevate Summit 2026",
-    "title": "Human Behavior and Business Resilience",
-    "presenter": "Dee Hankins",
-    "photo": "img_summit/dee-hankins.jpg",
+    "title": "Remove the Armor: Rewiring the Brain for Visibility and Growth",
+    "presenter": "Dr. Negin Rajaipour",
+    "photo": "img_summit/dr-negin-rajaipour.jpg",
     "level": "",
     "format": "Presentation",
-    "synopsis": "Dee Hankins applies human behavior science to help entrepreneurs build resilient businesses and teams.",
-    "takeaways": [],
-    "who": "Leaders managing teams and navigating uncertainty",
-    "brief": "Human Behavior & Resilience Expert Dee Hankins on the psychology behind durable businesses.",
+    "synopsis": "Dr. Negin Rajaipour — mindset coach and neuroscientist — traces every entrepreneur's fear of visibility back to a childhood moment when the brain captured danger and built armor to protect against it. Using live audience exercises (the spider visualization, the inner voice reframe), she teaches how to identify and remove three pieces of armor: the Helmet (worst-case scanning), the Cloak (playing small), and the Shield (avoiding connection). She then plays a private video she recorded for herself — never meant to be seen — from the moment she quit her Silicon Valley job to become a speaker. Jon Cobb was in the room when she won a PR raffle at a sales event. They are now married and run Elevate Summit together.",
+    "takeaways": [
+      "The brain doesn't distinguish between a remembered threat and a real one — your stress response fires the same way either way",
+      "The Helmet: scanning for worst-case scenarios to protect you from pain you experienced as a child",
+      "The Cloak: playing small, downplaying expertise, waiting until you feel ready — which never comes",
+      "The Shield: avoiding the conversation that could change your life because connection feels risky",
+      "Your body gets addicted to familiar emotions the same way it gets addicted to drugs — change feels like withdrawal",
+      "Visualization changes the brain physiologically: basketball players who only visualized free throws improved almost as much as those who practiced daily",
+      "Put distance between yourself and the problem — literally imagine it shrinking across the room — and your nervous system shifts from threat to clarity",
+      "The river of change is real: when your body fights back hardest is when you're halfway there. Don't turn around"
+    ],
+    "who": "Entrepreneurs who know what to do but can't make themselves do it — and wonder why",
+    "brief": "Dr. Negin Rajaipour on the neuroscience of why smart entrepreneurs stay hidden, and exactly how to take the armor off.",
     "youtube": "",
-    "tags": ["human behavior", "resilience", "leadership", "teams"]
+    "onda_url": "",
+    "tags": ["mindset", "neuroscience", "neuroplasticity", "armor", "visibility", "fear", "visualization", "self-sabotage", "personal-brand", "entrepreneurship", "trauma", "resilience"]
+  },
+  {
+    "event": "Elevate Summit 2026",
+    "title": "Key Singularity: AI as a Business Multiplier",
+    "presenter": "Karl Kimball",
+    "photo": "img_summit/karl-kimball.jpg",
+    "level": "",
+    "format": "Presentation",
+    "synopsis": "Karl Kimball — former bank executive turned AI pioneer — maps where AI sits in 2026 and where it's going. Using Jevons Paradox (when something gets cheaper, people use more of it, not less), he argues AI won't eliminate jobs — it will 10x demand. He introduces four levels of AI adoption: thought partner, assistant, teammate, and operating language — and argues the biggest leverage for any small business is moving from level two to level three.",
+    "takeaways": [
+      "Jevons Paradox: when AI makes work cheaper and faster, demand for that work goes up — not down",
+      "Four levels of AI: thought partner (ask it things) → assistant (do things for me) → teammate (own a job end-to-end) → operating language (coordinates the whole company)",
+      "Most businesses are at level one or two. The biggest ROI is the jump to level three",
+      "AI creates ROI on work that is expensive, slow, inconsistent, or capacity-constrained",
+      "Voice is the next user interface — typing will be the relic",
+      "The singularity isn't a moment in the future. We are in it right now",
+      "You don't have to build your own AI — find someone who already built what you need and plug it in"
+    ],
+    "who": "Business owners ready to move from experimenting with AI to actually deploying it",
+    "brief": "AI Pioneer and Co-Founder of Key Singularity Karl Kimball on the four levels of AI adoption and where the real leverage is.",
+    "youtube": "",
+    "onda_url": "",
+    "tags": ["AI", "automation", "Jevons-Paradox", "adoption", "innovation", "entrepreneurship", "ROI", "voice-AI", "singularity"]
+  },
+  {
+    "event": "Elevate Summit 2026",
+    "title": "Key Singularity: AI Operations in Practice",
+    "presenter": "Kristi Galus",
+    "photo": "img_summit/kristi-galus.jpg",
+    "level": "",
+    "format": "Presentation",
+    "synopsis": "Kristi Galus — operations expert with deep manufacturing and industrial experience — shows what AI implementation actually looks like on the ground. Using real client case studies (a realtor who went from voicemail to 24/7 AI-qualified leads, a civil engineering firm that doubled its proposal win rate from 30% to 60%, and a hiring platform that gives every candidate an interview instead of ghosting 1,597 of them), she demonstrates where AI creates measurable, quantifiable business impact.",
+    "takeaways": [
+      "A realtor switched from print mailers to a QR code + AI voice agent: calls answered 24/7, leads qualified instantly, calendar booked automatically",
+      "A civil engineering firm cut proposal backlog and raised win rate from 30% to 60% by letting AI draft proposals for human approval",
+      "AI hiring platforms give every candidate a real interview — ending the recruiter bias of only reading the top three resumes",
+      "The gap between doers and complainers is widening. The doers are already deploying this",
+      "Start with one process that is slow, expensive, or inconsistent — that is your first AI win",
+      "What would happen to your business if you suddenly had 150 waiting clients? Build the capacity before you need it"
+    ],
+    "who": "Operators and founders ready to implement AI in a specific workflow, not just talk about it",
+    "brief": "AI Operations Expert and Co-Founder of Key Singularity Kristi Galus on the real-world implementations that move the needle.",
+    "youtube": "",
+    "onda_url": "",
+    "tags": ["AI", "operations", "implementation", "automation", "hiring", "proposals", "voice-AI", "workflow", "ROI"]
   },
   {
     "event": "Elevate Summit 2026",
@@ -81,6 +147,7 @@
     "who": "Business owners who want a stronger brand presence",
     "brief": "Creative Director & Marketing Expert Whitney Smith on making your brand impossible to ignore.",
     "youtube": "",
+    "onda_url": "",
     "tags": ["marketing", "creative", "branding", "design"]
   },
   {
@@ -95,6 +162,7 @@
     "who": "Entrepreneurs looking to sharpen their visual and stage presence",
     "brief": "Cinematographer Taylor James Randall on the art of showing up powerfully on camera and on stage.",
     "youtube": "",
+    "onda_url": "",
     "tags": ["performance", "storytelling", "branding", "creativity"]
   },
   {
@@ -109,35 +177,8 @@
     "who": "Entrepreneurs seeking capital or looking to expand their reach",
     "brief": "Venture Capitalist and Founder of TEDx Harvard Square Maxime Andre on thinking and pitching at the highest level.",
     "youtube": "",
+    "onda_url": "",
     "tags": ["venture capital", "pitching", "entrepreneurship", "TEDx"]
-  },
-  {
-    "event": "Elevate Summit 2026",
-    "title": "Key Singularity: AI as a Business Multiplier",
-    "presenter": "Karl Kimball",
-    "photo": "img_summit/karl-kimball.jpg",
-    "level": "",
-    "format": "Presentation",
-    "synopsis": "Karl Kimball introduces Key Singularity's approach to embedding AI into business operations for exponential leverage.",
-    "takeaways": [],
-    "who": "Business owners ready to integrate AI into their workflow",
-    "brief": "AI Pioneer and Co-Founder of Key Singularity Karl Kimball on making AI work for your business.",
-    "youtube": "",
-    "tags": ["AI", "automation", "innovation", "entrepreneurship"]
-  },
-  {
-    "event": "Elevate Summit 2026",
-    "title": "Key Singularity: AI Operations in Practice",
-    "presenter": "Kristi Galus",
-    "photo": "img_summit/kristi-galus.jpg",
-    "level": "",
-    "format": "Presentation",
-    "synopsis": "Kristi Galus covers the operational side of deploying AI — what actually works when you move from theory to implementation.",
-    "takeaways": [],
-    "who": "Operators and founders implementing AI in their businesses",
-    "brief": "AI Operations Expert and Co-Founder of Key Singularity Kristi Galus on making AI implementation stick.",
-    "youtube": "",
-    "tags": ["AI", "operations", "implementation", "automation"]
   },
   {
     "event": "Elevate Summit 2026",
@@ -151,6 +192,7 @@
     "who": "High-performing entrepreneurs neglecting their health",
     "brief": "Founder of VitaRegen Medical Dr. Negin Rajaipour on why your health is your most valuable business asset.",
     "youtube": "",
+    "onda_url": "",
     "tags": ["health", "performance", "wellness", "entrepreneurship"]
   },
   {
@@ -165,6 +207,7 @@
     "who": "Entrepreneurs exploring alternative business models",
     "brief": "Co-Founder of HeroWorks Jason Funaro on scaling vending into a real business.",
     "youtube": "",
+    "onda_url": "",
     "tags": ["vending", "passive income", "scaling", "business model"]
   },
   {
@@ -179,6 +222,7 @@
     "who": "Entrepreneurs interested in vending business operations",
     "brief": "Co-Founder of HeroWorks Brenda Roh on the day-to-day of running and growing a vending business.",
     "youtube": "",
+    "onda_url": "",
     "tags": ["vending", "operations", "logistics", "growth"]
   }
 ]
