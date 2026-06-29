@@ -1,0 +1,567 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ONDA Archive — Elevate Summit 2026</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: #0f1117;
+    color: #e8eaf0;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    font-size: 15px;
+    line-height: 1.6;
+    min-height: 100vh;
+  }
+
+  /* ── Header ── */
+  header {
+    background: #1a1d27;
+    border-bottom: 1px solid #2a2d3a;
+    padding: 14px 24px;
+  }
+  .header-inner {
+    max-width: 1000px;
+    margin: 0 auto;
+    display: flex;
+    align-items: baseline;
+    gap: 16px;
+  }
+  .eyebrow { font-size: 11px; text-transform: uppercase; letter-spacing: .14em; color: #8890b8; margin-bottom: 2px; }
+  header h1 { font-size: 20px; font-weight: 700; color: #e8eaf0; }
+  .sub { font-size: 12px; color: #8898c0; margin-left: auto; white-space: nowrap; }
+
+  /* ── Two-panel layout ── */
+  .layout {
+    max-width: 1000px;
+    margin: 0 auto;
+    display: flex;
+    align-items: flex-start;
+    height: calc(100vh - 57px);
+  }
+
+  /* ── Left panel ── */
+  .left-panel {
+    width: 240px;
+    flex-shrink: 0;
+    border-right: 1px solid #2a2d3a;
+    height: 100%;
+    overflow-y: auto;
+    padding: 16px 14px 32px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+  .left-panel::-webkit-scrollbar { width: 3px; }
+  .left-panel::-webkit-scrollbar-track { background: transparent; }
+  .left-panel::-webkit-scrollbar-thumb { background: #2a2d3a; border-radius: 2px; }
+
+  /* ── Filter groups ── */
+  .filter-group { display: flex; flex-direction: column; gap: 7px; }
+  .filter-label {
+    font-size: 10px; text-transform: uppercase; letter-spacing: .12em;
+    color: #6870a0; font-weight: 600;
+  }
+  .filter-chips { display: flex; flex-wrap: wrap; gap: 4px; }
+  .filter-btn {
+    background: #1a1d27; border: 1px solid #2e3248; color: #c8cae8;
+    border-radius: 4px; padding: 3px 9px; font-size: 11px; cursor: pointer;
+    transition: background .12s, color .12s, border-color .12s;
+  }
+  .filter-btn:hover { background: #22253a; color: #e8eaff; }
+  .filter-btn.active { background: #0a2f2d; border-color: #00C9BC; color: #c0eeec; }
+
+  /* ── Tag list ── */
+  .tag-section { display: flex; flex-direction: column; gap: 7px; }
+  .tag-section-label {
+    font-size: 10px; text-transform: uppercase; letter-spacing: .12em;
+    color: #6870a0; font-weight: 600;
+  }
+  .tag-list { display: flex; flex-direction: column; gap: 2px; }
+
+  .tag-btn {
+    display: flex; align-items: center; justify-content: flex-start;
+    background: #141720; border: 1px solid #252838;
+    border-radius: 20px; padding: 4px 11px;
+    font-size: 12px; cursor: pointer; text-align: left; width: 100%;
+    transition: background .1s, color .1s, border-color .1s;
+  }
+  /* Group: active */
+  .tag-btn.active {
+    background: #082a28; border-color: #00C9BC; color: #d0f5f3; font-weight: 600;
+  }
+  .tag-btn.active:hover { background: #222650; }
+  /* Group: related (appear in filtered sessions) */
+  .tag-btn.related { color: #c0c8e8; border-color: #2e3550; }
+  .tag-btn.related:hover { background: #1a1d2e; color: #d8e0f8; border-color: #4a5490; }
+  /* Group: remaining (not in filtered sessions) */
+  .tag-btn.remaining { color: #7880a0; border-color: #1e2030; }
+  .tag-btn.remaining:hover { background: #161820; color: #9098b8; border-color: #2e3248; }
+
+  .tag-count { font-size: 10px; flex-shrink: 0; opacity: .75; }
+  .tag-count::before { content: " · "; }
+  .tag-divider { border: none; border-top: 1px solid #1e2030; margin: 6px 0; }
+
+  /* ── Right panel ── */
+  .right-panel {
+    flex: 1;
+    height: 100%;
+    overflow-y: auto;
+    padding: 10px 20px 48px;
+    min-width: 0;
+  }
+  .right-panel::-webkit-scrollbar { width: 3px; }
+  .right-panel::-webkit-scrollbar-track { background: transparent; }
+  .right-panel::-webkit-scrollbar-thumb { background: #2a2d3a; border-radius: 2px; }
+
+  #status { font-size: 12px; color: #8898c0; padding: 6px 0 8px; }
+
+  /* ── Session cards ── */
+  .sessions { display: flex; flex-direction: column; gap: 7px; }
+
+  .card { background: #1a1d27; border: 1px solid #252838; border-radius: 8px; overflow: hidden; transition: border-color .15s; }
+  .card.open { border-color: #00C9BC; }
+  .card-header { display: flex; align-items: flex-start; gap: 10px; padding: 13px 14px; cursor: pointer; -webkit-user-select: none; user-select: none; }
+  .card-header:hover .card-title { color: #eef0ff; }
+  .chevron { flex-shrink: 0; margin-top: 4px; width: 15px; height: 15px; color: #5060a0; transition: transform .18s; }
+  .card.open .chevron { transform: rotate(90deg); }
+  .card-meta { flex: 1; min-width: 0; }
+  .card-title { font-size: 14px; font-weight: 600; color: #d8ddf5; margin-bottom: 3px; transition: color .15s; }
+  .card-presenter { font-size: 12px; color: #8898b8; margin-bottom: 6px; }
+  .badges { display: flex; flex-wrap: wrap; gap: 4px; margin-bottom: 5px; }
+  .badge { font-size: 10px; font-weight: 600; border: 1px solid; border-radius: 3px; padding: 1px 6px; text-transform: uppercase; letter-spacing: .06em; }
+  .badge-event         { border-color: #4a6090; color: #90b0e0; }
+  .badge-essentials    { border-color: #3a7a3a; color: #90e090; }
+  .badge-advanced      { border-color: #7a3a3a; color: #f09090; }
+  .badge-entrepreneurs { border-color: #7a6a3a; color: #f0c070; }
+  .badge-format        { border-color: #3a4a7a; color: #80a0e0; }
+
+  /* ── Session card visual (thumbnail or avatar) ── */
+  .card-thumb {
+    flex-shrink: 0; width: 96px; height: 68px;
+    border-radius: 5px; object-fit: cover;
+    background: #1e2130; align-self: center;
+  }
+  .card-avatar {
+    flex-shrink: 0; width: 48px; height: 48px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 15px; font-weight: 700; color: rgba(255,255,255,.85);
+    align-self: center; letter-spacing: .03em;
+  }
+
+  .card-tags { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 2px; }
+  .card-tag {
+    font-size: 10px; border: 1px solid #252838; border-radius: 3px;
+    padding: 1px 6px; color: #6878a8; background: #141620; cursor: pointer;
+    transition: border-color .1s, color .1s, background .1s;
+  }
+  .card-tag:hover { border-color: #4a5ac0; color: #b0b8f0; background: #1a1d40; }
+  .card-tag.lit   { border-color: #00C9BC; color: #c8d0ff; background: #1a1d40; }
+
+  .card-body { display: none; padding: 0 14px 14px 38px; }
+  .card.open .card-body { display: block; }
+  .section-label { font-size: 10px; text-transform: uppercase; letter-spacing: .1em; color: #7b8ef0; margin: 13px 0 5px; }
+  .synopsis  { color: #c8d0e8; line-height: 1.65; font-size: 13px; }
+  .takeaways { list-style: none; }
+  .takeaways li { color: #b8c0d8; padding: 3px 0 3px 16px; position: relative; font-size: 13px; }
+  .takeaways li::before { content: "→"; position: absolute; left: 0; color: #7b8ef0; }
+  .who       { color: #b8c0d8; font-style: italic; font-size: 13px; }
+  .brief-row { margin-top: 10px; font-size: 12px; color: #8890a8; }
+  /* ── Action buttons (YouTube + ONDA download) ── */
+  .action-row {
+    display: flex; flex-wrap: wrap; gap: 12px; margin-top: 14px; align-items: center;
+    width: fit-content;
+  }
+
+  /* YouTube logo — image badge */
+  .yt-btn {
+    display: inline-block; text-decoration: none; line-height: 0;
+    transition: opacity .15s;
+  }
+  .yt-btn:hover { opacity: .8; }
+  .yt-btn img { display: block; height: 36px; width: auto; }
+
+  /* ONDA — image badge */
+  .onda-btn {
+    display: inline-block; text-decoration: none; line-height: 0;
+    transition: opacity .15s;
+  }
+  .onda-btn:hover { opacity: .85; }
+  .onda-btn.soon { cursor: default; pointer-events: none; }
+  .onda-btn img { display: block; height: 56px; width: auto; }
+
+.loading, .empty { text-align: center; padding: 4rem 2rem; color: #454860; font-size: 14px; }
+
+  .svg-defs { display: none; }
+
+  footer {
+    max-width: 1000px; margin: 0 auto;
+    text-align: center; padding: 2rem; font-size: 11px; color: #333550;
+    border-top: 1px solid #1a1d27;
+  }
+
+  /* ── Mobile: stack panels ── */
+  @media (max-width: 680px) {
+    .layout { flex-direction: column; height: auto; }
+    .left-panel {
+      width: 100%; height: auto; border-right: none;
+      border-bottom: 1px solid #2a2d3a; overflow: visible;
+      padding-bottom: 16px;
+    }
+    .right-panel { height: auto; padding: 10px 14px 48px; }
+    .tag-list { flex-direction: row; flex-wrap: wrap; gap: 4px; }
+    .tag-btn { width: auto; }
+    .tag-count { display: none; }
+    .tag-divider { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ONDA wave logo defined once, referenced by every card button -->
+<svg class="svg-defs" xmlns="http://www.w3.org/2000/svg">
+  <symbol id="onda-wave" viewBox="30 170 460 165" preserveAspectRatio="xMidYMid meet">
+    <line x1="47" y1="242" x2="47" y2="256.9" stroke="#fff" stroke-width="10" stroke-linecap="round"/>
+    <line x1="62" y1="230" x2="62" y2="264.9" stroke="#fff" stroke-width="10" stroke-linecap="round"/>
+    <line x1="78" y1="223" x2="78" y2="275.9" stroke="#fff" stroke-width="10" stroke-linecap="round"/>
+    <line x1="92" y1="216" x2="92" y2="284.9" stroke="#fff" stroke-width="10" stroke-linecap="round"/>
+    <line x1="107" y1="188" x2="107" y2="310.9" stroke="#fff" stroke-width="10" stroke-linecap="round"/>
+    <line x1="122" y1="199" x2="122" y2="298.9" stroke="#e4fffc" stroke-width="10" stroke-linecap="round"/>
+    <line x1="138" y1="176" x2="138" y2="324.9" stroke="#e4fffc" stroke-width="10" stroke-linecap="round"/>
+    <line x1="153" y1="203" x2="153" y2="295.9" stroke="#e4fffc" stroke-width="10" stroke-linecap="round"/>
+    <line x1="168" y1="231" x2="168" y2="256.9" stroke="#e4fffc" stroke-width="10" stroke-linecap="round"/>
+    <line x1="183" y1="193" x2="183" y2="306.9" stroke="#e4fffc" stroke-width="10" stroke-linecap="round"/>
+    <line x1="198" y1="181" x2="198" y2="319.9" stroke="#c2f1ff" stroke-width="10" stroke-linecap="round"/>
+    <line x1="212" y1="198" x2="212" y2="294.9" stroke="#c2f1ff" stroke-width="10" stroke-linecap="round"/>
+    <line x1="229" y1="194" x2="229" y2="299.9" stroke="#c2f1ff" stroke-width="10" stroke-linecap="round"/>
+    <line x1="245" y1="216" x2="245" y2="263.9" stroke="#c2f1ff" stroke-width="10" stroke-linecap="round"/>
+    <line x1="260" y1="209" x2="260" y2="283.9" stroke="#c2f1ff" stroke-width="10" stroke-linecap="round"/>
+    <line x1="275" y1="226" x2="275" y2="273.9" stroke="#a1dfff" stroke-width="10" stroke-linecap="round"/>
+    <line x1="290" y1="233" x2="290" y2="263.9" stroke="#a1dfff" stroke-width="10" stroke-linecap="round"/>
+    <line x1="304" y1="231" x2="304" y2="259.9" stroke="#a1dfff" stroke-width="10" stroke-linecap="round"/>
+    <line x1="319" y1="214" x2="319" y2="272.9" stroke="#a1dfff" stroke-width="10" stroke-linecap="round"/>
+    <line x1="333" y1="226" x2="333" y2="269.9" stroke="#a1dfff" stroke-width="10" stroke-linecap="round"/>
+    <line x1="348" y1="209" x2="348" y2="283.9" stroke="#a1dfff" stroke-width="10" stroke-linecap="round"/>
+    <line x1="364" y1="209" x2="364" y2="279.9" stroke="#a1dfff" stroke-width="10" stroke-linecap="round"/>
+    <line x1="380" y1="231" x2="380" y2="262.9" stroke="#a1dfff" stroke-width="10" stroke-linecap="round"/>
+    <line x1="395" y1="231" x2="395" y2="262.9" stroke="#a1dfff" stroke-width="10" stroke-linecap="round"/>
+    <line x1="411" y1="235" x2="411" y2="257.9" stroke="#a1dfff" stroke-width="10" stroke-linecap="round"/>
+    <line x1="426" y1="234" x2="426" y2="257.9" stroke="#a1dfff" stroke-width="10" stroke-linecap="round"/>
+    <line x1="441" y1="243" x2="441" y2="253.9" stroke="#a1dfff" stroke-width="10" stroke-linecap="round"/>
+    <line x1="456" y1="226" x2="456" y2="271.9" stroke="#a1dfff" stroke-width="10" stroke-linecap="round"/>
+    <line x1="472" y1="243" x2="472" y2="255.9" stroke="#a1dfff" stroke-width="10" stroke-linecap="round"/>
+  </symbol>
+</svg>
+
+<header>
+  <div class="header-inner">
+    <div>
+      <div class="eyebrow">ONDA Replay · Event Archive</div>
+      <h1>Elevate Summit 2026</h1>
+    </div>
+    <div class="sub">13 sessions &middot; June 27–28, 2026 &middot; Draft</div>
+  </div>
+</header>
+
+<div class="layout">
+
+  <aside class="left-panel">
+
+    <div class="filter-group">
+      <div class="filter-label">Event</div>
+      <div class="filter-chips">
+        <button type="button" class="filter-btn active" data-group="event" data-filter="all">All</button>
+        <button type="button" class="filter-btn" data-group="event" data-filter="Elevate Summit 2026">Elevate 2026</button>
+      </div>
+    </div>
+
+    <div class="filter-group">
+      <div class="filter-label">Format</div>
+      <div class="filter-chips">
+        <button type="button" class="filter-btn active" data-group="level" data-filter="all">All</button>
+        <button type="button" class="filter-btn" data-group="level" data-filter="Keynote">Keynote</button>
+        <button type="button" class="filter-btn" data-group="level" data-filter="Presentation">Presentation</button>
+      </div>
+    </div>
+
+    <div class="tag-section">
+      <div class="tag-section-label">Topics</div>
+      <div class="tag-list" id="tag-list">
+        <!-- populated after DB loads -->
+      </div>
+    </div>
+
+  </aside>
+
+  <main class="right-panel">
+    <div id="status"></div>
+    <div class="sessions" id="sessions"><div class="loading">Loading archive…</div></div>
+  </main>
+
+</div>
+
+<footer>ONDA Replay &middot; ondareplay.com &middot; Powered by Onda Archive</footer>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.10.2/sql-wasm.js"></script>
+<script>
+const SQLJS_WASM = 'https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.10.2/sql-wasm.wasm';
+const DB_URL = '../archive.db';
+
+const ytIcon = '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M23.5 6.2a3 3 0 0 0-2.1-2.1C19.5 3.5 12 3.5 12 3.5s-7.5 0-9.4.6A3 3 0 0 0 .5 6.2C0 8.1 0 12 0 12s0 3.9.5 5.8a3 3 0 0 0 2.1 2.1c1.9.6 9.4.6 9.4.6s7.5 0 9.4-.6a3 3 0 0 0 2.1-2.1C24 15.9 24 12 24 12s0-3.9-.5-5.8zM9.8 15.5V8.5l6.2 3.5-6.2 3.5z"/></svg>';
+
+// ── Presenter visual helpers ──────────────────────────────────────────────────
+const _avatarPalette = ['#3a5a8a','#5a3a8a','#3a7a5a','#7a4a3a','#6a3a6a','#3a6a7a','#8a5a3a'];
+function avatarColor(name) {
+  let h = 0;
+  for (let i = 0; i < name.length; i++) h = (h * 31 + name.charCodeAt(i)) | 0;
+  return _avatarPalette[Math.abs(h) % _avatarPalette.length];
+}
+function getInitials(name) {
+  return name.split(/[\s,]+/).filter(Boolean).slice(0, 2).map(w => w[0].toUpperCase()).join('');
+}
+// Called by onerror on thumbnail images — swaps failed img for initials avatar
+window._thumbErr = function(img) {
+  const div = document.createElement('div');
+  div.className = 'card-avatar';
+  div.style.background = avatarColor(img.dataset.presenter);
+  div.textContent = getInitials(img.dataset.presenter);
+  img.parentNode.replaceChild(div, img);
+};
+
+const levelClass = l => {
+  const n = (l || '').toLowerCase();
+  if (n === 'advanced')      return 'badge-advanced';
+  if (n === 'entrepreneurs') return 'badge-entrepreneurs';
+  return 'badge-essentials';
+};
+
+// ── State ─────────────────────────────────────────────────────────────────────
+const state = { event: 'all', level: 'all', tags: new Set() };
+let db = null;
+let totalCount = 0;
+let allTags = []; // [{tag, n}] all tags ranked by total cross-session frequency
+
+// ── Query ─────────────────────────────────────────────────────────────────────
+function runQuery() {
+  if (!db) return [];
+  const conditions = [];
+  const params = [];
+
+  if (state.event !== 'all') { conditions.push('s.event = ?'); params.push(state.event); }
+  if (state.level !== 'all') { conditions.push('s.level = ?'); params.push(state.level); }
+
+  // AND intersection: every active tag must be present in the session
+  state.tags.forEach(t => {
+    conditions.push('EXISTS (SELECT 1 FROM json_each(s.tags) WHERE value = ?)');
+    params.push(t);
+  });
+
+  const where = conditions.length ? 'WHERE ' + conditions.join(' AND ') : '';
+  const sql = `SELECT * FROM sessions s ${where} ORDER BY s.event DESC, s.id ASC`;
+
+  try {
+    const result = db.exec(sql, params);
+    if (!result.length) return [];
+    const cols = result[0].columns;
+    return result[0].values.map(vals => {
+      const obj = {};
+      cols.forEach((col, i) => { obj[col] = vals[i]; });
+      return obj;
+    });
+  } catch (e) {
+    console.warn('Query error:', e.message);
+    return [];
+  }
+}
+
+// ── Tag panel — three-group render ───────────────────────────────────────────
+function renderTags(filteredRows) {
+  // Collect tags that appear in the currently visible sessions
+  const visibleSet = new Set();
+  filteredRows.forEach(row => {
+    JSON.parse(row.tags || '[]').forEach(t => visibleSet.add(t));
+  });
+
+  const listEl = document.getElementById('tag-list');
+  listEl.innerHTML = '';
+
+  // Group 1 — Active (selected by user, pinned to top)
+  const active = [...state.tags];
+  active.forEach(t => listEl.appendChild(makeTagBtn(t, 'active', null)));
+
+  // Group 2 — Related (in visible sessions, not active)
+  const related = allTags.filter(({tag}) => !state.tags.has(tag) && visibleSet.has(tag));
+  if (active.length > 0 && related.length > 0) listEl.appendChild(makeDivider());
+  related.forEach(({tag, n}) => listEl.appendChild(makeTagBtn(tag, 'related', n)));
+
+  // Group 3 — Remaining (not in visible sessions, not active)
+  const remaining = allTags.filter(({tag}) => !state.tags.has(tag) && !visibleSet.has(tag));
+  if ((active.length > 0 || related.length > 0) && remaining.length > 0) listEl.appendChild(makeDivider());
+  remaining.forEach(({tag, n}) => listEl.appendChild(makeTagBtn(tag, 'remaining', n)));
+}
+
+function makeTagBtn(tag, group, count) {
+  const btn = document.createElement('button');
+  btn.type = 'button';
+  btn.className = `tag-btn ${group}`;
+  btn.dataset.tag = tag;
+  btn.innerHTML = tag + (count !== null ? `<span class="tag-count">${count}</span>` : '');
+  btn.addEventListener('click', () => {
+    if (state.tags.has(tag)) state.tags.delete(tag); else state.tags.add(tag);
+    render();
+  });
+  return btn;
+}
+
+function makeDivider() {
+  const hr = document.createElement('hr');
+  hr.className = 'tag-divider';
+  return hr;
+}
+
+// ── Render ────────────────────────────────────────────────────────────────────
+function render() {
+  const rows = runQuery();
+  const filtered = state.tags.size > 0 || state.event !== 'all' || state.level !== 'all';
+  document.getElementById('status').textContent =
+    filtered ? `${rows.length} of ${totalCount} sessions` : `${totalCount} sessions`;
+
+  renderTags(rows);
+
+  const container = document.getElementById('sessions');
+  if (rows.length === 0) {
+    container.innerHTML = '<div class="empty">No sessions match. Try removing a topic.</div>';
+    return;
+  }
+
+  container.innerHTML = '';
+  rows.forEach(row => {
+    const takeaways = JSON.parse(row.takeaways || '[]');
+    const tags      = JSON.parse(row.tags || '[]');
+
+    // YouTube — official logo image, links to video
+    const ytBtn = row.youtube
+      ? `<a class="yt-btn" href="https://www.youtube.com/watch?v=${row.youtube}" target="_blank" rel="noopener" aria-label="Watch on YouTube">
+           <img src="../img/yt-logo.svg" alt="Watch on YouTube">
+         </a>`
+      : '';
+
+    // ONDA — compound badge image (always shown; live link when onda_url exists)
+    const ondaBtn = row.onda_url
+      ? `<a class="onda-btn" href="${row.onda_url}" target="_blank" rel="noopener" title="Download .onda bundle">
+           <img src="../img/onda-download.png" alt="Download ONDA">
+         </a>`
+      : '';
+
+    const actionRow = (ytBtn || ondaBtn)
+      ? `<div class="action-row">${ytBtn}${ondaBtn}</div>`
+      : '';
+
+    const tagChips = tags.map(t =>
+      `<span class="card-tag${state.tags.has(t) ? ' lit' : ''}" data-tag="${t}">${t}</span>`
+    ).join('');
+
+    const visual = row.photo
+      ? `<img class="card-avatar" loading="lazy" alt="${row.presenter}"
+             src="../${row.photo}" style="width:56px;height:56px;border-radius:50%;object-fit:cover;"
+             data-presenter="${row.presenter.replace(/"/g,'&quot;')}"
+             onerror="window._thumbErr(this)">`
+      : row.youtube
+      ? `<img class="card-thumb" loading="lazy" alt=""
+             src="https://img.youtube.com/vi/${row.youtube}/hqdefault.jpg"
+             data-presenter="${row.presenter.replace(/"/g,'&quot;')}"
+             onerror="window._thumbErr(this)">`
+      : `<div class="card-avatar" style="background:${avatarColor(row.presenter)}">${getInitials(row.presenter)}</div>`;
+
+    const card = document.createElement('div');
+    card.className = 'card';
+    card.innerHTML =
+      `<div class="card-header">
+        <svg class="chevron" viewBox="0 0 20 20" fill="currentColor">
+          <path fill-rule="evenodd" d="M7.293 4.293a1 1 0 011.414 0L14 9.586l-5.293 5.293a1 1 0 01-1.414-1.414L11.586 10 6.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"/>
+        </svg>
+        ${visual}
+        <div class="card-meta">
+          <div class="card-title">${row.title}</div>
+          <div class="card-presenter">${row.linkedin
+            ? `<a href="${row.linkedin}" target="_blank" rel="noopener" style="color:inherit;text-decoration:underline;">${row.presenter}</a>`
+            : row.presenter}</div>
+          <div class="badges">
+            <span class="badge badge-event">${row.event}</span>
+            <span class="badge ${levelClass(row.level)}">${row.level}</span>
+            <span class="badge badge-format">${row.format}</span>
+          </div>
+          <div class="card-tags">${tagChips}</div>
+        </div>
+      </div>
+      <div class="card-body">
+        <div class="section-label">Synopsis</div>
+        <div class="synopsis">${row.synopsis}</div>
+        <div class="section-label">Key Takeaways</div>
+        <ul class="takeaways">${takeaways.map(t => `<li>${t}</li>`).join('')}</ul>
+        <div class="section-label">Best For</div>
+        <div class="who">${row.who}</div>
+        <div class="brief-row">${row.brief}</div>
+        ${actionRow}
+      </div>`;
+
+    card.querySelector('.card-header').addEventListener('click',
+      () => card.classList.toggle('open'));
+
+    card.querySelectorAll('.card-tag').forEach(chip => {
+      chip.addEventListener('click', e => {
+        e.stopPropagation();
+        const t = chip.dataset.tag;
+        if (state.tags.has(t)) state.tags.delete(t); else state.tags.add(t);
+        render();
+      });
+    });
+
+    container.appendChild(card);
+  });
+}
+
+// ── Filter buttons ────────────────────────────────────────────────────────────
+document.querySelectorAll('.filter-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const g = btn.dataset.group;
+    document.querySelectorAll(`.filter-btn[data-group="${g}"]`)
+      .forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    state[g] = btn.dataset.filter;
+    render();
+  });
+});
+
+// ── Boot ──────────────────────────────────────────────────────────────────────
+(async () => {
+  try {
+    const SQL  = await initSqlJs({ locateFile: () => SQLJS_WASM });
+    const resp = await fetch(DB_URL);
+    if (!resp.ok) throw new Error(`Failed to fetch ${DB_URL}: ${resp.status}`);
+    const buf  = await resp.arrayBuffer();
+    db = new SQL.Database(new Uint8Array(buf));
+
+    totalCount = db.exec('SELECT COUNT(*) FROM sessions')[0].values[0][0];
+
+    // Load all tags ranked by cross-session frequency — used for three-group rendering
+    const tagRows = db.exec(`
+      SELECT j.value AS tag, COUNT(*) AS n
+      FROM sessions, json_each(sessions.tags) j
+      GROUP BY j.value
+      ORDER BY n DESC
+    `);
+    allTags = tagRows.length ? tagRows[0].values.map(([tag, n]) => ({ tag, n })) : [];
+
+    render();
+  } catch (err) {
+    document.getElementById('sessions').innerHTML =
+      `<div class="empty">Failed to load archive: ${err.message}</div>`;
+    console.error(err);
+  }
+})();
+</script>
+</body>
+</html>
