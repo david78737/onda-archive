@@ -175,7 +175,7 @@
   /* ── Action buttons (YouTube + ONDA download) ── */
   .action-row {
     display: flex; flex-wrap: wrap; gap: 12px; margin-top: 14px; align-items: center;
-    width: fit-content;
+    width: 100%; overflow: hidden;
   }
 
   /* YouTube logo — image badge */
@@ -193,7 +193,7 @@
   }
   .onda-btn:hover { opacity: .85; }
   .onda-btn.soon { cursor: default; pointer-events: none; }
-  .onda-btn img { display: block; height: 56px; width: auto; }
+  .onda-btn img { display: block; height: 48px; width: auto; max-width: 100%; }
 
 .loading, .empty { text-align: center; padding: 4rem 2rem; color: #454860; font-size: 14px; }
 
