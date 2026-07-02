@@ -1,0 +1,579 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ONDA Nile — Knowledge you can navigate.</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: #F0F0F0;
+    color: #333333;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    font-size: 15px;
+    line-height: 1.6;
+    min-height: 100vh;
+  }
+
+  /* ── Header ── */
+  header {
+    background: #009688;
+    padding: 14px 24px;
+  }
+  .header-inner {
+    max-width: 1000px;
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+  .header-wordmark {
+    font-size: 20px;
+    font-weight: 700;
+    color: #fff;
+    letter-spacing: .04em;
+  }
+  .header-tagline {
+    font-size: 12px;
+    color: rgba(255,255,255,0.75);
+    margin-left: 4px;
+  }
+  .header-right {
+    margin-left: auto;
+    font-size: 11px;
+    color: rgba(255,255,255,0.7);
+    white-space: nowrap;
+  }
+
+  /* ── Search bar ── */
+  .search-bar {
+    background: #D4EDEB;
+    border-bottom: 2px solid #009688;
+    padding: 10px 24px;
+    box-shadow: 0 2px 6px rgba(0,150,136,0.12);
+  }
+  .search-bar-inner {
+    max-width: 1000px;
+    margin: 0 auto;
+  }
+  .search-bar input {
+    width: 100%;
+    border: 1px solid #C0C0C0;
+    background: #FFFFFF;
+    color: #333333;
+    font-size: 14px;
+    border-radius: 6px;
+    padding: 8px 12px;
+    outline: none;
+  }
+  .search-bar input:focus { border-color: #009688; }
+  .search-bar input::placeholder { color: #AAAAAA; }
+
+  /* ── Two-panel layout ── */
+  .layout {
+    max-width: 1000px;
+    margin: 0 auto;
+    display: flex;
+    align-items: flex-start;
+    min-height: calc(100vh - 120px);
+  }
+
+  /* ── Left panel ── */
+  .left-panel {
+    width: 160px;
+    flex-shrink: 0;
+    border-right: 1px solid #D0D0D0;
+    min-height: calc(100vh - 120px);
+    padding: 14px 10px 32px;
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+    position: sticky;
+    top: 0;
+    max-height: calc(100vh - 120px);
+    overflow-y: auto;
+  }
+  .left-panel::-webkit-scrollbar { width: 3px; }
+  .left-panel::-webkit-scrollbar-thumb { background: #C0C0C0; border-radius: 2px; }
+
+  /* ── Scrollable source container ── */
+  .source-scroll {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    max-height: 220px;
+    overflow-y: auto;
+    padding-right: 2px;
+  }
+  .source-scroll::-webkit-scrollbar { width: 3px; }
+  .source-scroll::-webkit-scrollbar-thumb { background: #C0C0C0; border-radius: 2px; }
+
+  /* ── Filter groups ── */
+  .filter-group { display: flex; flex-direction: column; gap: 5px; }
+  .filter-label {
+    font-size: 9px; text-transform: uppercase; letter-spacing: .1em;
+    color: #888888; font-weight: 600;
+  }
+  .filter-chips { display: flex; flex-direction: column; gap: 3px; }
+  .filter-btn {
+    background: #FFFFFF;
+    border: 1px solid #C8C8C8;
+    color: #555555;
+    border-radius: 4px;
+    padding: 6px 8px;
+    font-size: 11px;
+    cursor: pointer;
+    text-align: left;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    transition: background .12s, color .12s, border-color .12s;
+    min-height: 34px;
+  }
+  .filter-btn:hover { background: #F8F8F8; border-color: #009688; color: #009688; }
+  .filter-btn.active { background: #009688; border-color: #009688; color: #fff; }
+
+  /* ── Tag list ── */
+  .tag-section { display: flex; flex-direction: column; gap: 5px; }
+  .tag-section-label {
+    font-size: 9px; text-transform: uppercase; letter-spacing: .1em;
+    color: #888888; font-weight: 600;
+  }
+  .tag-list { display: flex; flex-direction: column; gap: 3px; }
+
+  .tag-btn {
+    display: flex; align-items: center; justify-content: space-between;
+    background: #FFFFFF;
+    border: 1px solid #D0D0D0;
+    border-radius: 4px; padding: 6px 8px;
+    font-size: 11px; cursor: pointer; text-align: left; width: 100%;
+    transition: background .1s, color .1s, border-color .1s;
+    white-space: nowrap; overflow: hidden; min-height: 34px;
+    color: #555555;
+  }
+  .tag-btn span:first-child { overflow: hidden; text-overflow: ellipsis; min-width: 0; }
+  .tag-btn.active { background: #009688; border-color: #009688; color: #fff; font-weight: 600; }
+  .tag-btn.related { color: #333333; border-color: #B0B0B0; }
+  .tag-btn.related:hover { background: #F0FAF9; border-color: #009688; color: #009688; }
+  .tag-btn.remaining { color: #AAAAAA; border-color: #E0E0E0; }
+  .tag-btn.remaining:hover { background: #F8F8F8; color: #666666; }
+  .tag-count { font-size: 10px; flex-shrink: 0; opacity: .6; margin-left: 3px; }
+  .tag-divider { border: none; border-top: 1px solid #E0E0E0; margin: 4px 0; }
+
+  /* ── Right panel ── */
+  .right-panel {
+    flex: 1;
+    padding: 12px 20px 48px;
+    min-width: 0;
+  }
+
+  #status { font-size: 12px; color: #888888; padding: 4px 0 10px; }
+
+  /* ── Session cards ── */
+  .sessions { display: flex; flex-direction: column; gap: 8px; }
+
+  .card {
+    background: #FFFFFF;
+    border: 1px solid #DCDCDC;
+    border-radius: 8px;
+    overflow: hidden;
+    transition: border-color .15s, box-shadow .15s;
+  }
+  .card:hover { border-color: #009688; box-shadow: 0 1px 4px rgba(0,150,136,0.12); }
+  .card.open { border-color: #009688; }
+
+  .card-header {
+    display: flex; align-items: flex-start; gap: 12px;
+    padding: 14px 16px; cursor: pointer;
+    -webkit-user-select: none; user-select: none;
+  }
+  .chevron {
+    flex-shrink: 0; margin-top: 4px; width: 14px; height: 14px;
+    color: #AAAAAA; transition: transform .18s;
+  }
+  .card.open .chevron { transform: rotate(90deg); }
+
+  .card-avatar {
+    flex-shrink: 0; width: 48px; height: 48px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 15px; font-weight: 700; color: rgba(255,255,255,.9);
+    align-self: center; background: #3a5a8a;
+  }
+  .card-avatar-photo { object-fit: cover; }
+  .card-thumb {
+    flex-shrink: 0; width: 96px; height: 60px;
+    border-radius: 5px; object-fit: cover;
+    background: #E8E8E8; align-self: center;
+  }
+
+  .card-meta { flex: 1; min-width: 0; }
+  .card-title { font-size: 14px; font-weight: 700; color: #222222; margin-bottom: 2px; }
+  .card-presenter { font-size: 12px; color: #888888; margin-bottom: 5px; }
+
+  .badges { display: flex; flex-wrap: wrap; gap: 4px; margin-bottom: 5px; }
+  .badge {
+    font-size: 10px; font-weight: 600; border: 1px solid;
+    border-radius: 3px; padding: 1px 6px;
+    text-transform: uppercase; letter-spacing: .06em;
+  }
+  .badge-source { border-color: #009688; color: #009688; }
+
+  .card-tags { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 2px; }
+  .card-tag {
+    font-size: 10px; border: 1px solid #E0E0E0; border-radius: 3px;
+    padding: 1px 6px; color: #888888; background: #F8F8F8; cursor: pointer;
+    transition: all .1s;
+  }
+  .card-tag:hover { border-color: #009688; color: #009688; background: #F0FAF9; }
+  .card-tag.lit { border-color: #009688; color: #009688; background: #E8F8F6; font-weight: 600; }
+
+  /* ── Card body ── */
+  .card-body { display: none; padding: 0 16px 16px 42px; }
+  .card.open .card-body { display: block; }
+
+  .section-label {
+    font-size: 10px; text-transform: uppercase; letter-spacing: .1em;
+    color: #009688; margin: 12px 0 4px; font-weight: 600;
+  }
+  .synopsis { color: #444444; line-height: 1.65; font-size: 13px; }
+  .takeaways { list-style: none; }
+  .takeaways li {
+    color: #555555; padding: 3px 0 3px 18px;
+    position: relative; font-size: 13px;
+  }
+  .takeaways li::before { content: "→"; position: absolute; left: 0; color: #009688; }
+  .who { color: #555555; font-style: italic; font-size: 13px; }
+  .brief-row { margin-top: 8px; font-size: 12px; color: #888888; }
+
+  /* ── Action row ── */
+  .action-row {
+    display: flex; flex-wrap: wrap; gap: 12px;
+    margin-top: 16px; align-items: center;
+  }
+
+  .yt-btn { display: inline-block; text-decoration: none; line-height: 0; transition: opacity .15s; }
+  .yt-btn:hover { opacity: .8; }
+  .yt-btn img { display: block; height: 32px; width: auto; }
+
+  .onda-btn { display: inline-block; text-decoration: none; line-height: 0; transition: opacity .15s; }
+  .onda-btn:hover { opacity: .85; }
+  .onda-btn img { display: block; height: 44px; width: auto; }
+
+  /* ── Buy button (paid content) ── */
+  .buy-btn {
+    display: inline-flex; align-items: center; gap: 8px;
+    background: #009688; color: #fff;
+    border: none; border-radius: 6px;
+    padding: 9px 16px; font-size: 13px; font-weight: 700;
+    cursor: pointer; text-decoration: none;
+    transition: background .15s;
+  }
+  .buy-btn:hover { background: #00796B; }
+  .buy-price {
+    background: rgba(255,255,255,0.2);
+    border-radius: 4px; padding: 2px 7px;
+    font-size: 12px; font-weight: 600;
+  }
+  .buy-soon {
+    display: inline-flex; align-items: center;
+    background: #F0F0F0; color: #AAAAAA;
+    border: 1px solid #DCDCDC; border-radius: 6px;
+    padding: 9px 16px; font-size: 12px;
+  }
+
+  .loading, .empty {
+    text-align: center; padding: 4rem 2rem;
+    color: #AAAAAA; font-size: 14px;
+  }
+
+  footer {
+    max-width: 1000px; margin: 0 auto;
+    text-align: center; padding: 2rem; font-size: 11px; color: #AAAAAA;
+    border-top: 1px solid #D0D0D0;
+  }
+  footer a { color: #009688; text-decoration: none; }
+  .header-link { color: rgba(255,255,255,0.9); text-decoration: underline; }
+
+  @media (max-width: 480px) {
+    .left-panel { width: 110px; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-inner">
+    <div>
+      <div class="header-wordmark">ONDA Nile</div>
+      <div class="header-tagline">Stop googling. Start navigating.</div>
+    </div>
+    <div class="header-right">Powered by <a href="https://ondareplay.com" target="_blank" rel="noopener" class="header-link">ONDA Replay</a></div>
+  </div>
+</header>
+
+<div class="search-bar">
+  <div class="search-bar-inner">
+    <input type="search" id="search-input" placeholder="Search by word, topic, or speaker…" autocomplete="off">
+  </div>
+</div>
+
+<div class="layout">
+
+  <aside class="left-panel">
+
+    <div class="filter-group">
+      <div class="filter-label">Source</div>
+      <div class="source-scroll" id="source-filters">
+        <button type="button" class="filter-btn active" data-group="org" data-filter="all">All</button>
+      </div>
+    </div>
+
+    <div class="tag-section">
+      <div class="tag-section-label">Topics</div>
+      <div class="tag-list" id="tag-list"></div>
+    </div>
+
+  </aside>
+
+  <main class="right-panel">
+    <div id="status"></div>
+    <div class="sessions" id="sessions"><div class="loading">Loading…</div></div>
+  </main>
+
+</div>
+
+<footer>
+  ONDA Nile &middot; <a href="https://ondareplay.com">ondareplay.com</a> &middot; Knowledge you can navigate.
+</footer>
+
+<script>
+// ── Data + state ──────────────────────────────────────────────────────────────
+let allSessions = [];
+let allTags = [];
+const state = { org: 'all', tags: new Set(), query: '' };
+
+// ── Helpers ───────────────────────────────────────────────────────────────────
+const _palette = ['#3a5a8a','#5a3a8a','#3a7a5a','#7a4a3a','#6a3a6a','#3a6a7a','#8a5a3a','#2a6a4a'];
+function avatarColor(name) {
+  let h = 0;
+  for (let i = 0; i < name.length; i++) h = (h * 31 + name.charCodeAt(i)) | 0;
+  return _palette[Math.abs(h) % _palette.length];
+}
+function initials(name) {
+  return name.split(/[\s,]+/).filter(Boolean).slice(0, 2).map(w => w[0].toUpperCase()).join('');
+}
+window._thumbErr = function(img) {
+  const div = document.createElement('div');
+  div.className = 'card-avatar';
+  div.style.background = avatarColor(img.dataset.name);
+  div.textContent = initials(img.dataset.name);
+  img.parentNode.replaceChild(div, img);
+};
+
+function openOnda(event, url) {
+  const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+  if (!isIOS) return true;
+  event.preventDefault();
+  window.location.href = 'ondareplay://open?url=' + encodeURIComponent(url);
+  setTimeout(() => { window.location.href = url; }, 1500);
+  return false;
+}
+
+// ── Filter ────────────────────────────────────────────────────────────────────
+function filtered() {
+  return allSessions.filter(s => {
+    if (state.org !== 'all' && s.org !== state.org) return false;
+    if (state.tags.size > 0 && ![...state.tags].every(t => s.tags.includes(t))) return false;
+    if (state.query) {
+      const q = state.query.toLowerCase();
+      const hay = [s.title, s.presenter, s.org, s.source, s.synopsis, ...s.tags].join(' ').toLowerCase();
+      if (!hay.includes(q)) return false;
+    }
+    return true;
+  });
+}
+
+// ── Source filter buttons ─────────────────────────────────────────────────────
+function buildSourceFilters() {
+  const orgs = [...new Set(allSessions.map(s => s.org))].sort();
+  const container = document.getElementById('source-filters');
+  container.innerHTML = '<button type="button" class="filter-btn active" data-group="org" data-filter="all">All</button>';
+  orgs.forEach(org => {
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'filter-btn';
+    btn.dataset.group = 'org';
+    btn.dataset.filter = org;
+    btn.textContent = org;
+    container.appendChild(btn);
+  });
+  container.querySelectorAll('.filter-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      container.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      state.org = btn.dataset.filter;
+      render();
+    });
+  });
+}
+
+// ── Tag panel ─────────────────────────────────────────────────────────────────
+function renderTags(rows) {
+  const visibleSet = new Set(rows.flatMap(s => s.tags));
+  const listEl = document.getElementById('tag-list');
+  listEl.innerHTML = '';
+
+  const active = [...state.tags];
+  active.forEach(t => listEl.appendChild(makeTagBtn(t, 'active', null)));
+
+  const related = allTags.filter(({tag}) => !state.tags.has(tag) && visibleSet.has(tag));
+  if (active.length && related.length) listEl.appendChild(divider());
+  related.forEach(({tag, n}) => listEl.appendChild(makeTagBtn(tag, 'related', n)));
+
+  const remaining = allTags.filter(({tag}) => !state.tags.has(tag) && !visibleSet.has(tag));
+  if ((active.length || related.length) && remaining.length) listEl.appendChild(divider());
+  remaining.forEach(({tag, n}) => listEl.appendChild(makeTagBtn(tag, 'remaining', n)));
+}
+
+function makeTagBtn(tag, group, count) {
+  const btn = document.createElement('button');
+  btn.type = 'button';
+  btn.className = `tag-btn ${group}`;
+  btn.dataset.tag = tag;
+  btn.innerHTML = `<span>${tag}</span>` + (count !== null ? `<span class="tag-count">${count}</span>` : '');
+  btn.addEventListener('click', () => {
+    if (state.tags.has(tag)) state.tags.delete(tag); else state.tags.add(tag);
+    render();
+  });
+  return btn;
+}
+
+function divider() {
+  const hr = document.createElement('hr');
+  hr.className = 'tag-divider';
+  return hr;
+}
+
+// ── Render ────────────────────────────────────────────────────────────────────
+function render() {
+  const rows = filtered();
+  const isFiltered = state.org !== 'all' || state.tags.size > 0 || state.query;
+  document.getElementById('status').textContent =
+    isFiltered ? `${rows.length} of ${allSessions.length} items` : `${allSessions.length} items`;
+
+  renderTags(rows);
+
+  const container = document.getElementById('sessions');
+  if (!rows.length) {
+    container.innerHTML = '<div class="empty">No results. Try a different topic or search term.</div>';
+    return;
+  }
+
+  container.innerHTML = '';
+  rows.forEach(s => {
+    const tagChips = s.tags.map(t =>
+      `<span class="card-tag${state.tags.has(t) ? ' lit' : ''}" data-tag="${t}">${t}</span>`
+    ).join('');
+
+    const bgColor = avatarColor(s.presenter);
+    const visual = s.photo
+      ? `<img class="card-avatar card-avatar-photo" loading="lazy" src="${s.photo}" alt="${s.presenter}"
+             data-name="${s.presenter}" onerror="window._thumbErr(this)">`
+      : s.youtube
+      ? `<img class="card-thumb" loading="lazy" alt=""
+             src="https://img.youtube.com/vi/${s.youtube}/hqdefault.jpg"
+             data-name="${s.presenter}" onerror="window._thumbErr(this)">`
+      : `<div class="card-avatar" data-bg="${bgColor}">${initials(s.presenter)}</div>`;
+
+    const ytBtn = s.youtube
+      ? `<a class="yt-btn" href="https://www.youtube.com/watch?v=${s.youtube}" target="_blank" rel="noopener" aria-label="Watch on YouTube">
+           <img src="../img/yt-logo.svg" alt="Watch on YouTube">
+         </a>`
+      : '';
+
+    const ondaBtn = s.onda_url
+      ? `<a class="onda-btn" href="${s.onda_url}" target="_blank" rel="noopener"
+             onclick="return openOnda(event,'${s.onda_url}')" title="Download .onda">
+           <img src="../img/onda-download.png" alt="Download ONDA">
+         </a>`
+      : `<span class="buy-soon">$4.99 — Coming to ONDA Replay</span>`;
+
+    const actionRow = `<div class="action-row">${ytBtn}${ondaBtn}</div>`;
+
+    const card = document.createElement('div');
+    card.className = 'card';
+    card.innerHTML =
+      `<div class="card-header">
+        <svg class="chevron" viewBox="0 0 20 20" fill="currentColor">
+          <path fill-rule="evenodd" d="M7.293 4.293a1 1 0 011.414 0L14 9.586l-5.293 5.293a1 1 0 01-1.414-1.414L11.586 10 6.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"/>
+        </svg>
+        ${visual}
+        <div class="card-meta">
+          <div class="card-title">${s.title}</div>
+          <div class="card-presenter">${s.presenter}</div>
+          <div class="badges">
+            <span class="badge badge-source">${s.source}</span>
+          </div>
+          <div class="card-tags">${tagChips}</div>
+        </div>
+      </div>
+      <div class="card-body">
+        <div class="section-label">Synopsis</div>
+        <div class="synopsis">${s.synopsis}</div>
+        <div class="section-label">Key Takeaways</div>
+        <ul class="takeaways">${s.takeaways.map(t => `<li>${t}</li>`).join('')}</ul>
+        <div class="section-label">Best For</div>
+        <div class="who">${s.who}</div>
+        <div class="brief-row">${s.brief}</div>
+        ${actionRow}
+      </div>`;
+
+    card.querySelector('.card-header').addEventListener('click', () => card.classList.toggle('open'));
+    card.querySelectorAll('.card-tag').forEach(chip => {
+      chip.addEventListener('click', e => {
+        e.stopPropagation();
+        const t = chip.dataset.tag;
+        if (state.tags.has(t)) state.tags.delete(t); else state.tags.add(t);
+        render();
+      });
+    });
+
+      // Apply avatar background color via JS after insert (avoids inline style)
+    card.querySelectorAll('.card-avatar[data-bg]').forEach(el => {
+      el.style.background = el.dataset.bg;
+    });
+
+    container.appendChild(card);
+  });
+}
+
+// ── Search ────────────────────────────────────────────────────────────────────
+document.getElementById('search-input').addEventListener('input', e => {
+  state.query = e.target.value.trim();
+  render();
+});
+
+// ── Boot ──────────────────────────────────────────────────────────────────────
+(async () => {
+  try {
+    const resp = await fetch('sessions.json');
+    if (!resp.ok) throw new Error(`sessions.json: ${resp.status}`);
+    allSessions = await resp.json();
+
+    // Build ranked tag list
+    const tagCount = {};
+    allSessions.forEach(s => s.tags.forEach(t => { tagCount[t] = (tagCount[t] || 0) + 1; }));
+    allTags = Object.entries(tagCount).sort((a,b) => b[1]-a[1]).map(([tag,n]) => ({tag,n}));
+
+    buildSourceFilters();
+    render();
+  } catch (err) {
+    document.getElementById('sessions').innerHTML =
+      `<div class="empty">Failed to load: ${err.message}</div>`;
+  }
+})();
+</script>
+</body>
+</html>
