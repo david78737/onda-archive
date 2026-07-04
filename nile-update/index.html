@@ -1,0 +1,212 @@
+<style>
+  #nile-update-wrap { max-width: 560px; margin: 40px auto; font-family: sans-serif; color: #222; }
+  #nile-update-wrap h2 { color: #009688; margin-bottom: 6px; }
+  #nile-update-wrap p.sub { color: #666; font-size: 14px; margin-bottom: 28px; }
+  .nile-field { margin-bottom: 18px; }
+  .nile-field label { display: block; font-size: 13px; font-weight: 600; color: #555; margin-bottom: 4px; }
+  .nile-field input, .nile-field textarea, .nile-field select {
+    width: 100%; padding: 10px 12px; font-size: 15px; box-sizing: border-box;
+    border: 1px solid #CCC; border-radius: 6px; color: #222; background: #FFF;
+    transition: border-color .15s;
+  }
+  .nile-field input:focus, .nile-field textarea:focus { border-color: #009688; outline: none; }
+  .nile-field textarea { min-height: 90px; resize: vertical; }
+  .nile-field .hint { font-size: 12px; color: #999; margin-top: 3px; }
+  #nile-tags-wrap { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
+  .nile-tag-pill {
+    display: inline-flex; align-items: center; gap: 4px;
+    background: #E8F8F6; border: 1px solid #009688; border-radius: 4px;
+    padding: 3px 8px; font-size: 13px; color: #009688; cursor: default;
+  }
+  .nile-tag-pill button {
+    background: none; border: none; color: #009688; cursor: pointer;
+    font-size: 15px; line-height: 1; padding: 0 0 1px 0;
+  }
+  #nile-tag-input-row { display: flex; gap: 8px; margin-top: 8px; }
+  #nile-tag-input-row input { flex: 1; }
+  #nile-tag-add {
+    padding: 8px 14px; background: #009688; color: #FFF;
+    border: none; border-radius: 6px; font-size: 14px; cursor: pointer;
+    white-space: nowrap;
+  }
+  #nile-save {
+    width: 100%; padding: 13px; background: #009688; color: #FFF;
+    font-size: 16px; font-weight: 600; border: none; border-radius: 6px;
+    cursor: pointer; margin-top: 8px; transition: background .15s;
+  }
+  #nile-save:hover { background: #007a70; }
+  #nile-save:disabled { background: #AAA; cursor: default; }
+  #nile-msg { margin-top: 14px; font-size: 14px; display: none; }
+  #nile-msg.ok { color: #009688; }
+  #nile-msg.err { color: #c0392b; }
+  #nile-loading { color: #009688; font-size: 15px; }
+  #nile-error-state { color: #c0392b; display: none; }
+  #nile-form-body { display: none; }
+</style>
+
+<div id="nile-update-wrap">
+  <h2>Update Your Speaker Profile</h2>
+  <p class="sub">Your ONDA Nile card is how audiences find and download your sessions.</p>
+
+  <div id="nile-loading">Loading your profile…</div>
+  <div id="nile-error-state"></div>
+
+  <div id="nile-form-body">
+    <div class="nile-field">
+      <label>Full Name</label>
+      <input id="nf-name" type="text" placeholder="Your name as it appears on your card" />
+    </div>
+    <div class="nile-field">
+      <label>Title / Role</label>
+      <input id="nf-title" type="text" placeholder="e.g. Leadership Coach · DEI Consultant" />
+    </div>
+    <div class="nile-field">
+      <label>Bio <span style="font-weight:400;color:#999">(1–2 sentences)</span></label>
+      <textarea id="nf-bio" placeholder="What you speak on and who you serve"></textarea>
+    </div>
+    <div class="nile-field">
+      <label>Website</label>
+      <input id="nf-website" type="url" placeholder="https://yoursite.com" />
+    </div>
+    <div class="nile-field">
+      <label>Profile Photo URL <span style="font-weight:400;color:#999">(optional)</span></label>
+      <input id="nf-photo" type="url" placeholder="https://…/headshot.jpg" />
+      <div class="hint">Link to a public headshot image. Square crop works best.</div>
+    </div>
+    <div class="nile-field">
+      <label>Tags <span style="font-weight:400;color:#999">(topics you speak on)</span></label>
+      <div id="nile-tags-wrap"></div>
+      <div id="nile-tag-input-row">
+        <input id="nf-tag-input" type="text" placeholder="Add a tag and press +" />
+        <button id="nile-tag-add" type="button">+</button>
+      </div>
+      <div class="hint">Tags help audiences find your sessions. Use phrases you actually say, e.g. "trauma-informed leadership".</div>
+    </div>
+    <button id="nile-save" type="button">Save Profile</button>
+    <div id="nile-msg"></div>
+  </div>
+</div>
+
+<script>
+(function () {
+  const API = 'https://xrxm-29on-xlyt.n7e.xano.io/api:onda-nile';
+  let token = null;
+  let tags = [];
+
+  function qs(id) { return document.getElementById(id); }
+
+  function renderTags() {
+    const wrap = qs('nile-tags-wrap');
+    wrap.innerHTML = '';
+    tags.forEach((t, i) => {
+      const pill = document.createElement('span');
+      pill.className = 'nile-tag-pill';
+      pill.innerHTML = `${t}<button type="button" aria-label="Remove ${t}" onclick="removeTag(${i})">×</button>`;
+      wrap.appendChild(pill);
+    });
+  }
+
+  window.removeTag = function (i) {
+    tags.splice(i, 1);
+    renderTags();
+  };
+
+  qs('nile-tag-add').addEventListener('click', addTag);
+  qs('nf-tag-input').addEventListener('keydown', function (e) {
+    if (e.key === 'Enter') { e.preventDefault(); addTag(); }
+  });
+
+  function addTag() {
+    const val = qs('nf-tag-input').value.trim().toLowerCase();
+    if (!val) return;
+    if (!tags.includes(val)) { tags.push(val); renderTags(); }
+    qs('nf-tag-input').value = '';
+  }
+
+  async function load() {
+    const params = new URLSearchParams(window.location.search);
+    token = params.get('token');
+
+    if (!token) {
+      showError('This link is missing a security token. Please request a new link from <a href="/nile-access">ondanile.com/nile-access</a>.');
+      return;
+    }
+
+    try {
+      const res = await fetch(`${API}/verify-token?token=${encodeURIComponent(token)}`);
+      const data = await res.json();
+
+      if (!res.ok || data.error) {
+        showError(data.error || 'This link has expired or is no longer valid. <a href="/nile-access">Request a new one.</a>');
+        return;
+      }
+
+      // Populate form
+      qs('nf-name').value    = data.name    || '';
+      qs('nf-title').value   = data.title   || '';
+      qs('nf-bio').value     = data.bio     || '';
+      qs('nf-website').value = data.website || '';
+      qs('nf-photo').value   = data.photo_url || '';
+      tags = Array.isArray(data.tags) ? [...data.tags] : [];
+      renderTags();
+
+      qs('nile-loading').style.display = 'none';
+      qs('nile-form-body').style.display = 'block';
+
+    } catch (e) {
+      showError('Could not reach server. Please check your connection and try again.');
+    }
+  }
+
+  function showError(html) {
+    qs('nile-loading').style.display = 'none';
+    const el = qs('nile-error-state');
+    el.innerHTML = html;
+    el.style.display = 'block';
+  }
+
+  qs('nile-save').addEventListener('click', async function () {
+    const btn = qs('nile-save');
+    const msg = qs('nile-msg');
+    btn.disabled = true;
+    btn.textContent = 'Saving…';
+    msg.style.display = 'none';
+
+    const payload = {
+      token,
+      name:      qs('nf-name').value.trim(),
+      title:     qs('nf-title').value.trim(),
+      bio:       qs('nf-bio').value.trim(),
+      website:   qs('nf-website').value.trim(),
+      photo_url: qs('nf-photo').value.trim(),
+      tags
+    };
+
+    try {
+      const res = await fetch(`${API}/presenter`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      const data = await res.json();
+
+      if (res.ok && data.updated) {
+        msg.className = 'ok';
+        msg.textContent = 'Profile saved. Your ONDA Nile card has been updated.';
+      } else {
+        msg.className = 'err';
+        msg.textContent = data.error || 'Something went wrong. Please try again.';
+      }
+    } catch (e) {
+      msg.className = 'err';
+      msg.textContent = 'Could not reach server. Please try again.';
+    }
+
+    msg.style.display = 'block';
+    btn.disabled = false;
+    btn.textContent = 'Save Profile';
+  });
+
+  load();
+})();
+</script>
