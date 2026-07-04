@@ -139,7 +139,7 @@
       const data = await res.json();
 
       if (!res.ok || data.error) {
-        showError(data.error || 'This link has expired or is no longer valid. <a href="/nile-access">Request a new one.</a>');
+        showError((data.error || 'This link has expired or is no longer valid.') + ' [debug: status=' + res.status + ' data=' + JSON.stringify(data) + ']');
         return;
       }
 
