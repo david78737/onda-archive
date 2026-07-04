@@ -32,13 +32,13 @@
     border: none; border-radius: 6px; font-size: 14px; cursor: pointer;
     white-space: nowrap;
   }
-  #nile-save {
+  #nile-save, #nile-confirm-btn {
     width: 100%; padding: 13px; background: #009688; color: #FFF;
     font-size: 16px; font-weight: 600; border: none; border-radius: 6px;
     cursor: pointer; margin-top: 8px; transition: background .15s;
   }
-  #nile-save:hover { background: #007a70; }
-  #nile-save:disabled { background: #AAA; cursor: default; }
+  #nile-save:hover, #nile-confirm-btn:hover { background: #007a70; }
+  #nile-save:disabled, #nile-confirm-btn:disabled { background: #AAA; cursor: default; }
   #nile-msg { margin-top: 14px; font-size: 14px; display: none; }
   #nile-msg.ok { color: #009688; }
   #nile-msg.err { color: #c0392b; }
@@ -85,10 +85,20 @@
         <input id="nf-tag-input" type="text" placeholder="Add a tag and press +" />
         <button id="nile-tag-add" type="button">+</button>
       </div>
-      <div class="hint">Tags help audiences find your sessions. Use phrases you actually say, e.g. "trauma-informed leadership".</div>
+      <div class="hint">Tags help audiences find your sessions. Use topics you actually speak on, e.g. "leadership", "DEI", "supply chain".</div>
     </div>
-    <button id="nile-save" type="button">Save Profile</button>
+    <button id="nile-save" type="button">Review Changes</button>
     <div id="nile-msg"></div>
+    <p style="font-size:13px;color:#888;margin-top:20px;text-align:center;">📱 On your phone? Tap the share icon in your browser and email this link to yourself to fill out on a computer.</p>
+  </div>
+
+  <!-- Confirm panel -->
+  <div id="nile-confirm-body" style="display:none;">
+    <h3 style="color:#009688;margin-bottom:12px;">Review Your Changes</h3>
+    <div id="nile-confirm-preview" style="background:#F5F5F5;border-radius:8px;padding:16px;font-size:15px;line-height:1.7;margin-bottom:20px;"></div>
+    <button id="nile-confirm-btn" type="button">Confirm &amp; Save</button>
+    <button id="nile-back-btn" type="button" style="width:100%;padding:13px;background:none;color:#009688;font-size:16px;border:1px solid #009688;border-radius:6px;cursor:pointer;margin-top:10px;">← Go Back</button>
+    <div id="nile-confirm-msg" style="margin-top:14px;font-size:14px;display:none;"></div>
     <p style="font-size:13px;color:#888;margin-top:20px;text-align:center;">📱 On your phone? Tap the share icon in your browser and email this link to yourself to fill out on a computer.</p>
   </div>
 </div>
@@ -171,46 +181,75 @@
     el.style.display = 'block';
   }
 
-  qs('nile-save').addEventListener('click', async function () {
-    const btn = qs('nile-save');
-    const msg = qs('nile-msg');
-    btn.disabled = true;
-    btn.textContent = 'Saving…';
-    msg.style.display = 'none';
+  let pendingPayload = null;
 
-    const payload = {
+  qs('nile-save').addEventListener('click', function () {
+    pendingPayload = {
       token,
       name:      qs('nf-name').value.trim(),
       title:     qs('nf-title').value.trim(),
       bio:       qs('nf-bio').value.trim(),
       website:   qs('nf-website').value.trim(),
       photo_url: qs('nf-photo').value.trim(),
-      tags
+      tags: [...tags]
     };
+
+    const rows = [
+      ['Full Name',    pendingPayload.name    || '—'],
+      ['Title / Role', pendingPayload.title   || '—'],
+      ['Bio',          pendingPayload.bio     || '—'],
+      ['Website',      pendingPayload.website || '—'],
+      ['Photo URL',    pendingPayload.photo_url || '—'],
+      ['Tags',         pendingPayload.tags.length ? pendingPayload.tags.join(', ') : '—'],
+    ];
+
+    qs('nile-confirm-preview').innerHTML = rows.map(([k, v]) =>
+      `<div><strong>${k}:</strong> ${v}</div>`
+    ).join('');
+
+    qs('nile-form-body').style.display = 'none';
+    qs('nile-confirm-body').style.display = 'block';
+  });
+
+  qs('nile-back-btn').addEventListener('click', function () {
+    qs('nile-confirm-body').style.display = 'none';
+    qs('nile-form-body').style.display = 'block';
+  });
+
+  qs('nile-confirm-btn').addEventListener('click', async function () {
+    const btn = qs('nile-confirm-btn');
+    const msg = qs('nile-confirm-msg');
+    btn.disabled = true;
+    btn.textContent = 'Saving…';
+    msg.style.display = 'none';
 
     try {
       const res = await fetch(`${API}/presenter`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
+        body: JSON.stringify(pendingPayload)
       });
       const data = await res.json();
 
       if (res.ok && data.updated) {
         msg.className = 'ok';
         msg.textContent = 'Profile saved. Your ONDA Nile card has been updated.';
+        btn.style.display = 'none';
+        qs('nile-back-btn').style.display = 'none';
       } else {
         msg.className = 'err';
         msg.textContent = data.error || 'Something went wrong. Please try again.';
+        btn.disabled = false;
+        btn.textContent = 'Confirm & Save';
       }
     } catch (e) {
       msg.className = 'err';
       msg.textContent = 'Could not reach server. Please try again.';
+      btn.disabled = false;
+      btn.textContent = 'Confirm & Save';
     }
 
     msg.style.display = 'block';
-    btn.disabled = false;
-    btn.textContent = 'Save Profile';
   });
 
   load();
