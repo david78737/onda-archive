@@ -1,0 +1,336 @@
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; font-size: 16px; color: #222; background: #f9f9f9; min-height: 100vh; }
+
+  #wrap { max-width: 560px; margin: 40px auto; padding: 0 16px 60px; }
+
+  h2 { color: #009688; font-size: 24px; margin-bottom: 6px; }
+  p.sub { color: #666; font-size: 15px; margin-bottom: 28px; line-height: 1.5; }
+
+  .field { margin-bottom: 18px; }
+  .field label { display: block; font-size: 14px; font-weight: 600; color: #555; margin-bottom: 4px; }
+  .field input, .field textarea, .field select {
+    width: 100%; padding: 11px 13px; font-size: 16px;
+    border: 1px solid #CCC; border-radius: 6px; color: #222; background: #FFF;
+    transition: border-color .15s;
+  }
+  .field input:focus, .field textarea:focus { border-color: #009688; outline: none; }
+  .field .hint { font-size: 12px; color: #999; margin-top: 3px; }
+
+  /* Tag pills */
+  #tags-wrap { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
+  .tag-pill {
+    display: inline-flex; align-items: center; gap: 4px;
+    background: #E8F8F6; border: 1px solid #009688; border-radius: 4px;
+    padding: 3px 8px; font-size: 13px; color: #009688;
+  }
+  .tag-pill button { background: none; border: none; color: #009688; cursor: pointer; font-size: 15px; line-height: 1; padding: 0 0 1px 0; }
+  #tag-input-row { display: flex; gap: 8px; margin-top: 8px; }
+  #tag-input-row input { flex: 1; }
+  #tag-add { padding: 8px 14px; background: #009688; color: #FFF; border: none; border-radius: 6px; font-size: 14px; cursor: pointer; white-space: nowrap; }
+
+  /* Links section */
+  .link-row { display: flex; gap: 8px; margin-bottom: 8px; align-items: center; }
+  .link-row input { flex: 1; }
+  .link-row button { padding: 8px 12px; background: none; border: 1px solid #CCC; border-radius: 6px; font-size: 14px; color: #888; cursor: pointer; white-space: nowrap; }
+  .link-row button:hover { border-color: #c0392b; color: #c0392b; }
+  #add-link { background: none; border: 1px dashed #009688; color: #009688; border-radius: 6px; padding: 8px 14px; font-size: 14px; cursor: pointer; margin-top: 4px; }
+
+  /* URL display */
+  #url-box {
+    background: #E8F8F6; border: 1px solid #009688; border-radius: 8px;
+    padding: 14px 16px; margin-bottom: 24px; display: none;
+  }
+  #url-box .url-label { font-size: 12px; font-weight: 600; color: #009688; text-transform: uppercase; letter-spacing: .08em; margin-bottom: 6px; }
+  #url-box .url-value { font-size: 14px; color: #222; word-break: break-all; margin-bottom: 10px; }
+  #url-box .url-note { font-size: 12px; color: #888; }
+  #copy-btn { padding: 7px 14px; background: #009688; color: #FFF; border: none; border-radius: 6px; font-size: 13px; cursor: pointer; margin-top: 8px; }
+
+  /* Buttons */
+  #save-btn, #confirm-btn {
+    width: 100%; padding: 13px; background: #009688; color: #FFF;
+    font-size: 16px; font-weight: 600; border: none; border-radius: 6px;
+    cursor: pointer; margin-top: 8px; transition: background .15s;
+  }
+  #save-btn:hover, #confirm-btn:hover { background: #007a70; }
+  #save-btn:disabled, #confirm-btn:disabled { background: #AAA; cursor: default; }
+  #back-btn {
+    width: 100%; padding: 13px; background: none; color: #009688;
+    font-size: 16px; border: 1px solid #009688; border-radius: 6px;
+    cursor: pointer; margin-top: 10px;
+  }
+
+  #loading { color: #009688; font-size: 16px; }
+  #error-state { color: #c0392b; font-size: 15px; line-height: 1.6; display: none; }
+  #form-body { display: none; }
+  #confirm-body { display: none; }
+  #confirm-preview { background: #F5F5F5; border-radius: 8px; padding: 16px; font-size: 15px; line-height: 1.8; margin-bottom: 20px; }
+  #msg { margin-top: 14px; font-size: 14px; display: none; }
+  #msg.ok { color: #009688; }
+  #msg.err { color: #c0392b; }
+
+  .section-label { font-size: 13px; font-weight: 700; color: #009688; text-transform: uppercase; letter-spacing: .1em; margin: 24px 0 12px; border-top: 1px solid #E0E0E0; padding-top: 20px; }
+  .phone-tip { font-size: 13px; color: #888; margin-top: 20px; text-align: center; }
+</style>
+
+<div id="wrap">
+  <h2>Schedule an Upcoming Talk</h2>
+  <p class="sub">Claim your recording URL before the event. Share it in your calendar invite, confirmation email, or event page — the recording will be waiting there when you're done.</p>
+
+  <p class="phone-tip">📱 On your phone? Tap the share icon and email this link to yourself to fill out on a computer.</p>
+  <br>
+
+  <div id="loading">Loading your presenter profile…</div>
+  <div id="error-state"></div>
+
+  <div id="form-body">
+
+    <!-- Pre-assigned URL -->
+    <div id="url-box">
+      <div class="url-label">Your recording URL — claim it now</div>
+      <div class="url-value" id="url-display"></div>
+      <div class="url-note">This URL is yours the moment you submit. Share it anywhere before the event — the recording arrives here automatically when you stop.</div>
+      <button id="copy-btn" type="button">Copy URL</button>
+    </div>
+
+    <div class="field">
+      <label>Talk Title</label>
+      <input id="f-title" type="text" placeholder="What you'll be presenting" />
+    </div>
+
+    <div class="field">
+      <label>Date</label>
+      <input id="f-date" type="date" />
+    </div>
+
+    <div class="field">
+      <label>City</label>
+      <input id="f-city" type="text" placeholder="e.g. Austin, TX" />
+    </div>
+
+    <div class="section-label">Topic Tags</div>
+    <div class="field">
+      <div id="tags-wrap"></div>
+      <div id="tag-input-row">
+        <input id="tag-input" type="text" placeholder="Add a topic tag and press +" />
+        <button id="tag-add" type="button">+</button>
+      </div>
+      <div class="hint">These help audiences find your talk on ONDA Nile. Pull from your speaker profile or add new ones.</div>
+    </div>
+
+    <div class="section-label">Event Links <span style="font-weight:400;color:#999;text-transform:none;font-size:12px;letter-spacing:0">(optional — Eventbrite, conference page, Zoom, etc.)</span></div>
+    <div id="links-container"></div>
+    <button id="add-link" type="button">+ Add a link</button>
+
+    <br><br>
+    <button id="save-btn" type="button">Review &amp; Claim URL</button>
+    <p class="phone-tip" style="margin-top:16px;">📱 On your phone? Tap the share icon and email this link to yourself to fill out on a computer.</p>
+  </div>
+
+  <!-- Confirm panel -->
+  <div id="confirm-body">
+    <h3 style="color:#009688;margin-bottom:12px;">Review Your Upcoming Talk</h3>
+    <div id="confirm-preview"></div>
+    <button id="confirm-btn" type="button">Confirm &amp; Claim URL</button>
+    <button id="back-btn" type="button">← Go Back</button>
+    <div id="msg"></div>
+  </div>
+</div>
+
+<script>
+(function () {
+  const API = 'https://xrxm-29on-xlyt.n7e.xano.io/api:nile';
+  let token = null;
+  let tags  = [];
+  let links = [];
+  let assignedUrl = '';
+
+  function qs(id) { return document.getElementById(id); }
+
+  // ── Tags ──────────────────────────────────────────────────────────────────
+  function renderTags() {
+    const wrap = qs('tags-wrap');
+    wrap.innerHTML = '';
+    tags.forEach((t, i) => {
+      const pill = document.createElement('span');
+      pill.className = 'tag-pill';
+      pill.innerHTML = `${t}<button type="button" aria-label="Remove ${t}" onclick="removeTag(${i})">×</button>`;
+      wrap.appendChild(pill);
+    });
+  }
+  window.removeTag = function (i) { tags.splice(i, 1); renderTags(); };
+  qs('tag-add').addEventListener('click', addTag);
+  qs('tag-input').addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); addTag(); } });
+  function addTag() {
+    const val = qs('tag-input').value.trim().toLowerCase();
+    if (!val || tags.includes(val)) return;
+    tags.push(val); renderTags();
+    qs('tag-input').value = '';
+  }
+
+  // ── Links ─────────────────────────────────────────────────────────────────
+  function renderLinks() {
+    const c = qs('links-container');
+    c.innerHTML = '';
+    links.forEach((url, i) => {
+      const row = document.createElement('div');
+      row.className = 'link-row';
+      row.innerHTML = `<input type="url" value="${url}" placeholder="https://" data-i="${i}" /><button type="button" onclick="removeLink(${i})">Remove</button>`;
+      row.querySelector('input').addEventListener('input', e => { links[i] = e.target.value.trim(); });
+      c.appendChild(row);
+    });
+  }
+  window.removeLink = function (i) { links.splice(i, 1); renderLinks(); };
+  qs('add-link').addEventListener('click', () => {
+    if (links.length >= 3) return;
+    links.push(''); renderLinks();
+    qs('links-container').querySelectorAll('input').item(links.length - 1)?.focus();
+  });
+
+  // ── Copy URL ──────────────────────────────────────────────────────────────
+  qs('copy-btn').addEventListener('click', () => {
+    if (!assignedUrl) return;
+    navigator.clipboard.writeText(assignedUrl).then(() => {
+      qs('copy-btn').textContent = 'Copied!';
+      setTimeout(() => qs('copy-btn').textContent = 'Copy URL', 2000);
+    });
+  });
+
+  // ── Load ──────────────────────────────────────────────────────────────────
+  async function load() {
+    const params = new URLSearchParams(window.location.search);
+    token = params.get('token');
+    if (!token) {
+      showError('This link is missing a security token. Please return to the app and tap Presenter Portal again.');
+      return;
+    }
+    try {
+      const res  = await fetch(`${API}/verify-token?token=${encodeURIComponent(token)}`);
+      const data = await res.json();
+      if (!res.ok || data.error) {
+        showError(data.error || 'This link has expired or is no longer valid. Please return to the app and tap Presenter Portal again.');
+        return;
+      }
+      // Pre-fill tags from presenter profile
+      tags = Array.isArray(data.tags) ? [...data.tags] : [];
+      renderTags();
+
+      // Show pre-assigned URL if pool has one waiting
+      if (data.next_url) {
+        assignedUrl = data.next_url;
+        qs('url-display').textContent = assignedUrl;
+        qs('url-box').style.display = 'block';
+      }
+
+      qs('loading').style.display = 'none';
+      qs('form-body').style.display = 'block';
+    } catch (e) {
+      showError('Could not reach server. Please check your connection and try again.');
+    }
+  }
+
+  // ── Review ────────────────────────────────────────────────────────────────
+  qs('save-btn').addEventListener('click', () => {
+    const title = qs('f-title').value.trim();
+    const date  = qs('f-date').value;
+    const city  = qs('f-city').value.trim();
+    if (!title || !date) {
+      alert('Please enter a talk title and date before continuing.');
+      return;
+    }
+    const validLinks = links.filter(l => l.startsWith('http'));
+    let preview = `<strong>Talk:</strong> ${title}<br>`;
+    preview += `<strong>Date:</strong> ${formatDate(date)}<br>`;
+    if (city) preview += `<strong>City:</strong> ${city}<br>`;
+    if (tags.length) preview += `<strong>Tags:</strong> ${tags.join(', ')}<br>`;
+    if (validLinks.length) preview += `<strong>Links:</strong><br>${validLinks.map(l => `&nbsp;&nbsp;<a href="${l}" target="_blank">${l}</a>`).join('<br>')}<br>`;
+    if (assignedUrl) preview += `<br><strong>Recording URL:</strong> ${assignedUrl}`;
+    qs('confirm-preview').innerHTML = preview;
+    qs('form-body').style.display   = 'none';
+    qs('confirm-body').style.display = 'block';
+  });
+
+  qs('back-btn').addEventListener('click', () => {
+    qs('confirm-body').style.display = 'none';
+    qs('form-body').style.display    = 'block';
+  });
+
+  // ── Submit ────────────────────────────────────────────────────────────────
+  qs('confirm-btn').addEventListener('click', async () => {
+    qs('confirm-btn').disabled = true;
+    qs('confirm-btn').textContent = 'Saving…';
+    const validLinks = links.filter(l => l.startsWith('http'));
+    try {
+      const res = await fetch(`${API}/presenter/schedule`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          token,
+          title:  qs('f-title').value.trim(),
+          date:   qs('f-date').value,
+          city:   qs('f-city').value.trim(),
+          tags,
+          links:  validLinks,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok || data.error) {
+        showMsg(data.error || 'Something went wrong. Please try again.', false);
+        qs('confirm-btn').disabled   = false;
+        qs('confirm-btn').textContent = 'Confirm & Claim URL';
+        return;
+      }
+      qs('confirm-body').style.display = 'none';
+      showSuccess(data.session_url || assignedUrl);
+    } catch (e) {
+      showMsg('Could not reach server. Check your connection.', false);
+      qs('confirm-btn').disabled   = false;
+      qs('confirm-btn').textContent = 'Confirm & Claim URL';
+    }
+  });
+
+  // ── Success ───────────────────────────────────────────────────────────────
+  function showSuccess(url) {
+    qs('wrap').innerHTML = `
+      <h2>Talk Scheduled ✓</h2>
+      <p class="sub" style="margin-top:10px;">Your recording URL is claimed and your upcoming talk is live on ONDA Nile.</p>
+      <div style="background:#E8F8F6;border:1px solid #009688;border-radius:8px;padding:16px;margin:20px 0;">
+        <div style="font-size:12px;font-weight:700;color:#009688;text-transform:uppercase;letter-spacing:.08em;margin-bottom:6px;">Your Recording URL</div>
+        <div style="font-size:15px;word-break:break-all;margin-bottom:12px;">${url}</div>
+        <button onclick="navigator.clipboard.writeText('${url}').then(()=>this.textContent='Copied!').catch(()=>{})"
+          style="padding:8px 16px;background:#009688;color:#FFF;border:none;border-radius:6px;font-size:14px;cursor:pointer;">
+          Copy URL
+        </button>
+      </div>
+      <p style="font-size:14px;color:#555;line-height:1.6;">
+        Put this URL in your calendar invite, Eventbrite page, or confirmation email now —
+        before the recording exists. When you stop recording that evening, the content
+        arrives here automatically.
+      </p>`;
+  }
+
+  function showMsg(text, ok) {
+    const el = qs('msg');
+    el.textContent  = text;
+    el.className    = ok ? 'ok' : 'err';
+    el.style.display = 'block';
+  }
+
+  function showError(html) {
+    qs('loading').style.display = 'none';
+    const el = qs('error-state');
+    el.innerHTML     = html;
+    el.style.display = 'block';
+  }
+
+  function formatDate(iso) {
+    if (!iso) return '';
+    const [y, m, d] = iso.split('-');
+    const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+    return `${months[parseInt(m,10)-1]} ${parseInt(d,10)}, ${y}`;
+  }
+
+  load();
+})();
+</script>
