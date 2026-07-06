@@ -468,6 +468,12 @@ function divider() {
   hr.className = 'tag-divider';
   return hr;
 }
+function miniLabel(text) {
+  const el = document.createElement('div');
+  el.style.cssText = 'width:100%;font-size:9px;text-transform:uppercase;letter-spacing:.1em;color:#aaa;font-weight:600;padding:2px 0;';
+  el.textContent = text;
+  return el;
+}
 
 // ── Render ────────────────────────────────────────────────────────────────────
 function render() {
