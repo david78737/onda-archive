@@ -149,21 +149,22 @@
   .tag-list { display: flex; flex-wrap: wrap; gap: 6px; }
 
   .tag-btn {
-    display: inline-flex; align-items: center; gap: 4px;
+    display: flex; align-items: center; justify-content: space-between;
     background: #FFFFFF;
-    border: 1px solid #D0D0D0;
-    border-radius: 20px; padding: 5px 10px;
+    border: 1px solid #C8C8C8;
+    border-radius: 4px; padding: 6px 8px;
     font-size: 11px; cursor: pointer;
-    transition: background .1s, color .1s, border-color .1s;
-    white-space: nowrap;
-    color: #555555;
+    transition: background .12s, color .12s, border-color .12s;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    color: #555555; text-align: left; width: 100%; min-height: 28px;
   }
+  .tag-btn:hover { background: #F8F8F8; border-color: #009688; color: #009688; }
   .tag-btn.active { background: #009688; border-color: #009688; color: #fff; font-weight: 600; }
   .tag-btn.related { color: #333333; border-color: #009688; background: #FFFFFF; }
-  .tag-btn.related:hover { background: #D4EDEB; border-color: #009688; color: #333333; }
+  .tag-btn.related:hover { background: #D4EDEB; }
   .tag-btn.remaining { color: #BBBBBB; border-color: #E0E0E0; background: #FFFFFF; }
   .tag-btn.remaining:hover { background: #F8F8F8; color: #888888; border-color: #CCCCCC; }
-  .tag-count { font-size: 10px; opacity: .6; }
+  .tag-count { font-size: 10px; opacity: .6; margin-left: 4px; flex-shrink: 0; }
   .tag-divider { width: 100%; border: none; border-top: 1px solid #E8E8E8; margin: 6px 0; }
 
   /* ── Right panel ── */
@@ -336,6 +337,11 @@
       </div>
     </div>
 
+    <div class="filter-group">
+      <div class="filter-label">Topics</div>
+      <div class="tag-list" id="tag-list" style="flex-direction:column;flex-wrap:nowrap;gap:3px;"></div>
+    </div>
+
   </aside>
 
   <main class="right-panel">
@@ -345,10 +351,6 @@
 
 </div>
 
-<div class="topics-bar">
-  <div class="topics-bar-label">Topics</div>
-  <div class="tag-list" id="tag-list"></div>
-</div>
 
 <footer>
   ONDA Nile &middot; <a href="https://ondareplay.com">ondareplay.com</a> &middot; Knowledge you can navigate.
