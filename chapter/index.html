@@ -616,7 +616,15 @@ document.getElementById('search-input').addEventListener('input', e => {
     return;
   }
 
-  allSessions = await sessResp.json();
+  allSessions = (await sessResp.json()).map(s => ({
+    ...s,
+    presenter: s.presenter || (s.presenter_slug
+      ? s.presenter_slug.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase())
+      : 'Unknown'),
+    onda_url: s.onda_url || s.file_url || s.session_url || null,
+    tags: Array.isArray(s.tags) ? s.tags : [],
+    takeaways: Array.isArray(s.takeaways) ? s.takeaways : [],
+  }));
 
   // Build ranked tag list
   const tagCount = {};
