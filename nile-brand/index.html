@@ -263,6 +263,25 @@
   }
   .color-hex { width: 90px; padding: 8px 10px; font-size: 13px; }
 
+  /* ── Logo picker ── */
+  .logo-row { display: flex; gap: 12px; align-items: flex-start; margin-bottom: 4px; }
+  .logo-preview {
+    width: 64px; height: 64px; border-radius: 6px;
+    border: 1px solid var(--border); overflow: hidden;
+    flex-shrink: 0; background: #f5f5f5;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .logo-preview img { width: 100%; height: 100%; object-fit: contain; }
+  .photo-pick-btn {
+    display: inline-block; padding: 9px 16px;
+    background: var(--teal-light); border: 1px solid var(--teal);
+    border-radius: 7px; font-size: 14px; font-weight: 600;
+    color: var(--teal); cursor: pointer;
+    transition: background .12s;
+  }
+  .photo-pick-btn:hover { background: #C8EFEB; }
+  .photo-pick-btn.uploading { opacity: .6; pointer-events: none; }
+
   /* ── Saved banner ── */
   .saved-banner {
     position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%);
@@ -477,8 +496,21 @@
           </select>
         </div>
         <div class="field">
-          <label>Logo URL <span style="font-weight:400;color:#999;font-size:12px;">optional</span></label>
-          <input type="url" id="tw-logo" placeholder="https://…/logo.png">
+          <label>Logo <span style="font-weight:400;color:#999;font-size:12px;">optional</span></label>
+          <div class="logo-row">
+            <div class="logo-preview" id="logo-preview" style="display:none;">
+              <img id="logo-img" src="" alt="logo">
+            </div>
+            <div style="flex:1;">
+              <label class="photo-pick-btn" for="logo-file-input" id="logo-pick-label">
+                Choose Logo
+                <input type="file" id="logo-file-input" accept="image/*" style="display:none;">
+              </label>
+              <div class="hint" style="margin-top:6px;">Or paste a URL below.</div>
+              <input type="url" id="tw-logo" placeholder="https://…/logo.png" style="margin-top:8px;">
+            </div>
+          </div>
+          <div class="msg" id="logo-msg"></div>
           <div class="hint">Appears in the archive header. Leave blank to show your name only.</div>
         </div>
       </div>
@@ -615,6 +647,56 @@ function normalizePhone(raw) {
   return '+' + digits;
 }
 
+// ── Logo picker ───────────────────────────────────────────────────────────────
+function updateLogoPreview(url) {
+  const preview = document.getElementById('logo-preview');
+  const img     = document.getElementById('logo-img');
+  if (url) {
+    img.src = url;
+    preview.style.display = 'flex';
+  } else {
+    preview.style.display = 'none';
+  }
+}
+
+document.getElementById('logo-file-input').addEventListener('change', async (e) => {
+  const file = e.target.files[0];
+  if (!file) return;
+  const localUrl = URL.createObjectURL(file);
+  updateLogoPreview(localUrl);
+
+  const label = document.getElementById('logo-pick-label');
+  label.classList.add('uploading'); label.textContent = 'Uploading…';
+  clearMsg('logo-msg');
+
+  try {
+    const form = new FormData();
+    form.append('magic_auth_token', authToken);
+    form.append('photo', file, file.name);
+
+    const r = await fetch(`${NILE_API2}/nile/presenter/photo`, {
+      method: 'POST',
+      body: form,
+    });
+    const d = await r.json();
+    if (!r.ok) throw new Error(d.message || 'Upload failed.');
+
+    document.getElementById('tw-logo').value = d.photo_url;
+    updateLogoPreview(d.photo_url);
+    msg('logo-msg', 'Logo uploaded.', 'ok');
+  } catch(err) {
+    msg('logo-msg', err.message, 'err');
+  } finally {
+    label.classList.remove('uploading');
+    label.textContent = 'Choose Logo';
+    URL.revokeObjectURL(localUrl);
+  }
+});
+
+document.getElementById('tw-logo').addEventListener('change', e => {
+  updateLogoPreview(e.target.value.trim());
+});
+
 // ── Auth flow ─────────────────────────────────────────────────────────────────
 document.getElementById('send-code-btn').addEventListener('click', async () => {
   const phone = normalizePhone(document.getElementById('phone-input').value);
@@ -674,7 +756,8 @@ document.getElementById('verify-btn').addEventListener('click', async () => {
       document.getElementById('brand-sentence').value = presenter.brand_sentence;
     }
     if (presenter.logo_url) {
-      document.getElementById('tw-logo').value = presenter.logo_url;
+      document.getElementById('tw-logo').value = presenter.logo_url || '';
+      updateLogoPreview(presenter.logo_url || '');
     }
     const name = presenter.name || '';
     document.getElementById('preview-name').textContent = name ? `${name}'s Archive` : 'Your Archive';
@@ -693,7 +776,7 @@ document.getElementById('generate-btn').addEventListener('click', async () => {
   clearMsg('generate-msg');
 
   try {
-    const r = await fetch(`${NILE_API}/presenter/brand`, {
+    const r = await fetch(`${NILE_API2}/nile/presenter/brand`, {
       method:'POST', headers:{'Content-Type':'application/json'},
       body: JSON.stringify({ magic_auth_token: authToken, brand_sentence: sentence }),
     });
@@ -759,7 +842,7 @@ document.getElementById('save-btn').addEventListener('click', async () => {
   };
 
   try {
-    const r = await fetch(`${NILE_API}/presenter/brand`, {
+    const r = await fetch(`${NILE_API2}/nile/presenter/brand`, {
       method:'PATCH', headers:{'Content-Type':'application/json'},
       body: JSON.stringify(payload),
     });
