@@ -1,0 +1,770 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Your Archive Identity — ONDA Nile</title>
+<style>
+  :root {
+    --teal: #009688;
+    --teal-dark: #007a70;
+    --teal-light: #E8F8F6;
+    --ink: #1a1a1a;
+    --body: #333;
+    --muted: #666;
+    --border: #CCC;
+    --bg: #F7F9F9;
+    --surface: #FFF;
+    --error: #c0392b;
+
+    /* Live preview vars — updated by JS */
+    --p-primary: #009688;
+    --p-accent: #00BCD4;
+    --p-bg: #0D1F1E;
+    --p-surface: #152322;
+    --p-ink: #DFF0EE;
+    --p-muted: #6A8E8C;
+    --p-radius: 10px;
+    --p-shadow: 0 2px 8px rgba(0,0,0,.35);
+    --p-font-display: system-ui;
+    --p-font-body: system-ui;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--body);
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    font-size: 16px;
+    line-height: 1.6;
+    padding: 0 0 100px;
+  }
+
+  header {
+    background: var(--teal);
+    padding: 16px 24px;
+  }
+  .wordmark { font-size: 18px; font-weight: 700; color: #fff; letter-spacing: .03em; }
+  .header-sub { font-size: 12px; color: rgba(255,255,255,.75); margin-top: 1px; }
+
+  .wrap { max-width: 600px; margin: 0 auto; padding: 32px 20px 0; }
+
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 24px;
+    margin-bottom: 20px;
+  }
+  .card-title {
+    font-size: 13px; font-weight: 700; text-transform: uppercase;
+    letter-spacing: .1em; color: var(--teal); margin-bottom: 4px;
+  }
+  .card-sub { font-size: 14px; color: var(--muted); margin-bottom: 18px; }
+
+  .field { margin-bottom: 16px; }
+  .field:last-child { margin-bottom: 0; }
+  label { display: block; font-size: 14px; font-weight: 600; color: var(--ink); margin-bottom: 5px; }
+  input[type="text"], input[type="tel"], input[type="url"], textarea, select {
+    width: 100%; padding: 11px 13px; font-size: 15px;
+    border: 1px solid var(--border); border-radius: 7px;
+    color: var(--ink); background: var(--surface);
+    transition: border-color .15s; font-family: inherit;
+  }
+  input:focus, textarea:focus, select:focus { border-color: var(--teal); outline: none; }
+  .hint { font-size: 12px; color: var(--muted); margin-top: 4px; }
+
+  /* OTP */
+  .otp-row { display: flex; gap: 8px; }
+  .otp-row input { flex: 1; letter-spacing: .2em; font-size: 22px; text-align: center; }
+  .otp-row button {
+    flex-shrink: 0; padding: 11px 16px;
+    background: var(--teal); color: #fff;
+    border: none; border-radius: 7px;
+    font-size: 14px; font-weight: 600;
+    cursor: pointer; font-family: inherit;
+  }
+  .otp-row button:hover { background: var(--teal-dark); }
+
+  /* Buttons */
+  .btn-primary {
+    width: 100%; padding: 14px;
+    background: var(--teal); color: #fff;
+    font-size: 16px; font-weight: 700;
+    border: none; border-radius: 8px;
+    cursor: pointer; font-family: inherit;
+    transition: background .15s;
+  }
+  .btn-primary:hover { background: var(--teal-dark); }
+  .btn-primary:disabled { background: #AAA; cursor: default; }
+  .btn-ghost {
+    width: 100%; padding: 12px;
+    background: none; color: var(--muted);
+    font-size: 14px; border: 1px solid var(--border);
+    border-radius: 8px; cursor: pointer; font-family: inherit;
+    margin-top: 10px; transition: color .15s, border-color .15s;
+  }
+  .btn-ghost:hover { color: var(--teal); border-color: var(--teal); }
+
+  /* Messages */
+  .msg { margin-top: 12px; font-size: 14px; display: none; }
+  .msg.ok  { color: var(--teal); }
+  .msg.err { color: var(--error); }
+  .msg.show { display: block; }
+
+  /* Screens */
+  .screen { display: none; }
+  .screen.active { display: block; }
+
+  /* ── Skin presets ── */
+  .skin-grid {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 8px;
+    margin-bottom: 20px;
+  }
+  .skin-opt { position: relative; }
+  .skin-opt input[type="radio"] { position: absolute; opacity: 0; width: 0; height: 0; }
+  .skin-opt label {
+    display: block; cursor: pointer; border-radius: 8px;
+    border: 2px solid var(--border);
+    overflow: hidden; transition: border-color .15s;
+  }
+  .skin-opt input:checked + label { border-color: var(--teal); }
+  .skin-swatch {
+    height: 48px;
+    display: flex; gap: 3px; padding: 6px;
+  }
+  .skin-dot { flex: 1; border-radius: 3px; }
+  .skin-name {
+    font-size: 10px; font-weight: 600; text-align: center;
+    padding: 4px 0 5px; color: var(--ink);
+    text-transform: uppercase; letter-spacing: .05em;
+  }
+
+  /* Skin color data */
+  .skin-classic   .skin-swatch { background: #0D1F1E; }
+  .skin-classic   .d1 { background: #009688; }
+  .skin-classic   .d2 { background: #00BCD4; }
+  .skin-classic   .d3 { background: #152322; }
+
+  .skin-professional .skin-swatch { background: #F3F6F9; }
+  .skin-professional .d1 { background: #0A66C2; }
+  .skin-professional .d2 { background: #00BCD4; }
+  .skin-professional .d3 { background: #FFFFFF; }
+
+  .skin-academic  .skin-swatch { background: #F8F5EE; }
+  .skin-academic  .d1 { background: #2C3E50; }
+  .skin-academic  .d2 { background: #8B6F47; }
+  .skin-academic  .d3 { background: #FFFDF7; }
+
+  .skin-creative  .skin-swatch { background: #F9F9F9; }
+  .skin-creative  .d1 { background: #E62B1E; }
+  .skin-creative  .d2 { background: #1A1A1A; }
+  .skin-creative  .d3 { background: #FFFFFF; }
+
+  .skin-minimal   .skin-swatch { background: #FFFFFF; }
+  .skin-minimal   .d1 { background: #1D1D1F; }
+  .skin-minimal   .d2 { background: #6E6E73; }
+  .skin-minimal   .d3 { background: #F5F5F7; }
+
+  /* ── AI generate button ── */
+  .generate-btn {
+    width: 100%; padding: 15px;
+    background: linear-gradient(135deg, #009688, #00796B);
+    color: #fff; font-size: 16px; font-weight: 700;
+    border: none; border-radius: 8px;
+    cursor: pointer; font-family: inherit;
+    display: flex; align-items: center; justify-content: center; gap: 8px;
+    transition: opacity .15s;
+  }
+  .generate-btn:hover { opacity: .9; }
+  .generate-btn:disabled { background: #AAA; cursor: default; }
+  .generate-icon { font-size: 20px; }
+
+  /* ── Preview card ── */
+  .preview-wrap {
+    display: none;
+    border-radius: 10px;
+    overflow: hidden;
+    border: 1px solid var(--border);
+    margin-bottom: 20px;
+  }
+  .preview-wrap.show { display: block; }
+  .preview-shell {
+    background: var(--p-bg);
+    padding: 20px;
+    font-family: var(--p-font-body), system-ui;
+  }
+  .preview-header {
+    font-family: var(--p-font-display), system-ui;
+    font-size: 17px; font-weight: 700;
+    color: var(--p-ink); margin-bottom: 14px;
+    padding-bottom: 10px;
+    border-bottom: 2px solid var(--p-primary);
+  }
+  .preview-tile {
+    background: var(--p-surface);
+    border-radius: var(--p-radius);
+    box-shadow: var(--p-shadow);
+    padding: 14px;
+  }
+  .preview-tile-title {
+    font-family: var(--p-font-display), system-ui;
+    font-size: 15px; font-weight: 700;
+    color: var(--p-ink); margin-bottom: 4px;
+  }
+  .preview-tile-meta { font-size: 12px; color: var(--p-muted); }
+  .preview-tag {
+    display: inline-block;
+    background: var(--p-primary);
+    color: #fff; font-size: 10px; font-weight: 600;
+    padding: 2px 7px; border-radius: 4px;
+    margin-top: 8px; opacity: .85;
+  }
+  .preview-label {
+    font-size: 11px; font-weight: 700; color: var(--muted);
+    text-transform: uppercase; letter-spacing: .08em;
+    padding: 8px 12px; background: var(--bg);
+    border-bottom: 1px solid var(--border);
+  }
+
+  /* ── Generated theme display ── */
+  .theme-chips {
+    display: flex; flex-wrap: wrap; gap: 8px;
+    margin-top: 12px;
+  }
+  .theme-chip {
+    display: flex; align-items: center; gap: 6px;
+    background: var(--bg); border: 1px solid var(--border);
+    border-radius: 20px; padding: 4px 10px;
+    font-size: 12px; color: var(--body);
+  }
+  .chip-swatch {
+    width: 14px; height: 14px; border-radius: 50%;
+    border: 1px solid rgba(0,0,0,.1);
+    flex-shrink: 0;
+  }
+
+  /* ── Tweaks panel ── */
+  .tweaks-toggle {
+    background: none; border: none; color: var(--teal);
+    font-size: 13px; font-weight: 600; cursor: pointer;
+    padding: 0; font-family: inherit; margin-top: 12px;
+  }
+  .tweaks-panel { display: none; margin-top: 16px; }
+  .tweaks-panel.open { display: block; }
+  .color-row { display: flex; gap: 10px; align-items: center; margin-bottom: 12px; }
+  .color-row label { flex: 1; margin: 0; font-size: 13px; }
+  input[type="color"] {
+    width: 44px; height: 36px; padding: 2px; border-radius: 6px;
+    border: 1px solid var(--border); cursor: pointer; background: none;
+  }
+  .color-hex { width: 90px; padding: 8px 10px; font-size: 13px; }
+
+  /* ── Saved banner ── */
+  .saved-banner {
+    position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%);
+    background: var(--teal); color: #fff;
+    padding: 12px 24px; border-radius: 8px;
+    font-size: 15px; font-weight: 600;
+    box-shadow: 0 4px 16px rgba(0,150,136,.3);
+    opacity: 0; transition: opacity .25s;
+    pointer-events: none; white-space: nowrap;
+  }
+  .saved-banner.show { opacity: 1; }
+
+  @media (max-width: 400px) {
+    .skin-grid { grid-template-columns: repeat(3, 1fr); }
+    .skin-name { font-size: 9px; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wordmark">ONDA Nile</div>
+  <div class="header-sub">Archive Identity</div>
+</header>
+
+<!-- ── Screen 1: Phone ── -->
+<div class="screen active" id="screen-phone">
+  <div class="wrap">
+    <div class="card">
+      <div class="card-title">Sign In</div>
+      <div class="card-sub">Enter your presenter phone number to access your archive settings.</div>
+      <div class="field">
+        <label>Phone number</label>
+        <input type="tel" id="phone-input" placeholder="+1 512 555 0100" autocomplete="tel">
+      </div>
+      <button class="btn-primary" id="send-code-btn">Send Code</button>
+      <div class="msg" id="phone-msg"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ── Screen 2: OTP ── -->
+<div class="screen" id="screen-otp">
+  <div class="wrap">
+    <div class="card">
+      <div class="card-title">Enter Your Code</div>
+      <div class="card-sub">Sent to <strong id="phone-display"></strong></div>
+      <div class="field">
+        <label>6-digit code</label>
+        <div class="otp-row">
+          <input type="number" id="otp-input" placeholder="······" inputmode="numeric">
+          <button id="verify-btn">Verify</button>
+        </div>
+      </div>
+      <button class="btn-ghost" id="back-to-phone">← Different number</button>
+      <div class="msg" id="otp-msg"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ── Screen 3: Brand editor ── -->
+<div class="screen" id="screen-brand">
+  <div class="wrap">
+
+    <!-- AI generate -->
+    <div class="card">
+      <div class="card-title">Your Identity</div>
+      <div class="card-sub">Describe yourself in one sentence. AI will design a cohesive visual theme around it.</div>
+      <div class="field">
+        <textarea id="brand-sentence" rows="2"
+          placeholder="e.g. I'm a retired pastor who teaches leadership through storytelling."></textarea>
+        <div class="hint">The more specific, the better. Mention your field, your style, your audience.</div>
+      </div>
+      <button class="generate-btn" id="generate-btn">
+        <span class="generate-icon">✦</span> Generate My Identity
+      </button>
+      <div class="msg" id="generate-msg"></div>
+
+      <!-- Theme chips (shown after generation) -->
+      <div id="theme-result" style="display:none;">
+        <div class="theme-chips" id="theme-chips"></div>
+      </div>
+    </div>
+
+    <!-- Live preview -->
+    <div class="preview-wrap" id="preview-wrap">
+      <div class="preview-label">Preview — how your archive card will look</div>
+      <div class="preview-shell">
+        <div class="preview-header" id="preview-name">Your Archive</div>
+        <div class="preview-tile">
+          <div class="preview-tile-title">Your most recent talk</div>
+          <div class="preview-tile-meta">Recorded · Chapter 47 · Austin</div>
+          <div class="preview-tag">sample tag</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Skin presets -->
+    <div class="card">
+      <div class="card-title">Start with a template</div>
+      <div class="card-sub">Pick one as a starting point, or let AI choose above.</div>
+      <div class="skin-grid">
+        <div class="skin-opt">
+          <input type="radio" name="skin" id="skin-classic" value="classic">
+          <label for="skin-classic" class="skin-classic">
+            <div class="skin-swatch">
+              <div class="skin-dot d1"></div>
+              <div class="skin-dot d2"></div>
+              <div class="skin-dot d3"></div>
+            </div>
+            <div class="skin-name">Classic</div>
+          </label>
+        </div>
+        <div class="skin-opt">
+          <input type="radio" name="skin" id="skin-professional" value="professional">
+          <label for="skin-professional" class="skin-professional">
+            <div class="skin-swatch">
+              <div class="skin-dot d1"></div>
+              <div class="skin-dot d2"></div>
+              <div class="skin-dot d3"></div>
+            </div>
+            <div class="skin-name">Pro</div>
+          </label>
+        </div>
+        <div class="skin-opt">
+          <input type="radio" name="skin" id="skin-academic" value="academic">
+          <label for="skin-academic" class="skin-academic">
+            <div class="skin-swatch">
+              <div class="skin-dot d1"></div>
+              <div class="skin-dot d2"></div>
+              <div class="skin-dot d3"></div>
+            </div>
+            <div class="skin-name">Academic</div>
+          </label>
+        </div>
+        <div class="skin-opt">
+          <input type="radio" name="skin" id="skin-creative" value="creative">
+          <label for="skin-creative" class="skin-creative">
+            <div class="skin-swatch">
+              <div class="skin-dot d1"></div>
+              <div class="skin-dot d2"></div>
+              <div class="skin-dot d3"></div>
+            </div>
+            <div class="skin-name">Creative</div>
+          </label>
+        </div>
+        <div class="skin-opt">
+          <input type="radio" name="skin" id="skin-minimal" value="minimal">
+          <label for="skin-minimal" class="skin-minimal">
+            <div class="skin-swatch">
+              <div class="skin-dot d1"></div>
+              <div class="skin-dot d2"></div>
+              <div class="skin-dot d3"></div>
+            </div>
+            <div class="skin-name">Minimal</div>
+          </label>
+        </div>
+      </div>
+
+      <!-- Fine-tune tweaks -->
+      <button class="tweaks-toggle" id="tweaks-toggle">Fine-tune colors & fonts ▾</button>
+      <div class="tweaks-panel" id="tweaks-panel">
+        <div class="color-row">
+          <label>Primary color</label>
+          <input type="color" id="tw-primary" value="#009688">
+          <input type="text" class="color-hex" id="tw-primary-hex" value="#009688">
+        </div>
+        <div class="color-row">
+          <label>Accent color</label>
+          <input type="color" id="tw-accent" value="#00BCD4">
+          <input type="text" class="color-hex" id="tw-accent-hex" value="#00BCD4">
+        </div>
+        <div class="color-row">
+          <label>Background</label>
+          <input type="color" id="tw-bg" value="#0D1F1E">
+          <input type="text" class="color-hex" id="tw-bg-hex" value="#0D1F1E">
+        </div>
+        <div class="color-row">
+          <label>Tile surface</label>
+          <input type="color" id="tw-surface" value="#152322">
+          <input type="text" class="color-hex" id="tw-surface-hex" value="#152322">
+        </div>
+        <div class="field" style="margin-top:4px;">
+          <label>Font pair</label>
+          <select id="tw-font">
+            <option value="Inter / Inter">Inter / Inter — clean, modern</option>
+            <option value="Playfair Display / Inter">Playfair Display / Inter — editorial</option>
+            <option value="Merriweather / Inter">Merriweather / Inter — academic</option>
+            <option value="Montserrat / Open Sans">Montserrat / Open Sans — bold & open</option>
+            <option value="Lora / Source Sans Pro">Lora / Source Sans Pro — warm & readable</option>
+            <option value="Roboto Slab / Roboto">Roboto Slab / Roboto — structured</option>
+            <option value="Raleway / Lato">Raleway / Lato — elegant, light</option>
+            <option value="Oswald / Open Sans">Oswald / Open Sans — strong, wide</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Corner radius</label>
+          <select id="tw-radius">
+            <option value="0">0 — sharp</option>
+            <option value="4">4 — slight</option>
+            <option value="8" selected>8 — balanced</option>
+            <option value="12">12 — rounded</option>
+            <option value="20">20 — pill</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Tile shadow</label>
+          <select id="tw-shadow">
+            <option value="none">None — flat</option>
+            <option value="subtle" selected>Subtle — light depth</option>
+            <option value="medium">Medium — elevated</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Logo URL <span style="font-weight:400;color:#999;font-size:12px;">optional</span></label>
+          <input type="url" id="tw-logo" placeholder="https://…/logo.png">
+          <div class="hint">Appears in the archive header. Leave blank to show your name only.</div>
+        </div>
+      </div>
+    </div>
+
+    <button class="btn-primary" id="save-btn">Save My Identity</button>
+    <div class="msg" id="save-msg"></div>
+
+  </div>
+</div>
+
+<div class="saved-banner" id="saved-banner">Identity saved ✓</div>
+
+<script>
+const NILE_API = 'https://xrxm-29on-xlyt.n7e.xano.io/api:onda-nile';
+const NILE_AUTH = 'https://xrxm-29on-xlyt.n7e.xano.io/api:nile';
+
+let authToken = null;
+let presenter = null;
+
+// ── Skin presets ──────────────────────────────────────────────────────────────
+const SKINS = {
+  classic:      { primary:'#009688', accent:'#00BCD4', bg:'#0D1F1E', surface:'#152322', ink:'#DFF0EE', muted:'#6A8E8C', font:'Inter / Inter',              radius:10, shadow:'subtle'  },
+  professional: { primary:'#0A66C2', accent:'#00BCD4', bg:'#F3F6F9', surface:'#FFFFFF', ink:'#1A1A2E', muted:'#5A6473', font:'Inter / Inter',              radius:8,  shadow:'subtle'  },
+  academic:     { primary:'#2C3E50', accent:'#8B6F47', bg:'#F8F5EE', surface:'#FFFDF7', ink:'#1C1C1C', muted:'#666',    font:'Merriweather / Inter',        radius:4,  shadow:'none'    },
+  creative:     { primary:'#E62B1E', accent:'#1A1A1A', bg:'#F9F9F9', surface:'#FFFFFF', ink:'#1A1A1A', muted:'#555',    font:'Montserrat / Open Sans',      radius:12, shadow:'medium'  },
+  minimal:      { primary:'#1D1D1F', accent:'#6E6E73', bg:'#FFFFFF', surface:'#F5F5F7', ink:'#1D1D1F', muted:'#6E6E73', font:'Inter / Inter',              radius:0,  shadow:'none'    },
+};
+
+function applyTheme(t) {
+  const root = document.documentElement;
+  root.style.setProperty('--p-primary',  t.primary);
+  root.style.setProperty('--p-accent',   t.accent);
+  root.style.setProperty('--p-bg',       t.bg);
+  root.style.setProperty('--p-surface',  t.surface);
+  root.style.setProperty('--p-ink',      t.ink   || '#1a1a1a');
+  root.style.setProperty('--p-muted',    t.muted || '#666');
+  root.style.setProperty('--p-radius',   t.radius + 'px');
+  const shadows = { none:'none', subtle:'0 2px 8px rgba(0,0,0,.12)', medium:'0 4px 16px rgba(0,0,0,.22)' };
+  root.style.setProperty('--p-shadow', shadows[t.shadow] || shadows.subtle);
+  const [display, body] = (t.font || 'Inter / Inter').split(' / ');
+  root.style.setProperty('--p-font-display', display.trim());
+  root.style.setProperty('--p-font-body',    (body || display).trim());
+
+  // Sync tweaks panel
+  setColorPair('primary', t.primary);
+  setColorPair('accent',  t.accent);
+  setColorPair('bg',      t.bg);
+  setColorPair('surface', t.surface);
+
+  const fp = document.getElementById('tw-font');
+  for (let o of fp.options) if (o.value === t.font) { fp.value = t.font; break; }
+  document.getElementById('tw-radius').value = t.radius;
+  document.getElementById('tw-shadow').value = t.shadow;
+
+  document.getElementById('preview-wrap').classList.add('show');
+}
+
+function setColorPair(key, hex) {
+  const picker = document.getElementById(`tw-${key}`);
+  const text   = document.getElementById(`tw-${key}-hex`);
+  if (picker) picker.value = hex;
+  if (text)   text.value   = hex;
+}
+
+// Skin preset radio
+document.querySelectorAll('input[name="skin"]').forEach(r => {
+  r.addEventListener('change', () => {
+    const skin = SKINS[r.value];
+    if (skin) applyTheme(skin);
+  });
+});
+
+// Tweak controls → live preview
+function wireColorPair(key) {
+  const picker = document.getElementById(`tw-${key}`);
+  const text   = document.getElementById(`tw-${key}-hex`);
+  const varMap = { primary:'--p-primary', accent:'--p-accent', bg:'--p-bg', surface:'--p-surface' };
+  picker.addEventListener('input', () => {
+    text.value = picker.value;
+    document.documentElement.style.setProperty(varMap[key], picker.value);
+    document.getElementById('preview-wrap').classList.add('show');
+  });
+  text.addEventListener('change', () => {
+    if (/^#[0-9A-Fa-f]{6}$/.test(text.value)) {
+      picker.value = text.value;
+      document.documentElement.style.setProperty(varMap[key], text.value);
+      document.getElementById('preview-wrap').classList.add('show');
+    }
+  });
+}
+['primary','accent','bg','surface'].forEach(wireColorPair);
+
+document.getElementById('tw-font').addEventListener('change', e => {
+  const [d, b] = e.target.value.split(' / ');
+  document.documentElement.style.setProperty('--p-font-display', d.trim());
+  document.documentElement.style.setProperty('--p-font-body', (b||d).trim());
+});
+document.getElementById('tw-radius').addEventListener('change', e => {
+  document.documentElement.style.setProperty('--p-radius', e.target.value + 'px');
+});
+document.getElementById('tw-shadow').addEventListener('change', e => {
+  const m = { none:'none', subtle:'0 2px 8px rgba(0,0,0,.12)', medium:'0 4px 16px rgba(0,0,0,.22)' };
+  document.documentElement.style.setProperty('--p-shadow', m[e.target.value]);
+});
+
+// Tweaks toggle
+document.getElementById('tweaks-toggle').addEventListener('click', () => {
+  const panel = document.getElementById('tweaks-panel');
+  const btn   = document.getElementById('tweaks-toggle');
+  panel.classList.toggle('open');
+  btn.textContent = panel.classList.contains('open')
+    ? 'Fine-tune colors & fonts ▴'
+    : 'Fine-tune colors & fonts ▾';
+});
+
+// ── Screen helpers ────────────────────────────────────────────────────────────
+function show(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  window.scrollTo(0, 0);
+}
+function msg(id, text, type) {
+  const el = document.getElementById(id);
+  el.textContent = text;
+  el.className = `msg ${type} show`;
+}
+function clearMsg(id) { document.getElementById(id).className = 'msg'; }
+
+// ── Auth flow ─────────────────────────────────────────────────────────────────
+document.getElementById('send-code-btn').addEventListener('click', async () => {
+  const phone = document.getElementById('phone-input').value.trim();
+  if (!phone) { msg('phone-msg','Enter your phone number.','err'); return; }
+  const btn = document.getElementById('send-code-btn');
+  btn.disabled = true; btn.textContent = 'Sending…';
+  clearMsg('phone-msg');
+  try {
+    const r = await fetch(`${NILE_AUTH}/presenter/magic/send`, {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ contact: phone }),
+    });
+    const d = await r.json();
+    if (!r.ok) throw new Error(d.message || 'Could not send code.');
+    document.getElementById('phone-display').textContent = phone;
+    show('screen-otp');
+  } catch(e) { msg('phone-msg', e.message, 'err'); }
+  finally { btn.disabled = false; btn.textContent = 'Send Code'; }
+});
+
+document.getElementById('back-to-phone').addEventListener('click', () => show('screen-phone'));
+
+document.getElementById('verify-btn').addEventListener('click', async () => {
+  const phone = document.getElementById('phone-input').value.trim();
+  const otp   = document.getElementById('otp-input').value.trim();
+  if (!otp) { msg('otp-msg','Enter the 6-digit code.','err'); return; }
+  const btn = document.getElementById('verify-btn');
+  btn.disabled = true; btn.textContent = '…';
+  clearMsg('otp-msg');
+  try {
+    const r = await fetch(`${NILE_AUTH}/presenter/magic/verify`, {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ contact: phone, otp }),
+    });
+    const d = await r.json();
+    if (!r.ok) throw new Error(d.message || 'Invalid code.');
+    authToken = d.magic_auth_token || d.token;
+    presenter = d.presenter || d;
+
+    // Pre-fill if existing theme
+    if (presenter.skin_base && SKINS[presenter.skin_base]) {
+      const skin = {
+        ...SKINS[presenter.skin_base],
+        primary: presenter.primary_color || SKINS[presenter.skin_base].primary,
+        accent:  presenter.accent_color  || SKINS[presenter.skin_base].accent,
+        bg:      presenter.bg_color      || SKINS[presenter.skin_base].bg,
+        surface: presenter.surface_color || SKINS[presenter.skin_base].surface,
+        font:    presenter.font_pair     || SKINS[presenter.skin_base].font,
+        radius:  presenter.border_radius ?? SKINS[presenter.skin_base].radius,
+        shadow:  presenter.tile_shadow   || SKINS[presenter.skin_base].shadow,
+      };
+      applyTheme(skin);
+      const radio = document.getElementById(`skin-${presenter.skin_base}`);
+      if (radio) radio.checked = true;
+    }
+    if (presenter.brand_sentence) {
+      document.getElementById('brand-sentence').value = presenter.brand_sentence;
+    }
+    if (presenter.logo_url) {
+      document.getElementById('tw-logo').value = presenter.logo_url;
+    }
+    const name = presenter.name || '';
+    document.getElementById('preview-name').textContent = name ? `${name}'s Archive` : 'Your Archive';
+
+    show('screen-brand');
+  } catch(e) { msg('otp-msg', e.message, 'err'); }
+  finally { btn.disabled = false; btn.textContent = 'Verify'; }
+});
+
+// ── AI generation ─────────────────────────────────────────────────────────────
+document.getElementById('generate-btn').addEventListener('click', async () => {
+  const sentence = document.getElementById('brand-sentence').value.trim();
+  if (!sentence) { msg('generate-msg','Describe yourself first.','err'); return; }
+  const btn = document.getElementById('generate-btn');
+  btn.disabled = true; btn.innerHTML = '<span class="generate-icon">✦</span> Generating…';
+  clearMsg('generate-msg');
+
+  try {
+    const r = await fetch(`${NILE_API}/presenter/brand`, {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ magic_auth_token: authToken, brand_sentence: sentence }),
+    });
+    const d = await r.json();
+    if (!r.ok) throw new Error(d.message || 'Generation failed.');
+
+    // d is the updated presenter row — apply returned theme
+    const theme = {
+      primary: d.primary_color  || '#009688',
+      accent:  d.accent_color   || '#00BCD4',
+      bg:      d.bg_color       || '#0D1F1E',
+      surface: d.surface_color  || '#152322',
+      ink:     '#DFF0EE',
+      muted:   '#6A8E8C',
+      font:    d.font_pair      || 'Inter / Inter',
+      radius:  d.border_radius  ?? 8,
+      shadow:  d.tile_shadow    || 'subtle',
+    };
+    applyTheme(theme);
+
+    // Uncheck skin presets since AI generated this
+    document.querySelectorAll('input[name="skin"]').forEach(r => r.checked = false);
+
+    // Show chips
+    const chips = document.getElementById('theme-chips');
+    chips.innerHTML = [
+      { label:'Primary',    color: theme.primary },
+      { label:'Accent',     color: theme.accent  },
+      { label:'Background', color: theme.bg      },
+      { label:'Surface',    color: theme.surface },
+    ].map(c => `
+      <div class="theme-chip">
+        <div class="chip-swatch" style="background:${c.color}"></div>
+        <span>${c.label} ${c.color}</span>
+      </div>
+    `).join('') + `<div class="theme-chip">🔤 ${theme.font}</div>`;
+    document.getElementById('theme-result').style.display = 'block';
+
+    msg('generate-msg','Identity generated — preview below.','ok');
+  } catch(e) { msg('generate-msg', e.message, 'err'); }
+  finally { btn.disabled = false; btn.innerHTML = '<span class="generate-icon">✦</span> Regenerate'; }
+});
+
+// ── Save ──────────────────────────────────────────────────────────────────────
+document.getElementById('save-btn').addEventListener('click', async () => {
+  const btn = document.getElementById('save-btn');
+  btn.disabled = true; btn.textContent = 'Saving…';
+  clearMsg('save-msg');
+
+  const skin = document.querySelector('input[name="skin"]:checked')?.value || null;
+
+  const payload = {
+    magic_auth_token: authToken,
+    skin_base:        skin,
+    primary_color:    document.getElementById('tw-primary').value,
+    accent_color:     document.getElementById('tw-accent').value,
+    bg_color:         document.getElementById('tw-bg').value,
+    surface_color:    document.getElementById('tw-surface').value,
+    font_pair:        document.getElementById('tw-font').value,
+    border_radius:    parseInt(document.getElementById('tw-radius').value),
+    tile_shadow:      document.getElementById('tw-shadow').value,
+    logo_url:         document.getElementById('tw-logo').value.trim() || null,
+  };
+
+  try {
+    const r = await fetch(`${NILE_API}/presenter/brand`, {
+      method:'PATCH', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify(payload),
+    });
+    const d = await r.json();
+    if (!r.ok) throw new Error(d.message || 'Save failed.');
+
+    const banner = document.getElementById('saved-banner');
+    banner.classList.add('show');
+    setTimeout(() => banner.classList.remove('show'), 2500);
+  } catch(e) { msg('save-msg', e.message, 'err'); }
+  finally { btn.disabled = false; btn.textContent = 'Save My Identity'; }
+});
+</script>
+</body>
+</html>
