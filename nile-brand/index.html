@@ -674,7 +674,7 @@ document.getElementById('logo-file-input').addEventListener('change', async (e) 
     form.append('magic_auth_token', authToken);
     form.append('photo', file, file.name);
 
-    const r = await fetch(`${NILE_API2}/nile/presenter/photo`, {
+    const r = await fetch(`${NILE_API}/nile/presenter/photo`, {
       method: 'POST',
       body: form,
     });
@@ -776,7 +776,7 @@ document.getElementById('generate-btn').addEventListener('click', async () => {
   clearMsg('generate-msg');
 
   try {
-    const r = await fetch(`${NILE_API2}/nile/presenter/brand`, {
+    const r = await fetch(`${NILE_API}/nile/presenter/brand`, {
       method:'POST', headers:{'Content-Type':'application/json'},
       body: JSON.stringify({ magic_auth_token: authToken, brand_sentence: sentence }),
     });
@@ -842,7 +842,7 @@ document.getElementById('save-btn').addEventListener('click', async () => {
   };
 
   try {
-    const r = await fetch(`${NILE_API2}/nile/presenter/brand`, {
+    const r = await fetch(`${NILE_API}/nile/presenter/brand`, {
       method:'PATCH', headers:{'Content-Type':'application/json'},
       body: JSON.stringify(payload),
     });
