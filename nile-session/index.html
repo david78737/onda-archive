@@ -444,6 +444,13 @@
 const NILE_API  = 'https://xrxm-29on-xlyt.n7e.xano.io/api:nile';
 const NILE_API2 = 'https://xrxm-29on-xlyt.n7e.xano.io/api:onda-nile';
 
+function normalizePhone(raw) {
+  const digits = raw.replace(/\D/g, '');
+  if (digits.length === 10) return '+1' + digits;          // 5124235292
+  if (digits.length === 11 && digits[0] === '1') return '+' + digits; // 15124235292
+  return '+' + digits; // already has country code or unusual format
+}
+
 // ── State ─────────────────────────────────────────────────────────────────────
 let authToken   = null;
 let presenter   = null;
@@ -470,7 +477,7 @@ function clearMsg(id) {
 
 // ── Screen 1: Send OTP ────────────────────────────────────────────────────────
 document.getElementById('send-code-btn').addEventListener('click', async () => {
-  const phone = document.getElementById('phone-input').value.trim();
+  const phone = normalizePhone(document.getElementById('phone-input').value);
   if (!phone) { msg('phone-msg', 'Enter your phone number.', 'err'); return; }
 
   const btn = document.getElementById('send-code-btn');
@@ -498,7 +505,7 @@ document.getElementById('send-code-btn').addEventListener('click', async () => {
 document.getElementById('back-to-phone').addEventListener('click', () => show('screen-phone'));
 
 document.getElementById('verify-btn').addEventListener('click', async () => {
-  const phone = document.getElementById('phone-input').value.trim();
+  const phone = normalizePhone(document.getElementById('phone-input').value);
   const otp   = document.getElementById('otp-input').value.trim();
   if (!otp) { msg('otp-msg', 'Enter the 6-digit code.', 'err'); return; }
 
