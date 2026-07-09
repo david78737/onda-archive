@@ -549,13 +549,13 @@ document.getElementById('verify-btn').addEventListener('click', async () => {
     const data = await resp.json();
     if (!resp.ok) throw new Error(data.message || 'Invalid code.');
 
-    presenter = data.presenter || data.result?.presenter || data;
-    authToken = data.magic_auth_token || data.token || data.authToken
-              || data.result?.magic_auth_token || data.result?.token
-              || presenter?.magic_auth_token;
+    // Token is returned as a query param inside profile_url
+    const profileUrl = new URL(data.profile_url);
+    authToken = profileUrl.searchParams.get('token');
+    presenter = data.presenter || {};
 
     if (!authToken) {
-      throw new Error('Auth token not returned. Xano response: ' + JSON.stringify(data));
+      throw new Error('Token not found in profile_url: ' + JSON.stringify(data));
     }
 
     // Load this presenter's sessions
