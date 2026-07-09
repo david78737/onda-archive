@@ -1,0 +1,667 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Edit Session — ONDA Nile</title>
+<style>
+  :root {
+    --teal: #009688;
+    --teal-dark: #007a70;
+    --teal-light: #E8F8F6;
+    --ink: #1a1a1a;
+    --body: #333;
+    --muted: #666;
+    --border: #CCC;
+    --bg: #F7F9F9;
+    --surface: #FFF;
+    --error: #c0392b;
+    --warn: #e67e22;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--body);
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    font-size: 16px;
+    line-height: 1.6;
+    padding: 0 0 80px;
+  }
+
+  /* ── Header ── */
+  header {
+    background: var(--teal);
+    padding: 16px 24px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .wordmark { font-size: 18px; font-weight: 700; color: #fff; letter-spacing: .03em; }
+  .header-sub { font-size: 12px; color: rgba(255,255,255,.75); margin-top: 1px; }
+
+  /* ── Wrap ── */
+  .wrap { max-width: 580px; margin: 0 auto; padding: 32px 20px 0; }
+
+  /* ── Section card ── */
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 24px;
+    margin-bottom: 20px;
+  }
+  .card-title {
+    font-size: 13px; font-weight: 700; text-transform: uppercase;
+    letter-spacing: .1em; color: var(--teal); margin-bottom: 16px;
+  }
+
+  /* ── Fields ── */
+  .field { margin-bottom: 16px; }
+  .field:last-child { margin-bottom: 0; }
+  label {
+    display: block; font-size: 14px; font-weight: 600;
+    color: var(--ink); margin-bottom: 5px;
+  }
+  label .optional { font-weight: 400; color: var(--muted); font-size: 12px; }
+  input[type="text"], input[type="tel"], input[type="url"],
+  input[type="number"], textarea, select {
+    width: 100%; padding: 11px 13px; font-size: 15px;
+    border: 1px solid var(--border); border-radius: 7px;
+    color: var(--ink); background: var(--surface);
+    transition: border-color .15s; font-family: inherit;
+  }
+  input:focus, textarea:focus, select:focus {
+    border-color: var(--teal); outline: none;
+  }
+  textarea { min-height: 90px; resize: vertical; }
+  .hint { font-size: 12px; color: var(--muted); margin-top: 4px; }
+
+  /* ── Tags ── */
+  .tag-pills { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+  .tag-pill {
+    display: inline-flex; align-items: center; gap: 4px;
+    background: var(--teal-light); border: 1px solid var(--teal);
+    border-radius: 4px; padding: 3px 8px;
+    font-size: 13px; color: var(--teal);
+  }
+  .tag-pill button {
+    background: none; border: none; color: var(--teal);
+    cursor: pointer; font-size: 15px; line-height: 1; padding: 0;
+  }
+  .tag-input-row { display: flex; gap: 8px; margin-top: 8px; }
+  .tag-input-row input { flex: 1; }
+  .tag-add {
+    padding: 8px 14px; background: var(--teal); color: #fff;
+    border: none; border-radius: 7px; font-size: 14px;
+    cursor: pointer; white-space: nowrap; font-family: inherit;
+  }
+  .tag-add:hover { background: var(--teal-dark); }
+
+  /* ── Visibility selector ── */
+  .vis-grid {
+    display: grid; grid-template-columns: 1fr 1fr;
+    gap: 8px; margin-top: 4px;
+  }
+  .vis-option { position: relative; }
+  .vis-option input[type="radio"] { position: absolute; opacity: 0; width: 0; height: 0; }
+  .vis-option label {
+    display: block; padding: 10px 12px;
+    border: 2px solid var(--border); border-radius: 7px;
+    cursor: pointer; font-weight: 400; font-size: 13px;
+    transition: border-color .15s, background .15s;
+  }
+  .vis-option label strong { display: block; font-weight: 700; font-size: 14px; color: var(--ink); }
+  .vis-option input[type="radio"]:checked + label {
+    border-color: var(--teal); background: var(--teal-light);
+  }
+
+  /* ── Prompt section ── */
+  .prompt-block { margin-bottom: 20px; }
+  .prompt-block:last-child { margin-bottom: 0; }
+  .prompt-label {
+    font-size: 13px; font-weight: 700; color: var(--ink); margin-bottom: 5px;
+  }
+  .prompt-label span { font-weight: 400; color: var(--muted); }
+  .prompt-row { display: flex; gap: 8px; align-items: flex-start; }
+  .prompt-row textarea { flex: 1; min-height: 70px; font-size: 13px; }
+  .export-btn {
+    flex-shrink: 0; padding: 9px 12px;
+    background: #F0F4F4; border: 1px solid var(--border);
+    border-radius: 7px; font-size: 12px; font-weight: 600;
+    color: var(--muted); cursor: pointer; white-space: nowrap;
+    font-family: inherit; transition: background .12s, color .12s;
+    line-height: 1.3; text-align: center;
+  }
+  .export-btn:hover { background: var(--teal-light); color: var(--teal); border-color: var(--teal); }
+  .output-field { margin-top: 8px; }
+  .output-field textarea { background: #FAFCFC; font-size: 13px; }
+
+  /* ── Session picker ── */
+  .session-list { display: flex; flex-direction: column; gap: 8px; }
+  .session-btn {
+    width: 100%; text-align: left; padding: 12px 14px;
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 7px; font-size: 14px; cursor: pointer;
+    font-family: inherit; color: var(--ink);
+    transition: border-color .15s, background .15s;
+  }
+  .session-btn:hover { border-color: var(--teal); background: var(--teal-light); }
+  .session-btn .s-title { font-weight: 600; }
+  .session-btn .s-meta { font-size: 12px; color: var(--muted); margin-top: 2px; }
+
+  /* ── Buttons ── */
+  .btn-primary {
+    width: 100%; padding: 14px;
+    background: var(--teal); color: #fff;
+    font-size: 16px; font-weight: 700;
+    border: none; border-radius: 8px;
+    cursor: pointer; font-family: inherit;
+    transition: background .15s;
+  }
+  .btn-primary:hover { background: var(--teal-dark); }
+  .btn-primary:disabled { background: #AAA; cursor: default; }
+
+  .btn-ghost {
+    width: 100%; padding: 12px;
+    background: none; color: var(--muted);
+    font-size: 14px; border: 1px solid var(--border);
+    border-radius: 8px; cursor: pointer; font-family: inherit;
+    margin-top: 10px; transition: color .15s, border-color .15s;
+  }
+  .btn-ghost:hover { color: var(--teal); border-color: var(--teal); }
+
+  /* ── OTP input ── */
+  .otp-row { display: flex; gap: 8px; }
+  .otp-row input { flex: 1; letter-spacing: .2em; font-size: 22px; text-align: center; }
+  .otp-row button {
+    flex-shrink: 0; padding: 11px 16px;
+    background: var(--teal); color: #fff;
+    border: none; border-radius: 7px;
+    font-size: 14px; font-weight: 600;
+    cursor: pointer; font-family: inherit;
+  }
+  .otp-row button:hover { background: var(--teal-dark); }
+
+  /* ── Messages ── */
+  .msg { margin-top: 12px; font-size: 14px; display: none; }
+  .msg.ok  { color: var(--teal); }
+  .msg.err { color: var(--error); }
+  .msg.show { display: block; }
+
+  /* ── Screens ── */
+  .screen { display: none; }
+  .screen.active { display: block; }
+
+  /* ── Saved banner ── */
+  .saved-banner {
+    position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%);
+    background: var(--teal); color: #fff;
+    padding: 12px 24px; border-radius: 8px;
+    font-size: 15px; font-weight: 600;
+    box-shadow: 0 4px 16px rgba(0,150,136,.3);
+    opacity: 0; transition: opacity .25s;
+    pointer-events: none;
+  }
+  .saved-banner.show { opacity: 1; }
+</style>
+</head>
+<body>
+
+<header>
+  <div>
+    <div class="wordmark">ONDA Nile</div>
+    <div class="header-sub">Session Card Editor</div>
+  </div>
+</header>
+
+<!-- ── Screen 1: Phone entry ── -->
+<div class="screen active" id="screen-phone">
+  <div class="wrap">
+    <div class="card">
+      <div class="card-title">Verify Your Identity</div>
+      <p style="font-size:14px;color:#555;margin-bottom:20px;">
+        Enter the phone number on your ONDA presenter account. We'll send a 6-digit code.
+      </p>
+      <div class="field">
+        <label>Phone number</label>
+        <input type="tel" id="phone-input" placeholder="+1 512 555 0100" autocomplete="tel">
+      </div>
+      <button class="btn-primary" id="send-code-btn">Send Code</button>
+      <div class="msg" id="phone-msg"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ── Screen 2: OTP verify ── -->
+<div class="screen" id="screen-otp">
+  <div class="wrap">
+    <div class="card">
+      <div class="card-title">Enter Your Code</div>
+      <p style="font-size:14px;color:#555;margin-bottom:20px;">
+        A 6-digit code was sent to <strong id="phone-display"></strong>.
+      </p>
+      <div class="field">
+        <label>Verification code</label>
+        <div class="otp-row">
+          <input type="number" id="otp-input" placeholder="······" maxlength="6" inputmode="numeric">
+          <button id="verify-btn">Verify</button>
+        </div>
+      </div>
+      <button class="btn-ghost" id="back-to-phone">← Try a different number</button>
+      <div class="msg" id="otp-msg"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ── Screen 3: Session picker ── -->
+<div class="screen" id="screen-sessions">
+  <div class="wrap">
+    <div class="card">
+      <div class="card-title">Your Sessions</div>
+      <p style="font-size:14px;color:#555;margin-bottom:16px;">
+        Select a session to edit its archive card.
+      </p>
+      <div class="session-list" id="session-list"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ── Screen 4: Edit form ── -->
+<div class="screen" id="screen-edit">
+  <div class="wrap">
+
+    <!-- Back -->
+    <button class="btn-ghost" id="back-to-sessions" style="margin-bottom:16px;">← Back to sessions</button>
+
+    <!-- Basic info -->
+    <div class="card">
+      <div class="card-title">Session Info</div>
+
+      <div class="field">
+        <label>Session title</label>
+        <input type="text" id="f-title" placeholder="The title of your talk">
+      </div>
+
+      <div class="field">
+        <label>Your name <span class="optional">(as it appears on the card)</span></label>
+        <input type="text" id="f-presenter" placeholder="Full name">
+      </div>
+
+      <div class="field">
+        <label>Photo URL <span class="optional">optional</span></label>
+        <input type="url" id="f-photo" placeholder="https://…/headshot.jpg">
+        <div class="hint">Direct image link. Leave blank to use your initials.</div>
+      </div>
+
+      <div class="field">
+        <label>LinkedIn <span class="optional">optional</span></label>
+        <input type="url" id="f-linkedin" placeholder="https://linkedin.com/in/yourname">
+      </div>
+    </div>
+
+    <!-- Tags -->
+    <div class="card">
+      <div class="card-title">Topic Tags</div>
+      <div class="hint" style="margin-bottom:10px;">3–9 tags. Lowercase, phrase order preserved.</div>
+      <div class="tag-pills" id="tag-pills"></div>
+      <div class="tag-input-row">
+        <input type="text" id="tag-input" placeholder="add a tag…">
+        <button class="tag-add" id="tag-add-btn">Add</button>
+      </div>
+    </div>
+
+    <!-- Visibility -->
+    <div class="card">
+      <div class="card-title">Visibility</div>
+      <div class="vis-grid">
+        <div class="vis-option">
+          <input type="radio" name="visibility" id="vis-private" value="private">
+          <label for="vis-private">
+            <strong>🔒 Private</strong>
+            My phone only
+          </label>
+        </div>
+        <div class="vis-option">
+          <input type="radio" name="visibility" id="vis-personal" value="personal">
+          <label for="vis-personal">
+            <strong>👤 My Archive</strong>
+            My speaker page only
+          </label>
+        </div>
+        <div class="vis-option">
+          <input type="radio" name="visibility" id="vis-chapter" value="chapter">
+          <label for="vis-chapter">
+            <strong>🏛 Chapter</strong>
+            My archive + chapter page
+          </label>
+        </div>
+        <div class="vis-option">
+          <input type="radio" name="visibility" id="vis-public" value="public">
+          <label for="vis-public">
+            <strong>🌊 ONDA Nile</strong>
+            Global — fully public
+          </label>
+        </div>
+      </div>
+    </div>
+
+    <!-- Card content + prompts -->
+    <div class="card">
+      <div class="card-title">Card Content</div>
+      <p style="font-size:13px;color:#666;margin-bottom:20px;">
+        Fill these in directly, or use the prompts to generate content with your favorite AI —
+        paste the exported file into Claude, ChatGPT, or any AI, then copy the result back here.
+      </p>
+
+      <!-- Synopsis -->
+      <div class="prompt-block">
+        <div class="prompt-label">Synopsis <span>— 2–3 sentences describing the talk</span></div>
+        <div class="output-field">
+          <textarea id="f-synopsis" placeholder="What this talk is about…"></textarea>
+        </div>
+        <div class="prompt-row" style="margin-top:8px;">
+          <textarea id="p-synopsis" placeholder="Prompt: e.g. Summarize this talk in 2–3 sentences for a public archive card. Focus on the core argument and what makes it memorable."></textarea>
+          <button class="export-btn" data-target="synopsis">Export<br>.md</button>
+        </div>
+      </div>
+
+      <hr style="border:none;border-top:1px solid #eee;margin:20px 0;">
+
+      <!-- Takeaways -->
+      <div class="prompt-block">
+        <div class="prompt-label">Key Takeaways <span>— 3–5 bullet points</span></div>
+        <div class="output-field">
+          <textarea id="f-takeaways" placeholder="One takeaway per line…" style="min-height:110px;"></textarea>
+          <div class="hint">One takeaway per line. Each becomes a bullet on the card.</div>
+        </div>
+        <div class="prompt-row" style="margin-top:8px;">
+          <textarea id="p-takeaways" placeholder="Prompt: e.g. Extract 3–5 key takeaways from this talk. Each should be one sentence, specific and actionable, starting with a verb or concept."></textarea>
+          <button class="export-btn" data-target="takeaways">Export<br>.md</button>
+        </div>
+      </div>
+
+      <hr style="border:none;border-top:1px solid #eee;margin:20px 0;">
+
+      <!-- Best For -->
+      <div class="prompt-block">
+        <div class="prompt-label">Best For <span>— who should hear this talk</span></div>
+        <div class="output-field">
+          <textarea id="f-who" placeholder="e.g. Entrepreneurs who feel stuck between knowing what to do and having the courage to do it…" style="min-height:70px;"></textarea>
+        </div>
+        <div class="prompt-row" style="margin-top:8px;">
+          <textarea id="p-who" placeholder="Prompt: e.g. In one sentence, describe the specific person who needs to hear this talk most. Be specific about their situation, not their job title."></textarea>
+          <button class="export-btn" data-target="who">Export<br>.md</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Save -->
+    <button class="btn-primary" id="save-btn">Save Card</button>
+    <div class="msg" id="save-msg"></div>
+
+  </div>
+</div>
+
+<div class="saved-banner" id="saved-banner">Card saved ✓</div>
+
+<script>
+const NILE_API  = 'https://xrxm-29on-xlyt.n7e.xano.io/api:nile';
+const NILE_API2 = 'https://xrxm-29on-xlyt.n7e.xano.io/api:onda-nile';
+
+// ── State ─────────────────────────────────────────────────────────────────────
+let authToken   = null;
+let presenter   = null;
+let sessions    = [];
+let currentSession = null;
+let currentTags = [];
+
+// ── Screen management ─────────────────────────────────────────────────────────
+function show(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  window.scrollTo(0, 0);
+}
+
+function msg(id, text, type) {
+  const el = document.getElementById(id);
+  el.textContent = text;
+  el.className = `msg ${type} show`;
+}
+function clearMsg(id) {
+  const el = document.getElementById(id);
+  el.className = 'msg';
+}
+
+// ── Screen 1: Send OTP ────────────────────────────────────────────────────────
+document.getElementById('send-code-btn').addEventListener('click', async () => {
+  const phone = document.getElementById('phone-input').value.trim();
+  if (!phone) { msg('phone-msg', 'Enter your phone number.', 'err'); return; }
+
+  const btn = document.getElementById('send-code-btn');
+  btn.disabled = true; btn.textContent = 'Sending…';
+  clearMsg('phone-msg');
+
+  try {
+    const resp = await fetch(`${NILE_API}/presenter/magic/send`, {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({ contact: phone }),
+    });
+    const data = await resp.json();
+    if (!resp.ok) throw new Error(data.message || 'Could not send code.');
+    document.getElementById('phone-display').textContent = phone;
+    show('screen-otp');
+  } catch(e) {
+    msg('phone-msg', e.message, 'err');
+  } finally {
+    btn.disabled = false; btn.textContent = 'Send Code';
+  }
+});
+
+// ── Screen 2: Verify OTP ──────────────────────────────────────────────────────
+document.getElementById('back-to-phone').addEventListener('click', () => show('screen-phone'));
+
+document.getElementById('verify-btn').addEventListener('click', async () => {
+  const phone = document.getElementById('phone-input').value.trim();
+  const otp   = document.getElementById('otp-input').value.trim();
+  if (!otp) { msg('otp-msg', 'Enter the 6-digit code.', 'err'); return; }
+
+  const btn = document.getElementById('verify-btn');
+  btn.disabled = true; btn.textContent = '…';
+  clearMsg('otp-msg');
+
+  try {
+    const resp = await fetch(`${NILE_API}/presenter/magic/verify`, {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({ contact: phone, otp }),
+    });
+    const data = await resp.json();
+    if (!resp.ok) throw new Error(data.message || 'Invalid code.');
+
+    authToken = data.magic_auth_token || data.token;
+    presenter = data.presenter || data;
+
+    // Load this presenter's sessions
+    await loadSessions();
+    show('screen-sessions');
+  } catch(e) {
+    msg('otp-msg', e.message, 'err');
+  } finally {
+    btn.disabled = false; btn.textContent = 'Verify';
+  }
+});
+
+// ── Load sessions ─────────────────────────────────────────────────────────────
+async function loadSessions() {
+  const slug = presenter.slug;
+  const resp = await fetch(`${NILE_API2}/sessions?presenter=${slug}&visibility=personal&per_page=100`);
+  if (!resp.ok) throw new Error('Could not load your sessions.');
+  sessions = await resp.json();
+
+  const list = document.getElementById('session-list');
+  if (!sessions.length) {
+    list.innerHTML = '<p style="color:#999;font-size:14px;">No sessions found on your account yet.</p>';
+    return;
+  }
+  list.innerHTML = '';
+  sessions.forEach(s => {
+    const btn = document.createElement('button');
+    btn.className = 'session-btn';
+    btn.innerHTML = `
+      <div class="s-title">${s.title || 'Untitled'}</div>
+      <div class="s-meta">${s.org_l3 || s.org_l1 || ''} · ${s.date || ''} · ${s.visibility || 'public'}</div>
+    `;
+    btn.addEventListener('click', () => openEditor(s));
+    list.appendChild(btn);
+  });
+}
+
+// ── Screen 3 → 4: Open editor ────────────────────────────────────────────────
+document.getElementById('back-to-sessions').addEventListener('click', () => show('screen-sessions'));
+
+function openEditor(s) {
+  currentSession = s;
+  currentTags    = Array.isArray(s.tags) ? [...s.tags] : [];
+
+  document.getElementById('f-title').value     = s.title     || '';
+  document.getElementById('f-presenter').value = s.presenter || (s.presenter_slug
+    ? s.presenter_slug.replace(/-/g,' ').replace(/\b\w/g,c=>c.toUpperCase()) : '');
+  document.getElementById('f-photo').value     = s.photo_url || s.photo || '';
+  document.getElementById('f-linkedin').value  = s.linkedin  || '';
+  document.getElementById('f-synopsis').value  = s.synopsis  || '';
+  document.getElementById('f-takeaways').value = Array.isArray(s.takeaways) ? s.takeaways.join('\n') : (s.takeaways || '');
+  document.getElementById('f-who').value       = s.who       || '';
+
+  // Visibility
+  const vis = s.visibility || 'chapter';
+  const radio = document.querySelector(`input[name="visibility"][value="${vis}"]`);
+  if (radio) radio.checked = true;
+
+  renderTags();
+  clearMsg('save-msg');
+  show('screen-edit');
+}
+
+// ── Tags ──────────────────────────────────────────────────────────────────────
+function renderTags() {
+  const container = document.getElementById('tag-pills');
+  container.innerHTML = '';
+  currentTags.forEach(tag => {
+    const pill = document.createElement('span');
+    pill.className = 'tag-pill';
+    pill.innerHTML = `${tag}<button type="button" aria-label="Remove ${tag}">×</button>`;
+    pill.querySelector('button').addEventListener('click', () => {
+      currentTags = currentTags.filter(t => t !== tag);
+      renderTags();
+    });
+    container.appendChild(pill);
+  });
+}
+
+document.getElementById('tag-add-btn').addEventListener('click', addTag);
+document.getElementById('tag-input').addEventListener('keydown', e => {
+  if (e.key === 'Enter') { e.preventDefault(); addTag(); }
+});
+function addTag() {
+  const input = document.getElementById('tag-input');
+  const tag = input.value.trim().toLowerCase();
+  if (tag && !currentTags.includes(tag)) {
+    currentTags.push(tag);
+    renderTags();
+  }
+  input.value = '';
+  input.focus();
+}
+
+// ── Export .md ────────────────────────────────────────────────────────────────
+document.querySelectorAll('.export-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const target  = btn.dataset.target;
+    const promptEl = document.getElementById(`p-${target}`);
+    const prompt   = promptEl.value.trim();
+    const title    = document.getElementById('f-title').value.trim() || currentSession?.title || 'Session';
+
+    // Build transcript placeholder — in production this would come from the .onda file
+    const transcript = currentSession?.transcript || '[Paste transcript here from your .onda file]';
+
+    const labels = { synopsis: 'Synopsis', takeaways: 'Key Takeaways', who: 'Best For' };
+    const defaultPrompts = {
+      synopsis:  'Summarize this talk in 2–3 sentences for a public archive card. Focus on the core argument and what makes it memorable.',
+      takeaways: 'Extract 3–5 key takeaways from this talk. Each should be one sentence, specific and actionable.',
+      who:       'In one sentence, describe the specific person who needs to hear this talk most. Be specific about their situation.',
+    };
+
+    const md = [
+      `# ${title} — ${labels[target]}`,
+      '',
+      `## Your Prompt`,
+      prompt || defaultPrompts[target],
+      '',
+      `## Instructions`,
+      `Paste the content below into your AI, then copy the result into the "${labels[target]}" field on the ONDA Nile session editor.`,
+      '',
+      `## Transcript`,
+      transcript,
+    ].join('\n');
+
+    const blob = new Blob([md], { type: 'text/markdown' });
+    const url  = URL.createObjectURL(blob);
+    const a    = document.createElement('a');
+    a.href     = url;
+    a.download = `${title.replace(/\s+/g,'-').toLowerCase()}-${target}-prompt.md`;
+    a.click();
+    URL.revokeObjectURL(url);
+  });
+});
+
+// ── Save ──────────────────────────────────────────────────────────────────────
+document.getElementById('save-btn').addEventListener('click', async () => {
+  const btn = document.getElementById('save-btn');
+  btn.disabled = true; btn.textContent = 'Saving…';
+  clearMsg('save-msg');
+
+  const takeawaysRaw = document.getElementById('f-takeaways').value.trim();
+  const takeaways    = takeawaysRaw ? takeawaysRaw.split('\n').map(l=>l.trim()).filter(Boolean) : [];
+  const visibility   = document.querySelector('input[name="visibility"]:checked')?.value || 'chapter';
+
+  const payload = {
+    magic_auth_token: authToken,
+    session_id:       currentSession.id,
+    title:            document.getElementById('f-title').value.trim(),
+    presenter:        document.getElementById('f-presenter').value.trim(),
+    photo_url:        document.getElementById('f-photo').value.trim(),
+    linkedin:         document.getElementById('f-linkedin').value.trim(),
+    synopsis:         document.getElementById('f-synopsis').value.trim(),
+    takeaways,
+    who:              document.getElementById('f-who').value.trim(),
+    tags:             currentTags,
+    visibility,
+  };
+
+  try {
+    const resp = await fetch(`${NILE_API2}/session`, {
+      method: 'PATCH',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify(payload),
+    });
+    const data = await resp.json();
+    if (!resp.ok) throw new Error(data.message || 'Save failed.');
+
+    // Update local session cache
+    Object.assign(currentSession, payload);
+
+    const banner = document.getElementById('saved-banner');
+    banner.classList.add('show');
+    setTimeout(() => banner.classList.remove('show'), 2500);
+  } catch(e) {
+    msg('save-msg', e.message, 'err');
+  } finally {
+    btn.disabled = false; btn.textContent = 'Save Card';
+  }
+});
+</script>
+</body>
+</html>
