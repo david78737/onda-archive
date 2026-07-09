@@ -194,6 +194,27 @@
   .screen { display: none; }
   .screen.active { display: block; }
 
+  /* ── Photo picker ── */
+  .photo-row { display: flex; gap: 14px; align-items: flex-start; }
+  .photo-preview {
+    width: 72px; height: 72px; border-radius: 50%;
+    background: var(--teal-light); border: 2px solid var(--border);
+    flex-shrink: 0; overflow: hidden;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 24px; font-weight: 700; color: var(--teal);
+  }
+  .photo-preview img { width: 100%; height: 100%; object-fit: cover; }
+  .photo-controls { flex: 1; }
+  .photo-pick-btn {
+    display: inline-block; padding: 9px 16px;
+    background: var(--teal-light); border: 1px solid var(--teal);
+    border-radius: 7px; font-size: 14px; font-weight: 600;
+    color: var(--teal); cursor: pointer;
+    transition: background .12s;
+  }
+  .photo-pick-btn:hover { background: #C8EFEB; }
+  .photo-pick-btn.uploading { opacity: .6; pointer-events: none; }
+
   /* ── Saved banner ── */
   .saved-banner {
     position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%);
@@ -290,9 +311,22 @@
       </div>
 
       <div class="field">
-        <label>Photo URL <span class="optional">optional</span></label>
-        <input type="url" id="f-photo" placeholder="https://…/headshot.jpg">
-        <div class="hint">Direct image link. Leave blank to use your initials.</div>
+        <label>Photo <span class="optional">optional</span></label>
+        <div class="photo-row">
+          <div class="photo-preview" id="photo-preview">
+            <span id="photo-initials">?</span>
+            <img id="photo-img" src="" alt="" style="display:none;">
+          </div>
+          <div class="photo-controls">
+            <label class="photo-pick-btn" for="photo-file-input">
+              Choose Photo
+              <input type="file" id="photo-file-input" accept="image/*" style="display:none;">
+            </label>
+            <div class="hint" style="margin-top:6px;">JPG or PNG. Or paste a URL below.</div>
+            <input type="url" id="f-photo" placeholder="https://…/headshot.jpg" style="margin-top:8px;">
+          </div>
+        </div>
+        <div class="msg" id="photo-msg"></div>
       </div>
 
       <div class="field">
@@ -529,7 +563,9 @@ function openEditor(s) {
   document.getElementById('f-title').value     = s.title     || '';
   document.getElementById('f-presenter').value = s.presenter || (s.presenter_slug
     ? s.presenter_slug.replace(/-/g,' ').replace(/\b\w/g,c=>c.toUpperCase()) : '');
-  document.getElementById('f-photo').value     = s.photo_url || s.photo || '';
+  const photoUrl = s.photo_url || s.photo || '';
+  document.getElementById('f-photo').value = photoUrl;
+  updatePhotoPreview(photoUrl, document.getElementById('f-presenter').value);
   document.getElementById('f-linkedin').value  = s.linkedin  || '';
   document.getElementById('f-synopsis').value  = s.synopsis  || '';
   document.getElementById('f-takeaways').value = Array.isArray(s.takeaways) ? s.takeaways.join('\n') : (s.takeaways || '');
@@ -544,6 +580,67 @@ function openEditor(s) {
   clearMsg('save-msg');
   show('screen-edit');
 }
+
+// ── Photo picker ─────────────────────────────────────────────────────────────
+function updatePhotoPreview(url, name) {
+  const img      = document.getElementById('photo-img');
+  const initials = document.getElementById('photo-initials');
+  if (url) {
+    img.src = url;
+    img.style.display = 'block';
+    initials.style.display = 'none';
+  } else {
+    img.style.display = 'none';
+    initials.style.display = 'block';
+    const parts = (name || '').trim().split(/\s+/);
+    initials.textContent = parts.length >= 2
+      ? (parts[0][0] + parts[parts.length-1][0]).toUpperCase()
+      : (parts[0]?.[0] || '?').toUpperCase();
+  }
+}
+
+document.getElementById('photo-file-input').addEventListener('change', async (e) => {
+  const file = e.target.files[0];
+  if (!file) return;
+
+  // Show local preview immediately
+  const localUrl = URL.createObjectURL(file);
+  updatePhotoPreview(localUrl, document.getElementById('f-presenter').value);
+
+  const btn = document.querySelector('.photo-pick-btn');
+  btn.classList.add('uploading');
+  btn.textContent = 'Uploading…';
+  clearMsg('photo-msg');
+
+  try {
+    const form = new FormData();
+    form.append('magic_auth_token', authToken);
+    form.append('photo', file, file.name);
+
+    const r = await fetch(`${NILE_API2}/presenter/photo`, {
+      method: 'POST',
+      body: form,
+    });
+    const d = await r.json();
+    if (!r.ok) throw new Error(d.message || 'Upload failed.');
+
+    document.getElementById('f-photo').value = d.photo_url;
+    updatePhotoPreview(d.photo_url, document.getElementById('f-presenter').value);
+    msg('photo-msg', 'Photo uploaded.', 'ok');
+  } catch(err) {
+    msg('photo-msg', err.message, 'err');
+    // Keep local preview even if upload failed
+  } finally {
+    btn.classList.remove('uploading');
+    btn.textContent = 'Choose Photo';
+    URL.revokeObjectURL(localUrl);
+  }
+});
+
+// Update preview when URL field is changed manually
+document.getElementById('f-photo').addEventListener('change', e => {
+  updatePhotoPreview(e.target.value.trim(), document.getElementById('f-presenter').value);
+});
 
 // ── Tags ──────────────────────────────────────────────────────────────────────
 function renderTags() {
@@ -642,7 +739,7 @@ document.getElementById('save-btn').addEventListener('click', async () => {
   };
 
   try {
-    const resp = await fetch(`${NILE_API2}/session`, {
+    const resp = await fetch(`${NILE_API2}/nile/session`, {
       method: 'PATCH',
       headers: {'Content-Type': 'application/json'},
       body: JSON.stringify(payload),
