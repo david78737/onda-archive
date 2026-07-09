@@ -476,7 +476,7 @@ document.getElementById('verify-btn').addEventListener('click', async () => {
     const resp = await fetch(`${NILE_API}/presenter/magic/verify`, {
       method: 'POST',
       headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify({ contact: phone, otp }),
+      body: JSON.stringify({ contact: phone, code: otp }),
     });
     const data = await resp.json();
     if (!resp.ok) throw new Error(data.message || 'Invalid code.');
