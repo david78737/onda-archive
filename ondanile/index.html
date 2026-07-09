@@ -553,7 +553,7 @@ function render() {
         <div class="section-label">Synopsis</div>
         <div class="synopsis">${s.synopsis}</div>
         <div class="section-label">Key Takeaways</div>
-        <ul class="takeaways">${s.takeaways.map(t => `<li>${t}</li>`).join('')}</ul>
+        <ul class="takeaways">${(s.takeaways || []).map(t => `<li>${t}</li>`).join('')}</ul>
         <div class="section-label">Best For</div>
         <div class="who">${s.who}</div>
         <div class="brief-row">${s.brief}</div>
@@ -586,11 +586,43 @@ document.getElementById('search-input').addEventListener('input', e => {
 });
 
 // ── Boot ──────────────────────────────────────────────────────────────────────
+const NILE_API = 'https://xrxm-29on-xlyt.n7e.xano.io/api:onda-nile/sessions?per_page=1000';
+
+function normalizeNileSession(s) {
+  const name = s.presenter_slug
+    ? s.presenter_slug.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase())
+    : 'Unknown';
+  const parts = [s.org_l2, s.org_l3].filter(Boolean);
+  return {
+    id: 'nile-' + s.id,
+    title: s.title || '',
+    presenter: name,
+    org: s.org_l1 || '',
+    source: parts.length ? parts.join(' › ') : (s.org_l1 || ''),
+    tags: Array.isArray(s.tags) ? s.tags : [],
+    synopsis: s.synopsis || '',
+    takeaways: [],
+    who: '',
+    brief: '',
+    youtube: null,
+    photo: s.photo_url || null,
+    linkedin: s.linkedin || null,
+    onda_url: s.file_url || s.session_url || null,
+    status: s.status,
+    visibility: s.visibility,
+  };
+}
+
 (async () => {
   try {
-    const resp = await fetch('sessions.json');
-    if (!resp.ok) throw new Error(`sessions.json: ${resp.status}`);
-    allSessions = await resp.json();
+    const [staticResp, liveResp] = await Promise.all([
+      fetch('sessions.json'),
+      fetch(NILE_API).catch(() => null),
+    ]);
+    if (!staticResp.ok) throw new Error(`sessions.json: ${staticResp.status}`);
+    const staticSessions = await staticResp.json();
+    const liveSessions = liveResp && liveResp.ok ? (await liveResp.json()).map(normalizeNileSession) : [];
+    allSessions = [...liveSessions, ...staticSessions];
 
     // Build ranked tag list — event tags (PCA##, Elevate Summit *) pinned first
     const tagCount = {};
