@@ -734,9 +734,9 @@ document.getElementById('verify-btn').addEventListener('click', async () => {
     });
     const d = await r.json();
     if (!r.ok) throw new Error(d.message || 'Invalid code.');
-    // Token is returned as a query param inside profile_url
-    const profileUrl = new URL(d.profile_url);
-    authToken = profileUrl.searchParams.get('token');
+    // Token is embedded in profile_url as ?token=XXX
+    const tokenMatch = (d.profile_url || '').match(/[?&]token=([^&]+)/);
+    authToken = tokenMatch ? tokenMatch[1] : null;
     presenter = d.presenter || {};
 
     if (!authToken) {
