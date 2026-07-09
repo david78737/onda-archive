@@ -735,8 +735,7 @@ document.getElementById('verify-btn').addEventListener('click', async () => {
     const d = await r.json();
     if (!r.ok) throw new Error(d.message || 'Invalid code.');
     // Token is embedded in profile_url as ?token=XXX
-    const tokenMatch = (d.profile_url || '').match(/[?&]token=([^&]+)/);
-    authToken = tokenMatch ? tokenMatch[1] : null;
+    authToken = (d.profile_url || '').split('?token=')[1]?.split('&')[0] || null;
     presenter = d.presenter || {};
 
     if (!authToken) {

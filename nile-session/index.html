@@ -550,8 +550,7 @@ document.getElementById('verify-btn').addEventListener('click', async () => {
     if (!resp.ok) throw new Error(data.message || 'Invalid code.');
 
     // Token is embedded in profile_url as ?token=XXX
-    const tokenMatch = (data.profile_url || '').match(/[?&]token=([^&]+)/);
-    authToken = tokenMatch ? tokenMatch[1] : null;
+    authToken = (data.profile_url || '').split('?token=')[1]?.split('&')[0] || null;
     presenter = data.presenter || {};
 
     if (!authToken) {
