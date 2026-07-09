@@ -713,6 +713,7 @@ document.getElementById('send-code-btn').addEventListener('click', async () => {
     if (!r.ok) throw new Error(d.message || 'Could not send code.');
     document.getElementById('phone-display').textContent = phone;
     show('screen-otp');
+    setTimeout(() => document.getElementById('otp-input').focus(), 50);
   } catch(e) { msg('phone-msg', e.message, 'err'); }
   finally { btn.disabled = false; btn.textContent = 'Send Code'; }
 });
