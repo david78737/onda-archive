@@ -215,6 +215,29 @@
   .photo-pick-btn:hover { background: #C8EFEB; }
   .photo-pick-btn.uploading { opacity: .6; pointer-events: none; }
 
+  /* ── Save row ── */
+  .save-row { display: flex; gap: 10px; }
+  .btn-save {
+    flex: 1; padding: 14px;
+    background: var(--teal-light); color: var(--teal);
+    font-size: 16px; font-weight: 700;
+    border: 2px solid var(--teal); border-radius: 8px;
+    cursor: pointer; font-family: inherit;
+    transition: background .15s;
+  }
+  .btn-save:hover { background: #C8EFEB; }
+  .btn-save:disabled { opacity: .5; cursor: default; }
+  .btn-save-close {
+    flex: 2; padding: 14px;
+    background: var(--teal); color: #fff;
+    font-size: 16px; font-weight: 700;
+    border: none; border-radius: 8px;
+    cursor: pointer; font-family: inherit;
+    transition: background .15s;
+  }
+  .btn-save-close:hover { background: var(--teal-dark); }
+  .btn-save-close:disabled { background: #AAA; cursor: default; }
+
   /* ── Saved banner ── */
   .saved-banner {
     position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%);
@@ -432,7 +455,10 @@
     </div>
 
     <!-- Save -->
-    <button class="btn-primary" id="save-btn">Save Card</button>
+    <div class="save-row">
+      <button type="button" class="btn-save" id="save-btn">Save</button>
+      <button type="button" class="btn-save-close" id="save-close-btn">Save &amp; Close</button>
+    </div>
     <div class="msg" id="save-msg"></div>
 
   </div>
@@ -727,11 +753,7 @@ document.querySelectorAll('.export-btn').forEach(btn => {
 });
 
 // ── Save ──────────────────────────────────────────────────────────────────────
-document.getElementById('save-btn').addEventListener('click', async () => {
-  const btn = document.getElementById('save-btn');
-  btn.disabled = true; btn.textContent = 'Saving…';
-  clearMsg('save-msg');
-
+async function saveCard() {
   const takeawaysRaw = document.getElementById('f-takeaways').value.trim();
   const takeaways    = takeawaysRaw ? takeawaysRaw.split('\n').map(l=>l.trim()).filter(Boolean) : [];
   const visibility   = document.querySelector('input[name="visibility"]:checked')?.value || 'chapter';
@@ -750,25 +772,43 @@ document.getElementById('save-btn').addEventListener('click', async () => {
     visibility,
   };
 
+  const resp = await fetch(`${NILE_API2}/nile/session`, {
+    method: 'PATCH',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify(payload),
+  });
+  const data = await resp.json();
+  if (!resp.ok) throw new Error(data.message || 'Save failed.');
+  Object.assign(currentSession, payload);
+  return data;
+}
+
+document.getElementById('save-btn').addEventListener('click', async () => {
+  const btn = document.getElementById('save-btn');
+  btn.disabled = true; btn.textContent = 'Saving…';
+  clearMsg('save-msg');
   try {
-    const resp = await fetch(`${NILE_API2}/nile/session`, {
-      method: 'PATCH',
-      headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify(payload),
-    });
-    const data = await resp.json();
-    if (!resp.ok) throw new Error(data.message || 'Save failed.');
-
-    // Update local session cache
-    Object.assign(currentSession, payload);
-
+    await saveCard();
     const banner = document.getElementById('saved-banner');
     banner.classList.add('show');
     setTimeout(() => banner.classList.remove('show'), 2500);
   } catch(e) {
     msg('save-msg', e.message, 'err');
   } finally {
-    btn.disabled = false; btn.textContent = 'Save Card';
+    btn.disabled = false; btn.textContent = 'Save';
+  }
+});
+
+document.getElementById('save-close-btn').addEventListener('click', async () => {
+  const btn = document.getElementById('save-close-btn');
+  btn.disabled = true; btn.textContent = 'Saving…';
+  clearMsg('save-msg');
+  try {
+    await saveCard();
+    show('screen-sessions');
+  } catch(e) {
+    msg('save-msg', e.message, 'err');
+    btn.disabled = false; btn.textContent = 'Save & Close';
   }
 });
 </script>
