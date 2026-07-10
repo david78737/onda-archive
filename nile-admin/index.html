@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Event Admin — ONDA Nile</title>
+<style>
+  :root {
+    --teal: #009688;
+    --teal-dark: #007a70;
+    --teal-light: #E8F8F6;
+    --ink: #1a1a1a;
+    --body: #333;
+    --muted: #666;
+    --border: #CCC;
+    --bg: #F7F9F9;
+    --surface: #FFF;
+    --error: #c0392b;
+    --success: #1a7f4b;
+    --success-bg: #eafaf1;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--body);
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    font-size: 16px;
+    line-height: 1.6;
+    padding: 0 0 80px;
+  }
+
+  header {
+    background: var(--teal);
+    padding: 16px 24px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .wordmark { font-size: 18px; font-weight: 700; color: #fff; letter-spacing: .03em; }
+  .header-sub { font-size: 12px; color: rgba(255,255,255,.75); margin-top: 1px; }
+
+  .wrap { max-width: 620px; margin: 0 auto; padding: 32px 20px 0; }
+
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 24px;
+    margin-bottom: 20px;
+  }
+  .card-title {
+    font-size: 13px; font-weight: 700; text-transform: uppercase;
+    letter-spacing: .1em; color: var(--teal); margin-bottom: 16px;
+  }
+
+  .field { margin-bottom: 16px; }
+  .field:last-child { margin-bottom: 0; }
+  label { display: block; font-size: 14px; font-weight: 600; color: var(--ink); margin-bottom: 5px; }
+  input[type="text"], input[type="tel"], input[type="number"], select {
+    width: 100%; padding: 11px 13px; font-size: 15px;
+    border: 1px solid var(--border); border-radius: 7px;
+    color: var(--ink); background: var(--surface);
+    transition: border-color .15s; font-family: inherit;
+  }
+  input:focus, select:focus { border-color: var(--teal); outline: none; }
+  .hint { font-size: 12px; color: var(--muted); margin-top: 4px; }
+
+  .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+
+  .btn {
+    display: inline-block; padding: 13px 28px; font-size: 15px; font-weight: 600;
+    border: none; border-radius: 8px; cursor: pointer; transition: background .15s;
+    font-family: inherit;
+  }
+  .btn-primary { background: var(--teal); color: #fff; width: 100%; margin-top: 4px; }
+  .btn-primary:hover { background: var(--teal-dark); }
+  .btn-primary:disabled { background: #aaa; cursor: default; }
+  .btn-sm {
+    padding: 6px 14px; font-size: 13px; font-weight: 600;
+    background: var(--teal-light); color: var(--teal);
+    border: 1px solid var(--teal); border-radius: 6px; cursor: pointer;
+  }
+  .btn-sm:hover { background: #d0f0ec; }
+
+  .banner {
+    padding: 12px 16px; border-radius: 8px; font-size: 14px;
+    font-weight: 600; margin-bottom: 16px; display: none;
+  }
+  .banner.error { background: #fdecea; color: var(--error); display: block; }
+  .banner.success { background: var(--success-bg); color: var(--success); display: block; }
+
+  /* Auth screen */
+  #screen-auth { }
+  #screen-main { display: none; }
+
+  .otp-row { display: flex; gap: 10px; }
+  .otp-row input { flex: 1; }
+
+  /* Slot results table */
+  .slot-table { width: 100%; border-collapse: collapse; margin-top: 8px; font-size: 14px; }
+  .slot-table th {
+    text-align: left; font-size: 12px; font-weight: 700; text-transform: uppercase;
+    letter-spacing: .08em; color: var(--muted); padding: 8px 10px;
+    border-bottom: 2px solid var(--border);
+  }
+  .slot-table td { padding: 10px 10px; border-bottom: 1px solid #eee; vertical-align: middle; }
+  .slot-table tr:last-child td { border-bottom: none; }
+
+  .token-pill {
+    font-family: monospace; font-size: 13px; font-weight: 700;
+    background: var(--teal-light); color: var(--teal);
+    padding: 3px 8px; border-radius: 5px; letter-spacing: .05em;
+  }
+  .slot-url { font-size: 12px; color: var(--muted); word-break: break-all; }
+
+  .copy-all-wrap { margin-top: 16px; }
+  .copy-output {
+    width: 100%; font-size: 13px; font-family: monospace;
+    background: #f4f4f4; border: 1px solid var(--border);
+    border-radius: 6px; padding: 12px; min-height: 80px;
+    resize: vertical; color: var(--ink);
+  }
+
+  .spinner { display: inline-block; width: 18px; height: 18px; border: 2px solid #fff;
+    border-top-color: transparent; border-radius: 50%; animation: spin .6s linear infinite; vertical-align: middle; margin-right: 6px; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .section-sep { border: none; border-top: 1px solid var(--border); margin: 24px 0; }
+
+  .slots-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+  .slots-count { font-size: 13px; color: var(--muted); }
+</style>
+</head>
+<body>
+
+<header>
+  <div>
+    <div class="wordmark">ONDA Nile · Event Admin</div>
+    <div class="header-sub">Create and manage session slots</div>
+  </div>
+</header>
+
+<div class="wrap">
+
+  <!-- ── AUTH ── -->
+  <div id="screen-auth">
+    <div class="card">
+      <div class="card-title">Admin Sign In</div>
+      <div id="auth-banner" class="banner"></div>
+
+      <div id="step-phone">
+        <div class="field">
+          <label for="phone-input">Phone number</label>
+          <input type="tel" id="phone-input" placeholder="+1 512 555 0100" autocomplete="tel">
+          <div class="hint">US number — we'll send a one-time code</div>
+        </div>
+        <button class="btn btn-primary" onclick="sendOtp()">Send Code</button>
+      </div>
+
+      <div id="step-otp" style="display:none">
+        <div class="field">
+          <label for="otp-input">Enter your code</label>
+          <div class="otp-row">
+            <input type="text" id="otp-input" placeholder="6-digit code" inputmode="numeric" maxlength="6" autocomplete="one-time-code">
+            <button class="btn btn-primary" style="width:auto" onclick="verifyOtp()">Verify</button>
+          </div>
+          <div class="hint" style="margin-top:6px">
+            <a href="#" onclick="resetAuth(); return false;" style="color:var(--teal)">Didn't get a text? Check the number...</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── MAIN ── -->
+  <div id="screen-main">
+
+    <div class="card">
+      <div class="card-title">Create Session Slots</div>
+      <div id="create-banner" class="banner"></div>
+
+      <div class="row2">
+        <div class="field">
+          <label for="org-l1">Organization</label>
+          <input type="text" id="org-l1" placeholder="Toastmasters" value="Toastmasters">
+        </div>
+        <div class="field">
+          <label for="org-l2">City / Region</label>
+          <input type="text" id="org-l2" placeholder="Austin" value="Austin">
+        </div>
+      </div>
+
+      <div class="field">
+        <label for="org-l3">Chapter / Event</label>
+        <input type="text" id="org-l3" placeholder="Chapter 47 · July 15 Meeting">
+      </div>
+
+      <div class="row2">
+        <div class="field">
+          <label for="slot-count">Number of slots</label>
+          <input type="number" id="slot-count" value="9" min="1" max="50">
+        </div>
+        <div class="field">
+          <label for="visibility">Visibility</label>
+          <select id="visibility">
+            <option value="chapter">Chapter</option>
+            <option value="public">Public</option>
+            <option value="personal">Personal only</option>
+          </select>
+        </div>
+      </div>
+
+      <button class="btn btn-primary" id="create-btn" onclick="createSlots()">Create Slots</button>
+    </div>
+
+    <!-- Results -->
+    <div id="results-card" class="card" style="display:none">
+      <div class="slots-header">
+        <div class="card-title" style="margin-bottom:0">Session Tokens</div>
+        <div class="slots-count" id="slots-count-label"></div>
+      </div>
+
+      <table class="slot-table">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Token</th>
+            <th>Share URL</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody id="slots-tbody"></tbody>
+      </table>
+
+      <hr class="section-sep">
+
+      <div class="copy-all-wrap">
+        <label style="margin-bottom:8px">All tokens — copy and share</label>
+        <textarea class="copy-output" id="copy-output" readonly></textarea>
+        <button class="btn btn-sm" style="margin-top:8px" onclick="copyAll()">Copy all to clipboard</button>
+      </div>
+    </div>
+
+  </div><!-- /screen-main -->
+
+</div><!-- /wrap -->
+
+<script>
+const NILE_AUTH = 'https://xrxm-29on-xlyt.n7e.xano.io/api:nile';
+const NILE_API  = 'https://xrxm-29on-xlyt.n7e.xano.io/api:onda-nile';
+
+let authToken = null;
+
+function normalizePhone(raw) {
+  const digits = raw.replace(/\D/g, '');
+  if (digits.length === 10) return '+1' + digits;
+  if (digits.length === 11 && digits[0] === '1') return '+' + digits;
+  return '+' + digits;
+}
+
+function showBanner(id, type, msg) {
+  const el = document.getElementById(id);
+  el.className = 'banner ' + type;
+  el.textContent = msg;
+}
+
+function hideBanner(id) {
+  const el = document.getElementById(id);
+  el.className = 'banner';
+  el.textContent = '';
+}
+
+async function sendOtp() {
+  hideBanner('auth-banner');
+  const raw = document.getElementById('phone-input').value.trim();
+  if (!raw) { showBanner('auth-banner', 'error', 'Enter your phone number.'); return; }
+  const phone = normalizePhone(raw);
+  try {
+    const r = await fetch(`${NILE_AUTH}/presenter/magic/send`, {
+      method: 'POST', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ contact: phone })
+    });
+    if (!r.ok) { const e = await r.json(); throw new Error(e.message || 'Failed to send code'); }
+    document.getElementById('step-phone').style.display = 'none';
+    document.getElementById('step-otp').style.display = 'block';
+    setTimeout(() => document.getElementById('otp-input').focus(), 50);
+  } catch(e) { showBanner('auth-banner', 'error', e.message); }
+}
+
+async function verifyOtp() {
+  hideBanner('auth-banner');
+  const raw = document.getElementById('phone-input').value.trim();
+  const otp = document.getElementById('otp-input').value.trim();
+  const phone = normalizePhone(raw);
+  if (!otp) { showBanner('auth-banner', 'error', 'Enter the code from your text.'); return; }
+  try {
+    const r = await fetch(`${NILE_AUTH}/presenter/magic/verify`, {
+      method: 'POST', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ contact: phone, code: otp })
+    });
+    if (!r.ok) { const e = await r.json(); throw new Error(e.message || 'Invalid code'); }
+    const data = await r.json();
+    authToken = (data.profile_url || '').split('?token=')[1]?.split('&')[0] || null;
+    if (!authToken) throw new Error('Token not returned — contact support');
+    document.getElementById('screen-auth').style.display = 'none';
+    document.getElementById('screen-main').style.display = 'block';
+  } catch(e) { showBanner('auth-banner', 'error', e.message); }
+}
+
+function resetAuth() {
+  document.getElementById('step-phone').style.display = 'block';
+  document.getElementById('step-otp').style.display = 'none';
+  document.getElementById('otp-input').value = '';
+  hideBanner('auth-banner');
+}
+
+async function createSlots() {
+  hideBanner('create-banner');
+  const orgL1    = document.getElementById('org-l1').value.trim();
+  const orgL2    = document.getElementById('org-l2').value.trim();
+  const orgL3    = document.getElementById('org-l3').value.trim();
+  const count    = parseInt(document.getElementById('slot-count').value) || 1;
+  const vis      = document.getElementById('visibility').value;
+
+  if (!orgL3) { showBanner('create-banner', 'error', 'Enter a chapter / event name.'); return; }
+
+  const btn = document.getElementById('create-btn');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span>Creating…';
+
+  const results = [];
+  const errors  = [];
+
+  for (let i = 0; i < count; i++) {
+    try {
+      const r = await fetch(`${NILE_API}/nile/session/create`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${authToken}` },
+        body: JSON.stringify({ org_l1: orgL1, org_l2: orgL2, org_l3: orgL3, visibility: vis, status: 'pending' })
+      });
+      const data = await r.json();
+      if (!r.ok) throw new Error(data.message || 'Create failed');
+      results.push(data);
+    } catch(e) {
+      errors.push(`Slot ${i+1}: ${e.message}`);
+    }
+  }
+
+  btn.disabled = false;
+  btn.textContent = 'Create Slots';
+
+  if (errors.length) {
+    showBanner('create-banner', 'error', errors.join(' · '));
+  }
+
+  if (results.length) {
+    renderResults(results);
+  }
+}
+
+function renderResults(slots) {
+  const tbody = document.getElementById('slots-tbody');
+  tbody.innerHTML = '';
+
+  slots.forEach((s, i) => {
+    const token = s.session_token || '—';
+    const url   = s.session_url   || `https://ondareplay.com/s/${token}`;
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td>${i + 1}</td>
+      <td><span class="token-pill">${token}</span></td>
+      <td><div class="slot-url">${url}</div></td>
+      <td><button class="btn-sm" onclick="copyText('${url}')">Copy</button></td>
+    `;
+    tbody.appendChild(tr);
+  });
+
+  document.getElementById('slots-count-label').textContent = `${slots.length} slot${slots.length !== 1 ? 's' : ''} created`;
+
+  const lines = slots.map((s, i) => {
+    const token = s.session_token || '—';
+    const url   = s.session_url   || `https://ondareplay.com/s/${token}`;
+    return `Slot ${i + 1}  |  Token: ${token}  |  ${url}`;
+  }).join('\n');
+  document.getElementById('copy-output').value = lines;
+
+  document.getElementById('results-card').style.display = 'block';
+  document.getElementById('results-card').scrollIntoView({ behavior: 'smooth' });
+}
+
+function copyText(text) {
+  navigator.clipboard.writeText(text).catch(() => {});
+}
+
+function copyAll() {
+  const text = document.getElementById('copy-output').value;
+  navigator.clipboard.writeText(text).then(() => {
+    const btn = event.target;
+    btn.textContent = 'Copied ✓';
+    setTimeout(() => btn.textContent = 'Copy all to clipboard', 2000);
+  }).catch(() => {});
+}
+</script>
+</body>
+</html>
