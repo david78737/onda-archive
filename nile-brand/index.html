@@ -524,6 +524,12 @@
 
 <div class="saved-banner" id="saved-banner">Identity saved ✓</div>
 
+<div id="next-step" style="display:none; max-width:600px; margin:16px auto 0; padding:0 20px;">
+  <a href="../nile-session/" class="btn-primary" style="display:block; text-align:center; text-decoration:none; padding:14px; background:#009688; color:#fff; font-size:16px; font-weight:700; border-radius:8px;">
+    Next: Edit your session cards →
+  </a>
+</div>
+
 <script>
 const NILE_API = 'https://xrxm-29on-xlyt.n7e.xano.io/api:onda-nile';
 const NILE_AUTH = 'https://xrxm-29on-xlyt.n7e.xano.io/api:nile';
@@ -862,6 +868,7 @@ document.getElementById('save-btn').addEventListener('click', async () => {
     const banner = document.getElementById('saved-banner');
     banner.classList.add('show');
     setTimeout(() => banner.classList.remove('show'), 2500);
+    document.getElementById('next-step').style.display = 'block';
   } catch(e) { msg('save-msg', e.message, 'err'); }
   finally { btn.disabled = false; btn.textContent = 'Save My Identity'; }
 });
