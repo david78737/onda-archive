@@ -551,13 +551,16 @@ document.getElementById('verify-btn').addEventListener('click', async () => {
 
     // Token is embedded in profile_url as ?token=XXX
     authToken = (data.profile_url || '').split('?token=')[1]?.split('&')[0] || null;
-    presenter = data.presenter || {};
 
     if (!authToken) {
       throw new Error('Token not found in profile_url: ' + JSON.stringify(data));
     }
 
-    // Load this presenter's sessions
+    // Load presenter profile using token, then load their sessions
+    const pResp = await fetch(`${NILE_API}/verify-token?token=${encodeURIComponent(authToken)}`);
+    if (!pResp.ok) throw new Error('Could not load presenter profile.');
+    presenter = await pResp.json();
+
     await loadSessions();
     show('screen-sessions');
   } catch(e) {
