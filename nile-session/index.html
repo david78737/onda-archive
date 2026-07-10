@@ -676,6 +676,7 @@ document.getElementById('photo-file-input').addEventListener('change', async (e)
     btn.classList.remove('uploading');
     btn.textContent = 'Choose Photo';
     URL.revokeObjectURL(localUrl);
+    document.getElementById('photo-file-input').value = '';
   }
 });
 
