@@ -736,11 +736,15 @@ document.getElementById('verify-btn').addEventListener('click', async () => {
     if (!r.ok) throw new Error(d.message || 'Invalid code.');
     // Token is embedded in profile_url as ?token=XXX
     authToken = (d.profile_url || '').split('?token=')[1]?.split('&')[0] || null;
-    presenter = d.presenter || {};
 
     if (!authToken) {
       throw new Error('Token not found in profile_url: ' + JSON.stringify(d));
     }
+
+    // Load presenter profile using token
+    const pResp = await fetch(`${NILE_AUTH}/verify-token?token=${encodeURIComponent(authToken)}`);
+    if (!pResp.ok) throw new Error('Could not load presenter profile.');
+    presenter = await pResp.json();
 
     // Pre-fill if existing theme
     if (presenter.skin_base && SKINS[presenter.skin_base]) {
