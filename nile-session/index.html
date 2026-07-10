@@ -773,13 +773,16 @@ async function saveCard() {
     visibility,
   };
 
+  console.log('SAVE PAYLOAD', JSON.stringify(payload, null, 2));
+
   const resp = await fetch(`${NILE_API2}/nile/session`, {
     method: 'PATCH',
     headers: {'Content-Type': 'application/json'},
     body: JSON.stringify(payload),
   });
   const data = await resp.json();
-  if (!resp.ok) throw new Error(data.message || 'Save failed.');
+  console.log('SAVE RESPONSE', JSON.stringify(data, null, 2));
+  if (!resp.ok) throw new Error(data.message + ' | sent: session_id=' + payload.session_id + ' token=' + payload.magic_auth_token?.slice(0,8) + '…');
   Object.assign(currentSession, payload);
   return data;
 }
