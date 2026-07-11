@@ -12,7 +12,6 @@
     --surface:     #1a1d27;
     --surface2:    #141720;
     --border:      #252838;
-    --border-dim:  #1e2030;
     --ink:         #e8eaf0;
     --ink-mid:     #c8d0e8;
     --muted:       #8890b8;
@@ -38,30 +37,11 @@
   .header-title { font-size: 17px; font-weight: 700; color: var(--ink); line-height: 1.2; }
   .header-right { margin-left: auto; display: flex; align-items: center; gap: 10px; }
   .header-count { font-size: 11px; color: var(--muted); white-space: nowrap; }
-
   .admin-badge { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; background: var(--admin-dim); color: var(--admin); border: 1px solid var(--admin); border-radius: 4px; padding: 3px 8px; display: none; }
   .admin-badge.visible { display: inline-block; }
-
   .admin-toggle-btn { font-size: 11px; font-weight: 600; background: var(--surface); border: 1px solid var(--border); color: var(--muted); border-radius: 5px; padding: 5px 12px; cursor: pointer; white-space: nowrap; transition: border-color .15s, color .15s; }
   .admin-toggle-btn:hover { border-color: var(--accent); color: var(--accent); }
   .admin-toggle-btn.active { background: var(--admin-dim); border-color: var(--admin); color: var(--admin); }
-
-  /* ── Auth modal ── */
-  .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,.7); z-index: 100; display: none; align-items: center; justify-content: center; padding: 20px; }
-  .modal-overlay.open { display: flex; }
-  .modal { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 28px; width: 100%; max-width: 380px; }
-  .modal-title { font-size: 16px; font-weight: 700; color: var(--ink); margin-bottom: 4px; }
-  .modal-sub { font-size: 13px; color: var(--muted); margin-bottom: 20px; }
-  .modal label { display: block; font-size: 13px; font-weight: 600; color: var(--ink-mid); margin-bottom: 5px; }
-  .modal input { width: 100%; background: var(--surface2); border: 1px solid var(--border); color: var(--ink); font-size: 14px; border-radius: 6px; padding: 9px 12px; outline: none; transition: border-color .15s; margin-bottom: 12px; font-family: inherit; }
-  .modal input:focus { border-color: var(--accent); }
-  .modal-btn { width: 100%; padding: 11px; font-size: 14px; font-weight: 600; background: var(--accent); color: #000; border: none; border-radius: 7px; cursor: pointer; font-family: inherit; transition: opacity .15s; }
-  .modal-btn:hover { opacity: .85; }
-  .modal-btn:disabled { opacity: .5; cursor: default; }
-  .modal-cancel { display: block; text-align: center; margin-top: 10px; font-size: 12px; color: var(--muted); cursor: pointer; }
-  .modal-cancel:hover { color: var(--ink-mid); }
-  .modal-error { font-size: 12px; color: var(--danger); margin-bottom: 10px; display: none; }
-  .modal-error.show { display: block; }
 
   /* ── Search ── */
   .search-bar { background: var(--surface); border-bottom: 1px solid var(--header-border); padding: 8px 24px; }
@@ -72,12 +52,19 @@
 
   /* ── Layout ── */
   .layout { max-width: 1000px; margin: 0 auto; display: flex; align-items: flex-start; height: calc(100vh - 112px); }
-  .left-panel { width: 130px; flex-shrink: 0; border-right: 1px solid var(--header-border); height: 100%; overflow-y: auto; padding: 12px 8px 32px; display: flex; flex-direction: column; gap: 16px; }
+  .left-panel { width: 136px; flex-shrink: 0; border-right: 1px solid var(--header-border); height: 100%; overflow-y: auto; padding: 12px 8px 32px; display: flex; flex-direction: column; gap: 16px; }
   .filter-group { display: flex; flex-direction: column; gap: 5px; }
-  .filter-label { font-size: 9px; text-transform: uppercase; letter-spacing: .1em; color: var(--muted-dim); font-weight: 600; }
+  .filter-label { font-size: 9px; text-transform: uppercase; letter-spacing: .1em; color: var(--muted-dim); font-weight: 600; padding-bottom: 2px; }
+  .filter-label.gold { color: var(--admin); }
   .filter-btn { background: var(--surface); border: 1px solid var(--border); color: var(--ink-mid); border-radius: 4px; padding: 7px 8px; font-size: 11px; cursor: pointer; text-align: left; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; transition: background .12s, color .12s, border-color .12s; min-height: 36px; width: 100%; }
   .filter-btn:hover { background: var(--surface2); color: var(--ink); }
   .filter-btn.active { background: var(--accent-dim); border-color: var(--accent); color: var(--accent); }
+
+  /* Admin tool buttons in sidebar */
+  .tool-btn { background: var(--admin-dim); border: 1px solid var(--admin); color: var(--admin); border-radius: 4px; padding: 7px 8px; font-size: 11px; font-weight: 600; cursor: pointer; text-align: left; width: 100%; transition: opacity .15s; min-height: 36px; }
+  .tool-btn:hover { opacity: .8; }
+  .admin-tools-group { display: none; flex-direction: column; gap: 5px; }
+  .admin-mode-on .admin-tools-group { display: flex; }
 
   .right-panel { flex: 1; height: 100%; overflow-y: auto; padding: 10px 20px 48px; min-width: 0; }
   #status { font-size: 12px; color: var(--muted); padding: 6px 0 8px; }
@@ -85,11 +72,7 @@
 
   /* ── Cards ── */
   .card { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; overflow: hidden; transition: border-color .15s; }
-  .card.open { border-color: var(--accent); }
-  .card.admin-mode { border-color: var(--border); }
-  .card-header { display: flex; align-items: flex-start; gap: 10px; padding: 13px 14px; cursor: pointer; -webkit-user-select: none; user-select: none; }
-  .chevron { flex-shrink: 0; margin-top: 4px; width: 15px; height: 15px; color: var(--muted-dim); transition: transform .18s; }
-  .card.open .chevron { transform: rotate(90deg); }
+  .card-header { display: flex; align-items: flex-start; gap: 10px; padding: 13px 14px; }
   .card-meta { flex: 1; min-width: 0; }
   .card-title { font-size: 14px; font-weight: 600; color: var(--ink-mid); margin-bottom: 3px; }
   .card-presenter { font-size: 12px; color: var(--muted); margin-bottom: 6px; }
@@ -97,40 +80,92 @@
   .admin-mode-on .card-token { display: inline; }
   .card-avatar { flex-shrink: 0; width: 48px; height: 48px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 15px; font-weight: 700; color: rgba(255,255,255,.85); align-self: center; }
   .card-avatar-photo { flex-shrink: 0; width: 48px; height: 48px; border-radius: 50%; object-fit: cover; align-self: center; }
-
   .badge { font-size: 10px; font-weight: 600; border: 1px solid var(--border); border-radius: 3px; padding: 1px 6px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); background: var(--surface2); }
   .badge-pending { border-color: #7a6a3a; color: #f0c070; }
   .badge-done { border-color: #3a7a5a; color: #70f0a0; }
 
-  /* ── Edit panel ── */
-  .card-edit { display: none; padding: 0 14px 14px 14px; border-top: 1px solid var(--border); }
+  /* ── Inline card edit (secretary fields) ── */
+  .card-edit { display: none; padding: 0 14px 14px; border-top: 1px solid var(--border); }
   .card.editing .card-edit { display: block; }
   .card.editing { border-color: var(--admin); }
-
   .edit-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 14px; }
   .edit-field { display: flex; flex-direction: column; gap: 4px; }
   .edit-field.full { grid-column: 1 / -1; }
   .edit-field label { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); }
   .edit-field input, .edit-field select { background: var(--surface2); border: 1px solid var(--border); color: var(--ink); font-size: 13px; border-radius: 5px; padding: 7px 10px; outline: none; transition: border-color .15s; font-family: inherit; }
   .edit-field input:focus, .edit-field select:focus { border-color: var(--admin); }
-
   .edit-actions { display: flex; gap: 8px; margin-top: 14px; flex-wrap: wrap; }
   .edit-btn { padding: 7px 16px; font-size: 13px; font-weight: 600; border: none; border-radius: 6px; cursor: pointer; font-family: inherit; transition: opacity .15s; }
   .edit-btn:hover { opacity: .85; }
   .edit-btn-save { background: var(--admin); color: #000; }
   .edit-btn-cancel { background: var(--surface2); color: var(--muted); border: 1px solid var(--border); }
   .edit-btn-deactivate { background: var(--danger-dim); color: var(--danger); border: 1px solid var(--danger); margin-left: auto; }
-
   .edit-status { font-size: 12px; color: var(--accent); margin-top: 6px; display: none; }
   .edit-status.show { display: block; }
   .edit-error { font-size: 12px; color: var(--danger); margin-top: 6px; display: none; }
   .edit-error.show { display: block; }
-
-  /* ── Admin edit button on card header ── */
   .card-edit-btn { display: none; margin-left: auto; flex-shrink: 0; padding: 4px 10px; font-size: 11px; font-weight: 600; background: var(--admin-dim); color: var(--admin); border: 1px solid var(--admin); border-radius: 4px; cursor: pointer; }
   .admin-mode-on .card-edit-btn { display: inline-block; }
 
   .loading, .empty { text-align: center; padding: 4rem 2rem; color: var(--muted-dim); font-size: 14px; }
+
+  /* ── Modal shell (shared) ── */
+  .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,.75); z-index: 100; display: none; align-items: center; justify-content: center; padding: 20px; }
+  .modal-overlay.open { display: flex; }
+  .modal { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 28px; width: 100%; max-width: 440px; max-height: 90vh; overflow-y: auto; }
+  .modal.wide { max-width: 560px; }
+  .modal-header { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 20px; }
+  .modal-title { font-size: 16px; font-weight: 700; color: var(--admin); }
+  .modal-close { background: none; border: none; color: var(--muted); font-size: 20px; cursor: pointer; line-height: 1; padding: 0 0 0 12px; }
+  .modal-close:hover { color: var(--ink); }
+  .modal label { display: block; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); margin-bottom: 5px; margin-top: 12px; }
+  .modal label:first-of-type { margin-top: 0; }
+  .modal input, .modal select, .modal textarea { width: 100%; background: var(--surface2); border: 1px solid var(--border); color: var(--ink); font-size: 13px; border-radius: 6px; padding: 9px 12px; outline: none; transition: border-color .15s; font-family: inherit; }
+  .modal textarea { resize: vertical; min-height: 80px; }
+  .modal input:focus, .modal select:focus, .modal textarea:focus { border-color: var(--admin); }
+  .modal-row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .modal-actions { display: flex; gap: 8px; margin-top: 20px; }
+  .modal-btn-primary { flex: 1; padding: 11px; font-size: 14px; font-weight: 600; background: var(--admin); color: #000; border: none; border-radius: 7px; cursor: pointer; font-family: inherit; transition: opacity .15s; }
+  .modal-btn-primary:hover { opacity: .85; }
+  .modal-btn-primary:disabled { opacity: .5; cursor: default; }
+  .modal-btn-secondary { padding: 11px 18px; font-size: 14px; font-weight: 600; background: var(--surface2); color: var(--muted); border: 1px solid var(--border); border-radius: 7px; cursor: pointer; font-family: inherit; }
+  .modal-msg { font-size: 12px; margin-top: 10px; display: none; }
+  .modal-msg.ok { color: var(--accent); display: block; }
+  .modal-msg.err { color: var(--danger); display: block; }
+
+  /* Auth modal specifics */
+  .modal input.auth-input { margin-bottom: 0; }
+  .modal-sub { font-size: 13px; color: var(--muted); margin-bottom: 20px; margin-top: -10px; }
+  .modal-auth-btn { width: 100%; padding: 11px; font-size: 14px; font-weight: 600; background: var(--accent); color: #000; border: none; border-radius: 7px; cursor: pointer; font-family: inherit; margin-top: 12px; }
+  .modal-cancel-link { display: block; text-align: center; margin-top: 10px; font-size: 12px; color: var(--muted); cursor: pointer; }
+  .modal-cancel-link:hover { color: var(--ink-mid); }
+
+  /* Slot results inside create modal */
+  .slot-results { margin-top: 16px; border-top: 1px solid var(--border); padding-top: 14px; display: none; }
+  .slot-results.show { display: block; }
+  .slot-result-label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); margin-bottom: 8px; }
+  .slot-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 12px; }
+  .slot-chip { font-family: monospace; font-size: 12px; background: var(--admin-dim); color: var(--admin); border: 1px solid var(--admin); border-radius: 4px; padding: 3px 8px; }
+  .copy-all-btn { font-size: 12px; font-weight: 600; background: var(--surface2); color: var(--muted); border: 1px solid var(--border); border-radius: 5px; padding: 5px 12px; cursor: pointer; }
+  .copy-all-btn:hover { color: var(--ink); }
+
+  /* Session picker inside card editor modal */
+  .session-picker { display: flex; flex-direction: column; gap: 6px; max-height: 220px; overflow-y: auto; margin-bottom: 16px; }
+  .session-pick-item { background: var(--surface2); border: 1px solid var(--border); border-radius: 6px; padding: 10px 12px; cursor: pointer; transition: border-color .12s; }
+  .session-pick-item:hover { border-color: var(--admin); }
+  .session-pick-item.selected { border-color: var(--admin); background: var(--admin-dim); }
+  .session-pick-name { font-size: 13px; font-weight: 600; color: var(--ink-mid); }
+  .session-pick-sub { font-size: 11px; color: var(--muted); margin-top: 2px; }
+
+  /* Tag input */
+  .tag-input-wrap { display: flex; gap: 6px; }
+  .tag-input-wrap input { flex: 1; }
+  .tag-add-btn { padding: 9px 12px; font-size: 12px; font-weight: 600; background: var(--surface2); color: var(--muted); border: 1px solid var(--border); border-radius: 6px; cursor: pointer; white-space: nowrap; }
+  .tag-add-btn:hover { color: var(--ink); }
+  .tag-chips { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 8px; }
+  .tag-chip { font-size: 11px; background: var(--accent-dim); color: var(--accent); border: 1px solid var(--accent); border-radius: 3px; padding: 2px 7px; display: flex; align-items: center; gap: 4px; }
+  .tag-chip-x { cursor: pointer; opacity: .7; font-size: 13px; line-height: 1; }
+  .tag-chip-x:hover { opacity: 1; }
 </style>
 </head>
 <body>
@@ -159,13 +194,15 @@
 </div>
 
 <div class="layout">
-  <aside class="left-panel">
+  <aside class="left-panel" id="left-panel">
+
     <div class="filter-group">
       <div class="filter-label">Speaker</div>
       <div id="speaker-filters" style="display:flex;flex-direction:column;gap:3px;">
         <button type="button" class="filter-btn active" data-filter="all">All</button>
       </div>
     </div>
+
     <div class="filter-group">
       <div class="filter-label">Status</div>
       <div id="status-filters" style="display:flex;flex-direction:column;gap:3px;display:none;">
@@ -175,33 +212,177 @@
         <button type="button" class="filter-btn" data-status="inactive">Inactive</button>
       </div>
     </div>
+
+    <!-- Admin tools — gold, visible only in admin mode -->
+    <div class="filter-group admin-tools-group">
+      <div class="filter-label gold">Admin Tools</div>
+      <button type="button" class="tool-btn" onclick="openCreateSlots()">＋ Create Slots</button>
+      <button type="button" class="tool-btn" onclick="openCardEditor()">✎ Session Card</button>
+      <button type="button" class="tool-btn" onclick="openIdentity()">◈ Archive Identity</button>
+    </div>
+
   </aside>
+
   <main class="right-panel" id="right-panel">
     <div id="status"></div>
     <div class="sessions" id="sessions"><div class="loading">Loading archive…</div></div>
   </main>
 </div>
 
-<!-- Auth Modal -->
+<!-- ══ AUTH MODAL ══════════════════════════════════════════════════════════════ -->
 <div class="modal-overlay" id="auth-modal">
   <div class="modal">
-    <div class="modal-title">Admin Sign In</div>
+    <div class="modal-header">
+      <div class="modal-title" style="color:var(--accent)">Admin Sign In</div>
+      <button class="modal-close" onclick="closeAuthModal()">×</button>
+    </div>
     <div class="modal-sub">Enter your phone number to manage session slots.</div>
-    <div class="modal-error" id="modal-error"></div>
+    <div class="modal-msg err" id="auth-error"></div>
 
-    <div id="modal-step-phone">
+    <div id="auth-step-phone">
       <label>Phone number</label>
-      <input type="tel" id="modal-phone" placeholder="+1 512 555 0100" autocomplete="tel">
-      <button class="modal-btn" onclick="adminSendOtp()">Send Code</button>
+      <input type="tel" id="modal-phone" class="auth-input" placeholder="+1 512 555 0100" autocomplete="tel">
+      <button class="modal-auth-btn" onclick="adminSendOtp()">Send Code</button>
     </div>
 
-    <div id="modal-step-otp" style="display:none">
+    <div id="auth-step-otp" style="display:none">
       <label>One-time code</label>
-      <input type="text" id="modal-otp" placeholder="6-digit code" inputmode="numeric" maxlength="6" autocomplete="one-time-code">
-      <button class="modal-btn" onclick="adminVerifyOtp()">Verify</button>
+      <input type="text" id="modal-otp" class="auth-input" placeholder="6-digit code" inputmode="numeric" maxlength="6" autocomplete="one-time-code">
+      <button class="modal-auth-btn" onclick="adminVerifyOtp()">Verify</button>
     </div>
 
-    <span class="modal-cancel" onclick="closeAuthModal()">Cancel</span>
+    <span class="modal-cancel-link" onclick="closeAuthModal()">Cancel</span>
+  </div>
+</div>
+
+<!-- ══ CREATE SLOTS MODAL ══════════════════════════════════════════════════════ -->
+<div class="modal-overlay" id="create-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">Create Session Slots</div>
+      <button class="modal-close" onclick="closeModal('create-modal')">×</button>
+    </div>
+
+    <label>Organization</label>
+    <input type="text" id="cs-org-l1" placeholder="ProductCamp">
+    <label>City / Region</label>
+    <input type="text" id="cs-org-l2" placeholder="Austin">
+    <label>Chapter / Event</label>
+    <input type="text" id="cs-org-l3" placeholder="PCA35">
+    <label>Event Date</label>
+    <input type="text" id="cs-date" placeholder="November 21, 2026">
+
+    <div class="modal-row2" style="margin-top:12px">
+      <div>
+        <label>Number of Slots</label>
+        <input type="number" id="cs-count" value="9" min="1" max="50">
+      </div>
+      <div>
+        <label>Visibility</label>
+        <select id="cs-visibility">
+          <option value="chapter">Chapter</option>
+          <option value="public">Public</option>
+          <option value="personal">Personal only</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="modal-actions">
+      <button class="modal-btn-secondary" onclick="closeModal('create-modal')">Cancel</button>
+      <button class="modal-btn-primary" id="cs-submit" onclick="createSlots()">Create Slots</button>
+    </div>
+    <div class="modal-msg" id="cs-msg"></div>
+
+    <div class="slot-results" id="cs-results">
+      <div class="slot-result-label">Tokens generated</div>
+      <div class="slot-chips" id="cs-chips"></div>
+      <button class="copy-all-btn" onclick="copyAllTokens()">Copy all tokens</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ SESSION CARD EDITOR MODAL ══════════════════════════════════════════════ -->
+<div class="modal-overlay" id="card-editor-modal">
+  <div class="modal wide">
+    <div class="modal-header">
+      <div class="modal-title">Session Card Editor</div>
+      <button class="modal-close" onclick="closeModal('card-editor-modal')">×</button>
+    </div>
+
+    <!-- Step 1: pick a session -->
+    <div id="ce-step-pick">
+      <div style="font-size:13px;color:var(--muted);margin-bottom:10px">Select the session to edit:</div>
+      <div class="session-picker" id="ce-picker"></div>
+      <div class="modal-actions">
+        <button class="modal-btn-secondary" onclick="closeModal('card-editor-modal')">Cancel</button>
+        <button class="modal-btn-primary" id="ce-next-btn" onclick="ceShowEdit()" disabled>Next →</button>
+      </div>
+    </div>
+
+    <!-- Step 2: edit presenter-facing content -->
+    <div id="ce-step-edit" style="display:none">
+      <div style="font-size:11px;color:var(--admin);font-weight:700;text-transform:uppercase;letter-spacing:.08em;margin-bottom:12px" id="ce-editing-label"></div>
+
+      <label>Presentation Title</label>
+      <input type="text" id="ce-title" placeholder="What will you talk about?">
+
+      <label>Synopsis</label>
+      <textarea id="ce-synopsis" placeholder="2–3 sentences describing the session…"></textarea>
+
+      <label>Photo URL</label>
+      <input type="url" id="ce-photo" placeholder="https://…/headshot.jpg">
+
+      <label>LinkedIn URL</label>
+      <input type="url" id="ce-linkedin" placeholder="https://linkedin.com/in/…">
+
+      <label>Tags</label>
+      <div class="tag-input-wrap">
+        <input type="text" id="ce-tag-input" placeholder="Add a tag…" onkeydown="if(event.key==='Enter'){event.preventDefault();ceAddTag()}">
+        <button class="tag-add-btn" onclick="ceAddTag()">Add</button>
+      </div>
+      <div class="tag-chips" id="ce-tag-chips"></div>
+
+      <div class="modal-actions">
+        <button class="modal-btn-secondary" onclick="ceBack()">← Back</button>
+        <button class="modal-btn-primary" id="ce-save-btn" onclick="saveCardEditor()">Save</button>
+      </div>
+      <div class="modal-msg" id="ce-msg"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ ARCHIVE IDENTITY MODAL ══════════════════════════════════════════════════ -->
+<div class="modal-overlay" id="identity-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">Archive Identity</div>
+      <button class="modal-close" onclick="closeModal('identity-modal')">×</button>
+    </div>
+    <div style="font-size:13px;color:var(--muted);margin-bottom:16px">Customize how your archive looks and describes itself.</div>
+
+    <label>Organization Name</label>
+    <input type="text" id="id-name" placeholder="ProductCamp Austin">
+
+    <label>Tagline</label>
+    <input type="text" id="id-tagline" placeholder="Where product people share ideas">
+
+    <label>Logo URL</label>
+    <input type="url" id="id-logo" placeholder="https://…/logo.png">
+
+    <label>Accent Color</label>
+    <div style="display:flex;gap:8px;align-items:center;margin-top:4px">
+      <input type="color" id="id-color" value="#00C9BC" style="width:44px;height:36px;padding:2px;border-radius:5px;cursor:pointer">
+      <input type="text" id="id-color-hex" placeholder="#00C9BC" style="flex:1" oninput="syncColorPicker()">
+    </div>
+
+    <label>About This Archive</label>
+    <textarea id="id-about" placeholder="A short description for visitors — who runs this, what kind of sessions they'll find here…"></textarea>
+
+    <div class="modal-actions">
+      <button class="modal-btn-secondary" onclick="closeModal('identity-modal')">Cancel</button>
+      <button class="modal-btn-primary" id="id-save-btn" onclick="saveIdentity()">Save</button>
+    </div>
+    <div class="modal-msg" id="id-msg"></div>
   </div>
 </div>
 
@@ -214,231 +395,153 @@ const ORG_L1 = params.get('org_l1') || '';
 const ORG_L2 = params.get('org_l2') || '';
 const ORG_L3 = params.get('org_l3') || '';
 
-let allSessions = [];
-let authToken   = null;
-let isAdmin     = false;
-const state     = { speaker: 'all', statusFilter: 'all', query: '' };
+let allSessions   = [];
+let authToken     = null;
+let isAdmin       = false;
+let ceTags        = [];
+let ceSessionId   = null;
+let csTokenList   = [];
+const state       = { speaker: 'all', statusFilter: 'all', query: '' };
 
+// ── Utilities ─────────────────────────────────────────────────────────────────
 function normalizePhone(raw) {
-  const digits = raw.replace(/\D/g, '');
-  if (digits.length === 10) return '+1' + digits;
-  if (digits.length === 11 && digits[0] === '1') return '+' + digits;
-  return '+' + digits;
+  const d = raw.replace(/\D/g,'');
+  if (d.length===10) return '+1'+d;
+  if (d.length===11 && d[0]==='1') return '+'+d;
+  return '+'+d;
 }
-
 const _pal = ['#3a5a8a','#5a3a8a','#3a7a5a','#7a4a3a','#6a3a6a','#3a6a7a','#8a5a3a'];
-function avatarColor(n) { let h=0; for(let i=0;i<n.length;i++) h=(h*31+n.charCodeAt(i))|0; return _pal[Math.abs(h)%_pal.length]; }
-function initials(n) { return n.split(/[\s,]+/).filter(Boolean).slice(0,2).map(w=>w[0].toUpperCase()).join(''); }
-window._thumbErr = function(img) {
-  const d = document.createElement('div');
-  d.className = 'card-avatar';
-  d.style.background = avatarColor(img.dataset.name);
-  d.textContent = initials(img.dataset.name);
-  img.parentNode.replaceChild(d, img);
-};
+function avatarColor(n){let h=0;for(let i=0;i<n.length;i++)h=(h*31+n.charCodeAt(i))|0;return _pal[Math.abs(h)%_pal.length];}
+function initials(n){return n.split(/[\s,]+/).filter(Boolean).slice(0,2).map(w=>w[0].toUpperCase()).join('');}
+window._thumbErr=function(img){const d=document.createElement('div');d.className='card-avatar';d.style.background=avatarColor(img.dataset.name);d.textContent=initials(img.dataset.name);img.parentNode.replaceChild(d,img);};
+function closeModal(id){ document.getElementById(id).classList.remove('open'); }
+function showMsg(id, type, msg){ const el=document.getElementById(id); el.textContent=msg; el.className='modal-msg '+type; }
+function clearMsg(id){ const el=document.getElementById(id); el.className='modal-msg'; el.textContent=''; }
 
 // ── Admin auth ────────────────────────────────────────────────────────────────
 function toggleAdmin() {
   if (isAdmin) {
-    isAdmin = false;
-    authToken = null;
+    isAdmin=false; authToken=null;
     document.getElementById('admin-badge').classList.remove('visible');
     document.getElementById('admin-toggle-btn').classList.remove('active');
-    document.getElementById('admin-toggle-btn').textContent = 'Admin Sign In';
+    document.getElementById('admin-toggle-btn').textContent='Admin Sign In';
     document.getElementById('right-panel').classList.remove('admin-mode-on');
-    document.getElementById('status-filters').style.display = 'none';
+    document.getElementById('left-panel').classList.remove('admin-mode-on');
+    document.getElementById('status-filters').style.display='none';
     render();
   } else {
-    openAuthModal();
+    document.getElementById('auth-modal').classList.add('open');
+    document.getElementById('auth-step-phone').style.display='block';
+    document.getElementById('auth-step-otp').style.display='none';
+    document.getElementById('auth-error').className='modal-msg';
+    setTimeout(()=>document.getElementById('modal-phone').focus(),50);
   }
 }
-
-function openAuthModal() {
-  document.getElementById('auth-modal').classList.add('open');
-  document.getElementById('modal-step-phone').style.display = 'block';
-  document.getElementById('modal-step-otp').style.display = 'none';
-  document.getElementById('modal-error').className = 'modal-error';
-  setTimeout(() => document.getElementById('modal-phone').focus(), 50);
-}
-
-function closeAuthModal() {
-  document.getElementById('auth-modal').classList.remove('open');
-}
+function closeAuthModal(){ document.getElementById('auth-modal').classList.remove('open'); }
 
 async function adminSendOtp() {
-  const raw = document.getElementById('modal-phone').value.trim();
-  if (!raw) { showModalError('Enter your phone number.'); return; }
-  const phone = normalizePhone(raw);
+  const raw=document.getElementById('modal-phone').value.trim();
+  if(!raw){showMsg('auth-error','err','Enter your phone number.');return;}
   try {
-    const r = await fetch(`${NILE_AUTH}/presenter/magic/send`, {
-      method: 'POST', headers: {'Content-Type':'application/json'},
-      body: JSON.stringify({ contact: phone })
-    });
-    if (!r.ok) { const e = await r.json(); throw new Error(e.message || 'Failed to send code'); }
-    document.getElementById('modal-step-phone').style.display = 'none';
-    document.getElementById('modal-step-otp').style.display = 'block';
-    setTimeout(() => document.getElementById('modal-otp').focus(), 50);
-  } catch(e) { showModalError(e.message); }
+    const r=await fetch(`${NILE_AUTH}/presenter/magic/send`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({contact:normalizePhone(raw)})});
+    if(!r.ok){const e=await r.json();throw new Error(e.message||'Failed to send code');}
+    document.getElementById('auth-step-phone').style.display='none';
+    document.getElementById('auth-step-otp').style.display='block';
+    setTimeout(()=>document.getElementById('modal-otp').focus(),50);
+  } catch(e){showMsg('auth-error','err',e.message);}
 }
 
 async function adminVerifyOtp() {
-  const raw = document.getElementById('modal-phone').value.trim();
-  const otp = document.getElementById('modal-otp').value.trim();
-  const phone = normalizePhone(raw);
+  const raw=document.getElementById('modal-phone').value.trim();
+  const otp=document.getElementById('modal-otp').value.trim();
   try {
-    const r = await fetch(`${NILE_AUTH}/presenter/magic/verify`, {
-      method: 'POST', headers: {'Content-Type':'application/json'},
-      body: JSON.stringify({ contact: phone, code: otp })
-    });
-    if (!r.ok) { const e = await r.json(); throw new Error(e.message || 'Invalid code'); }
-    const data = await r.json();
-    authToken = (data.profile_url || '').split('?token=')[1]?.split('&')[0] || null;
-    if (!authToken) throw new Error('Auth failed — token not returned');
-    isAdmin = true;
+    const r=await fetch(`${NILE_AUTH}/presenter/magic/verify`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({contact:normalizePhone(raw),code:otp})});
+    if(!r.ok){const e=await r.json();throw new Error(e.message||'Invalid code');}
+    const data=await r.json();
+    authToken=(data.profile_url||'').split('?token=')[1]?.split('&')[0]||null;
+    if(!authToken) throw new Error('Auth failed — token not returned');
+    isAdmin=true;
     closeAuthModal();
     document.getElementById('admin-badge').classList.add('visible');
     document.getElementById('admin-toggle-btn').classList.add('active');
-    document.getElementById('admin-toggle-btn').textContent = 'Exit Admin';
+    document.getElementById('admin-toggle-btn').textContent='Exit Admin';
     document.getElementById('right-panel').classList.add('admin-mode-on');
-    document.getElementById('status-filters').style.display = 'flex';
-    document.getElementById('status-filters').style.flexDirection = 'column';
-    document.getElementById('status-filters').style.gap = '3px';
-    // Reload with all statuses visible to admin
+    document.getElementById('left-panel').classList.add('admin-mode-on');
+    document.getElementById('status-filters').style.cssText='display:flex;flex-direction:column;gap:3px;';
     await loadSessions(true);
-  } catch(e) { showModalError(e.message); }
+  } catch(e){showMsg('auth-error','err',e.message);}
 }
 
-function showModalError(msg) {
-  const el = document.getElementById('modal-error');
-  el.textContent = msg;
-  el.className = 'modal-error show';
-}
-
-// ── Filter ────────────────────────────────────────────────────────────────────
+// ── Filters ───────────────────────────────────────────────────────────────────
 function filtered() {
-  return allSessions.filter(s => {
-    if (state.speaker !== 'all' && (s.presenter || '') !== state.speaker) return false;
-    if (isAdmin && state.statusFilter !== 'all' && s.status !== state.statusFilter) return false;
-    if (!isAdmin && s.status === 'inactive') return false;
-    if (state.query) {
-      const q = state.query.toLowerCase();
-      const hay = [s.title, s.presenter, s.synopsis].join(' ').toLowerCase();
-      if (!hay.includes(q)) return false;
-    }
+  return allSessions.filter(s=>{
+    if(state.speaker!=='all'&&(s.presenter||'')!==state.speaker) return false;
+    if(isAdmin&&state.statusFilter!=='all'&&s.status!==state.statusFilter) return false;
+    if(!isAdmin&&s.status==='inactive') return false;
+    if(state.query){const q=state.query.toLowerCase();if(![s.title,s.presenter,s.synopsis].join(' ').toLowerCase().includes(q)) return false;}
     return true;
   });
 }
 
 function buildSpeakerFilters() {
-  const speakers = [...new Set(allSessions.map(s => s.presenter).filter(Boolean))].sort();
-  const container = document.getElementById('speaker-filters');
-  container.innerHTML = '<button type="button" class="filter-btn active" data-filter="all">All</button>';
-  speakers.forEach(sp => {
-    const btn = document.createElement('button');
-    btn.type = 'button'; btn.className = 'filter-btn'; btn.dataset.filter = sp; btn.textContent = sp;
-    container.appendChild(btn);
-  });
-  container.querySelectorAll('.filter-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
-      container.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
-      btn.classList.add('active');
-      state.speaker = btn.dataset.filter;
-      render();
-    });
-  });
+  const speakers=[...new Set(allSessions.map(s=>s.presenter).filter(Boolean))].sort();
+  const c=document.getElementById('speaker-filters');
+  c.innerHTML='<button type="button" class="filter-btn active" data-filter="all">All</button>';
+  speakers.forEach(sp=>{const b=document.createElement('button');b.type='button';b.className='filter-btn';b.dataset.filter=sp;b.textContent=sp;c.appendChild(b);});
+  c.querySelectorAll('.filter-btn').forEach(b=>b.addEventListener('click',()=>{c.querySelectorAll('.filter-btn').forEach(x=>x.classList.remove('active'));b.classList.add('active');state.speaker=b.dataset.filter;render();}));
 }
 
 // ── Render ────────────────────────────────────────────────────────────────────
 function render() {
-  const rows = filtered();
-  document.getElementById('status').textContent = `${rows.length} session${rows.length !== 1 ? 's' : ''}`;
-  document.getElementById('header-count').textContent = `${allSessions.length} total`;
-
-  const container = document.getElementById('sessions');
-  if (!rows.length) {
-    const orgName = [ORG_L3, ORG_L2, ORG_L1].find(Boolean) || 'This archive';
-    const isFiltered = state.speaker !== 'all' || state.statusFilter !== 'all' || state.query;
-    if (isFiltered) {
-      container.innerHTML = '<div class="empty">No sessions match — try a different filter or search term.</div>';
-    } else if (isAdmin) {
-      container.innerHTML = `
-        <div class="empty" style="line-height:1.8">
-          <div style="font-size:15px;font-weight:600;color:var(--admin);margin-bottom:8px">No slots created yet for ${orgName}.</div>
-          <div style="font-size:13px;color:var(--muted)">Use <a href="../nile-admin/?org_l1=${encodeURIComponent(ORG_L1)}&org_l2=${encodeURIComponent(ORG_L2)}&org_l3=${encodeURIComponent(ORG_L3)}" style="color:var(--accent)">Event Admin → Create Slots</a> to generate the presenter lineup, then return here to fill in names and topics.</div>
-        </div>`;
+  const rows=filtered();
+  document.getElementById('status').textContent=`${rows.length} session${rows.length!==1?'s':''}`;
+  document.getElementById('header-count').textContent=`${allSessions.length} total`;
+  const container=document.getElementById('sessions');
+  if(!rows.length){
+    const orgName=[ORG_L3,ORG_L2,ORG_L1].find(Boolean)||'This archive';
+    const isFilt=state.speaker!=='all'||state.statusFilter!=='all'||state.query;
+    if(isFilt){
+      container.innerHTML='<div class="empty">No sessions match — try a different filter or search term.</div>';
+    } else if(isAdmin){
+      container.innerHTML=`<div class="empty" style="line-height:1.8"><div style="font-size:15px;font-weight:600;color:var(--admin);margin-bottom:8px">No slots created yet for ${orgName}.</div><div style="font-size:13px;color:var(--muted)">Use <strong style="color:var(--admin)">＋ Create Slots</strong> in the sidebar to generate the presenter lineup.</div></div>`;
     } else {
-      container.innerHTML = `
-        <div class="empty" style="line-height:1.8">
-          <div style="font-size:15px;font-weight:600;color:var(--ink-mid);margin-bottom:8px">${orgName} hasn't been set up yet.</div>
-          <div style="font-size:13px;color:var(--muted)">Sessions will appear here once an administrator creates the event lineup.<br>
-          If you manage this archive, use the <strong style="color:var(--ink-mid)">Admin Sign In</strong> button to get started.</div>
-        </div>`;
+      container.innerHTML=`<div class="empty" style="line-height:1.8"><div style="font-size:15px;font-weight:600;color:var(--ink-mid);margin-bottom:8px">${orgName} hasn't been set up yet.</div><div style="font-size:13px;color:var(--muted)">Sessions will appear here once an administrator creates the event lineup.<br>If you manage this archive, use the <strong style="color:var(--ink-mid)">Admin Sign In</strong> button to get started.</div></div>`;
     }
     return;
   }
-
-  container.innerHTML = '';
-  rows.forEach(s => {
-    const presName = s.presenter || s.presenter_slug?.replace(/-/g,' ').replace(/\b\w/g,c=>c.toUpperCase()) || 'Unassigned';
-    const visual = s.photo_url
-      ? `<img class="card-avatar card-avatar-photo" loading="lazy" src="${s.photo_url}" alt="${presName}" data-name="${presName}" onerror="window._thumbErr(this)">`
-      : `<div class="card-avatar" style="background:${avatarColor(presName)}">${initials(presName)}</div>`;
-
-    const statusBadge = s.status !== 'done'
-      ? `<span class="badge badge-${s.status}">${s.status}</span>`
-      : `<span class="badge badge-done">Done</span>`;
-
-    const tokenHtml = s.session_token
-      ? `<span class="card-token">${s.session_token}</span>`
-      : '';
-
-    const card = document.createElement('div');
-    card.className = 'card';
-    card.dataset.id = s.id;
-    card.innerHTML = `
+  container.innerHTML='';
+  rows.forEach(s=>{
+    const presName=s.presenter||s.presenter_slug?.replace(/-/g,' ').replace(/\b\w/g,c=>c.toUpperCase())||'Unassigned';
+    const visual=s.photo_url
+      ?`<img class="card-avatar card-avatar-photo" loading="lazy" src="${s.photo_url}" alt="${presName}" data-name="${presName}" onerror="window._thumbErr(this)">`
+      :`<div class="card-avatar" style="background:${avatarColor(presName)}">${initials(presName)}</div>`;
+    const statusBadge=s.status==='done'?`<span class="badge badge-done">Done</span>`:`<span class="badge badge-${s.status}">${s.status}</span>`;
+    const tokenHtml=s.session_token?`<span class="card-token">${s.session_token}</span>`:'';
+    const card=document.createElement('div');
+    card.className='card'; card.dataset.id=s.id;
+    card.innerHTML=`
       <div class="card-header">
-        <svg class="chevron" viewBox="0 0 20 20" fill="currentColor" style="display:none">
-          <path fill-rule="evenodd" d="M7.293 4.293a1 1 0 011.414 0L14 9.586l-5.293 5.293a1 1 0 01-1.414-1.414L11.586 10 6.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"/>
-        </svg>
         ${visual}
         <div class="card-meta">
-          <div class="card-title">${s.title || 'TBD'}</div>
+          <div class="card-title">${s.title||'TBD'}</div>
           <div class="card-presenter">${presName} ${tokenHtml}</div>
           <div>${statusBadge}</div>
         </div>
-        <button class="card-edit-btn" onclick="toggleEdit(event, this)">Edit</button>
+        <button class="card-edit-btn" onclick="toggleEdit(event,this)">Edit</button>
       </div>
       <div class="card-edit">
         <div class="edit-grid">
-          <div class="edit-field full">
-            <label>Presenter Name</label>
-            <input type="text" name="presenter" value="${s.presenter || ''}" placeholder="Jane Smith">
-          </div>
-          <div class="edit-field">
-            <label>Phone</label>
-            <input type="tel" name="phone" value="${s.phone || ''}" placeholder="+1 512 555 0100">
-          </div>
-          <div class="edit-field">
-            <label>Date</label>
-            <input type="text" name="date" value="${s.date || ''}" placeholder="July 15, 2026">
-          </div>
-          <div class="edit-field full">
-            <label>Title</label>
-            <input type="text" name="title" value="${s.title !== 'TBD' ? (s.title || '') : ''}" placeholder="Presentation title">
-          </div>
-          <div class="edit-field">
-            <label>City</label>
-            <input type="text" name="city" value="${s.city || ''}" placeholder="Austin">
-          </div>
-          <div class="edit-field">
-            <label>Status</label>
-            <select name="status">
-              <option value="pending" ${s.status==='pending'?'selected':''}>Pending</option>
-              <option value="recording" ${s.status==='recording'?'selected':''}>Recording</option>
-              <option value="done" ${s.status==='done'?'selected':''}>Done</option>
-              <option value="inactive" ${s.status==='inactive'?'selected':''}>Inactive</option>
-            </select>
-          </div>
+          <div class="edit-field full"><label>Presenter Name</label><input type="text" name="presenter" value="${s.presenter||''}" placeholder="Jane Smith"></div>
+          <div class="edit-field"><label>Phone</label><input type="tel" name="phone" value="${s.phone||''}" placeholder="+1 512 555 0100"></div>
+          <div class="edit-field"><label>Date</label><input type="text" name="date" value="${s.date||''}" placeholder="November 21, 2026"></div>
+          <div class="edit-field full"><label>Title</label><input type="text" name="title" value="${s.title!=='TBD'?(s.title||''):''}" placeholder="Presentation title"></div>
+          <div class="edit-field"><label>City</label><input type="text" name="city" value="${s.city||''}" placeholder="Austin"></div>
+          <div class="edit-field"><label>Status</label><select name="status">
+            <option value="pending" ${s.status==='pending'?'selected':''}>Pending</option>
+            <option value="recording" ${s.status==='recording'?'selected':''}>Recording</option>
+            <option value="done" ${s.status==='done'?'selected':''}>Done</option>
+            <option value="inactive" ${s.status==='inactive'?'selected':''}>Inactive</option>
+          </select></div>
         </div>
         <div class="edit-actions">
           <button class="edit-btn edit-btn-save" onclick="saveSlot(this)">Save</button>
@@ -448,113 +551,201 @@ function render() {
         <div class="edit-status"></div>
         <div class="edit-error"></div>
       </div>`;
-
     container.appendChild(card);
   });
 }
 
-function toggleEdit(event, btn) {
-  event.stopPropagation();
-  if (!isAdmin) return;
-  const card = btn.closest('.card');
-  const isOpen = card.classList.contains('editing');
-  document.querySelectorAll('.card.editing').forEach(c => c.classList.remove('editing'));
-  if (!isOpen) card.classList.add('editing');
+function toggleEdit(event,btn){event.stopPropagation();if(!isAdmin)return;const card=btn.closest('.card');const isOpen=card.classList.contains('editing');document.querySelectorAll('.card.editing').forEach(c=>c.classList.remove('editing'));if(!isOpen)card.classList.add('editing');}
+function cancelEdit(btn){btn.closest('.card').classList.remove('editing');}
+
+async function saveSlot(btn){
+  const card=btn.closest('.card');const id=card.dataset.id;
+  const fields=card.querySelector('.card-edit');
+  const statusEl=fields.querySelector('.edit-status');const errorEl=fields.querySelector('.edit-error');
+  statusEl.className='edit-status';errorEl.className='edit-error';
+  const body={presenter:fields.querySelector('[name=presenter]').value.trim(),phone:fields.querySelector('[name=phone]').value.trim(),date:fields.querySelector('[name=date]').value.trim(),title:fields.querySelector('[name=title]').value.trim()||'TBD',city:fields.querySelector('[name=city]').value.trim(),status:fields.querySelector('[name=status]').value};
+  if(body.presenter) body.presenter_slug=body.presenter.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'');
+  btn.textContent='Saving…';btn.disabled=true;
+  try{
+    const r=await fetch(`${NILE_API}/nile/session/${id}`,{method:'PATCH',headers:{'Content-Type':'application/json','Authorization':`Bearer ${authToken}`},body:JSON.stringify(body)});
+    if(!r.ok){const e=await r.json();throw new Error(e.message||'Save failed');}
+    statusEl.textContent='Saved ✓';statusEl.className='edit-status show';
+    const s=allSessions.find(x=>x.id==id);if(s)Object.assign(s,body);
+    setTimeout(()=>{card.classList.remove('editing');render();},800);
+  }catch(e){errorEl.textContent=e.message;errorEl.className='edit-error show';}
+  finally{btn.textContent='Save';btn.disabled=false;}
 }
 
-function cancelEdit(btn) {
-  btn.closest('.card').classList.remove('editing');
+async function deactivateSlot(btn){
+  if(!confirm('Mark this slot as inactive?')) return;
+  btn.closest('.card').querySelector('[name=status]').value='inactive';
+  await saveSlot(btn.closest('.card').querySelector('.edit-btn-save'));
 }
 
-async function saveSlot(btn) {
-  const card = btn.closest('.card');
-  const id   = card.dataset.id;
-  const fields = card.querySelector('.card-edit');
-  const statusEl = fields.querySelector('.edit-status');
-  const errorEl  = fields.querySelector('.edit-error');
-  statusEl.className = 'edit-status'; errorEl.className = 'edit-error';
+// ── Create Slots modal ────────────────────────────────────────────────────────
+function openCreateSlots(){
+  clearMsg('cs-msg');
+  document.getElementById('cs-org-l1').value=ORG_L1;
+  document.getElementById('cs-org-l2').value=ORG_L2;
+  document.getElementById('cs-org-l3').value=ORG_L3;
+  document.getElementById('cs-results').classList.remove('show');
+  document.getElementById('cs-chips').innerHTML='';
+  csTokenList=[];
+  document.getElementById('create-modal').classList.add('open');
+}
 
-  const body = {
-    presenter: fields.querySelector('[name=presenter]').value.trim(),
-    phone:     fields.querySelector('[name=phone]').value.trim(),
-    date:      fields.querySelector('[name=date]').value.trim(),
-    title:     fields.querySelector('[name=title]').value.trim() || 'TBD',
-    city:      fields.querySelector('[name=city]').value.trim(),
-    status:    fields.querySelector('[name=status]').value,
-  };
-
-  // Auto-generate presenter_slug from name
-  if (body.presenter) {
-    body.presenter_slug = body.presenter.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+async function createSlots(){
+  clearMsg('cs-msg');
+  const orgL1=document.getElementById('cs-org-l1').value.trim();
+  const orgL2=document.getElementById('cs-org-l2').value.trim();
+  const orgL3=document.getElementById('cs-org-l3').value.trim();
+  const date=document.getElementById('cs-date').value.trim();
+  const count=parseInt(document.getElementById('cs-count').value)||1;
+  const vis=document.getElementById('cs-visibility').value;
+  if(!orgL3){showMsg('cs-msg','err','Enter a chapter / event name.');return;}
+  const btn=document.getElementById('cs-submit');
+  btn.disabled=true;btn.textContent='Creating…';
+  const results=[];const errors=[];
+  for(let i=0;i<count;i++){
+    try{
+      const r=await fetch(`${NILE_API}/nile/session/create`,{method:'POST',headers:{'Content-Type':'application/json','Authorization':`Bearer ${authToken}`},body:JSON.stringify({org_l1:orgL1,org_l2:orgL2,org_l3:orgL3,date,visibility:vis,status:'pending'})});
+      const data=await r.json();
+      if(!r.ok) throw new Error(data.message||'Create failed');
+      results.push(data);
+    }catch(e){errors.push(`Slot ${i+1}: ${e.message}`);}
   }
+  btn.disabled=false;btn.textContent='Create Slots';
+  if(errors.length) showMsg('cs-msg','err',errors.join(' · '));
+  if(results.length){
+    csTokenList=results.map(s=>s.session_token||'—');
+    const chips=document.getElementById('cs-chips');
+    chips.innerHTML=csTokenList.map(t=>`<span class="slot-chip">${t}</span>`).join('');
+    document.getElementById('cs-results').classList.add('show');
+    showMsg('cs-msg','ok',`${results.length} slot${results.length!==1?'s':''} created.`);
+    allSessions.push(...results.map(s=>({...s,presenter:'',tags:[]})));
+    buildSpeakerFilters();render();
+  }
+}
 
-  btn.textContent = 'Saving…'; btn.disabled = true;
+function copyAllTokens(){
+  navigator.clipboard.writeText(csTokenList.join('\n')).then(()=>{
+    const b=document.querySelector('.copy-all-btn');b.textContent='Copied ✓';setTimeout(()=>b.textContent='Copy all tokens',2000);
+  }).catch(()=>{});
+}
 
-  try {
-    const r = await fetch(`${NILE_API}/nile/session/${id}`, {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${authToken}` },
-      body: JSON.stringify(body)
+// ── Session Card Editor modal ─────────────────────────────────────────────────
+function openCardEditor(){
+  ceSessionId=null;ceTags=[];
+  document.getElementById('ce-step-pick').style.display='block';
+  document.getElementById('ce-step-edit').style.display='none';
+  document.getElementById('ce-next-btn').disabled=true;
+  clearMsg('ce-msg');
+  const picker=document.getElementById('ce-picker');
+  picker.innerHTML='';
+  const sessions=allSessions.filter(s=>s.status!=='inactive');
+  if(!sessions.length){picker.innerHTML='<div style="font-size:13px;color:var(--muted);padding:12px 0">No active slots yet. Create slots first.</div>';}
+  sessions.forEach(s=>{
+    const presName=s.presenter||'Unassigned';
+    const div=document.createElement('div');
+    div.className='session-pick-item';div.dataset.id=s.id;
+    div.innerHTML=`<div class="session-pick-name">${s.title||'TBD'}</div><div class="session-pick-sub">${presName} · <span style="font-family:monospace;font-size:10px;color:var(--admin)">${s.session_token||''}</span></div>`;
+    div.addEventListener('click',()=>{
+      picker.querySelectorAll('.session-pick-item').forEach(x=>x.classList.remove('selected'));
+      div.classList.add('selected');ceSessionId=s.id;
+      document.getElementById('ce-next-btn').disabled=false;
     });
-    if (!r.ok) { const e = await r.json(); throw new Error(e.message || 'Save failed'); }
-    statusEl.textContent = 'Saved ✓'; statusEl.className = 'edit-status show';
-    // Update local data
-    const s = allSessions.find(x => x.id == id);
-    if (s) Object.assign(s, body);
-    setTimeout(() => { card.classList.remove('editing'); render(); }, 800);
-  } catch(e) {
-    errorEl.textContent = e.message; errorEl.className = 'edit-error show';
-  } finally {
-    btn.textContent = 'Save'; btn.disabled = false;
-  }
+    picker.appendChild(div);
+  });
+  document.getElementById('card-editor-modal').classList.add('open');
 }
 
-async function deactivateSlot(btn) {
-  if (!confirm('Mark this slot as inactive? It will be hidden from the public archive.')) return;
-  const card = btn.closest('.card');
-  card.querySelector('[name=status]').value = 'inactive';
-  await saveSlot(card.querySelector('.edit-btn-save'));
+function ceShowEdit(){
+  const s=allSessions.find(x=>x.id==ceSessionId);if(!s)return;
+  document.getElementById('ce-editing-label').textContent=`Editing: ${s.title||'TBD'} · ${s.presenter||'Unassigned'}`;
+  document.getElementById('ce-title').value=s.title!=='TBD'?(s.title||''):'';
+  document.getElementById('ce-synopsis').value=s.synopsis||'';
+  document.getElementById('ce-photo').value=s.photo_url||'';
+  document.getElementById('ce-linkedin').value=s.linkedin||'';
+  ceTags=Array.isArray(s.tags)?[...s.tags]:[];
+  renderCeTags();
+  document.getElementById('ce-step-pick').style.display='none';
+  document.getElementById('ce-step-edit').style.display='block';
+  clearMsg('ce-msg');
+}
+
+function ceBack(){
+  document.getElementById('ce-step-pick').style.display='block';
+  document.getElementById('ce-step-edit').style.display='none';
+}
+
+function renderCeTags(){
+  const c=document.getElementById('ce-tag-chips');
+  c.innerHTML=ceTags.map((t,i)=>`<span class="tag-chip">${t}<span class="tag-chip-x" onclick="ceRemoveTag(${i})">×</span></span>`).join('');
+}
+function ceAddTag(){
+  const inp=document.getElementById('ce-tag-input');
+  const v=inp.value.trim();if(!v||ceTags.includes(v))return;
+  ceTags.push(v);inp.value='';renderCeTags();
+}
+function ceRemoveTag(i){ceTags.splice(i,1);renderCeTags();}
+
+async function saveCardEditor(){
+  clearMsg('ce-msg');
+  const s=allSessions.find(x=>x.id==ceSessionId);if(!s)return;
+  const body={title:document.getElementById('ce-title').value.trim()||'TBD',synopsis:document.getElementById('ce-synopsis').value.trim(),photo_url:document.getElementById('ce-photo').value.trim(),linkedin:document.getElementById('ce-linkedin').value.trim(),tags:ceTags};
+  const btn=document.getElementById('ce-save-btn');btn.disabled=true;btn.textContent='Saving…';
+  try{
+    const r=await fetch(`${NILE_API}/nile/session/${ceSessionId}`,{method:'PATCH',headers:{'Content-Type':'application/json','Authorization':`Bearer ${authToken}`},body:JSON.stringify(body)});
+    if(!r.ok){const e=await r.json();throw new Error(e.message||'Save failed');}
+    Object.assign(s,body);showMsg('ce-msg','ok','Saved ✓');render();
+    setTimeout(()=>closeModal('card-editor-modal'),1000);
+  }catch(e){showMsg('ce-msg','err',e.message);}
+  finally{btn.disabled=false;btn.textContent='Save';}
+}
+
+// ── Archive Identity modal ────────────────────────────────────────────────────
+function openIdentity(){
+  clearMsg('id-msg');
+  document.getElementById('id-name').value=[ORG_L1,ORG_L2,ORG_L3].filter(Boolean).join(' ');
+  document.getElementById('identity-modal').classList.add('open');
+}
+
+document.getElementById('id-color').addEventListener('input',e=>{document.getElementById('id-color-hex').value=e.target.value;});
+function syncColorPicker(){const v=document.getElementById('id-color-hex').value.trim();if(/^#[0-9a-fA-F]{6}$/.test(v))document.getElementById('id-color').value=v;}
+
+async function saveIdentity(){
+  clearMsg('id-msg');
+  const body={org_l1:ORG_L1,org_l2:ORG_L2,org_l3:ORG_L3,name:document.getElementById('id-name').value.trim(),tagline:document.getElementById('id-tagline').value.trim(),logo_url:document.getElementById('id-logo').value.trim(),accent_color:document.getElementById('id-color-hex').value.trim()||document.getElementById('id-color').value,about:document.getElementById('id-about').value.trim()};
+  const btn=document.getElementById('id-save-btn');btn.disabled=true;btn.textContent='Saving…';
+  try{
+    const r=await fetch(`${NILE_API}/nile/org/identity`,{method:'POST',headers:{'Content-Type':'application/json','Authorization':`Bearer ${authToken}`},body:JSON.stringify(body)});
+    if(!r.ok){const e=await r.json();throw new Error(e.message||'Save failed');}
+    showMsg('id-msg','ok','Identity saved ✓');
+    if(body.accent_color) document.documentElement.style.setProperty('--accent',body.accent_color);
+  }catch(e){showMsg('id-msg','err',e.message);}
+  finally{btn.disabled=false;btn.textContent='Save';}
 }
 
 // ── Load sessions ─────────────────────────────────────────────────────────────
-async function loadSessions(adminMode = false) {
-  const qp = new URLSearchParams({ per_page: 1000 });
-  if (ORG_L1) qp.set('org_l1', ORG_L1);
-  if (ORG_L2) qp.set('org_l2', ORG_L2);
-  if (ORG_L3) qp.set('org_l3', ORG_L3);
-  if (!adminMode) qp.set('visibility', 'chapter');
-
-  const headers = adminMode && authToken ? { 'Authorization': `Bearer ${authToken}` } : {};
-  const r = await fetch(`${NILE_API}/sessions?${qp}`, { headers });
-  if (!r.ok) { document.getElementById('sessions').innerHTML = '<div class="empty">Could not load sessions.</div>'; return; }
-
-  allSessions = (await r.json()).map(s => ({
-    ...s,
-    presenter: s.presenter || (s.presenter_slug ? s.presenter_slug.replace(/-/g,' ').replace(/\b\w/g,c=>c.toUpperCase()) : ''),
-    tags: Array.isArray(s.tags) ? s.tags : [],
-  }));
-
-  const defaultTitle = [ORG_L1, ORG_L2, ORG_L3].filter(Boolean).join(' › ') || 'Chapter Archive';
-  document.getElementById('header-title').textContent = defaultTitle;
-  document.getElementById('logo-placeholder').textContent = (ORG_L1||'O')[0].toUpperCase();
-
-  buildSpeakerFilters();
-  render();
+async function loadSessions(adminMode=false){
+  const qp=new URLSearchParams({per_page:1000});
+  if(ORG_L1)qp.set('org_l1',ORG_L1);if(ORG_L2)qp.set('org_l2',ORG_L2);if(ORG_L3)qp.set('org_l3',ORG_L3);
+  if(!adminMode)qp.set('visibility','chapter');
+  const headers=adminMode&&authToken?{'Authorization':`Bearer ${authToken}`}:{};
+  const r=await fetch(`${NILE_API}/sessions?${qp}`,{headers});
+  if(!r.ok){document.getElementById('sessions').innerHTML='<div class="empty">Could not load sessions.</div>';return;}
+  allSessions=(await r.json()).map(s=>({...s,presenter:s.presenter||(s.presenter_slug?s.presenter_slug.replace(/-/g,' ').replace(/\b\w/g,c=>c.toUpperCase()):''),tags:Array.isArray(s.tags)?s.tags:[]}));
+  const title=[ORG_L1,ORG_L2,ORG_L3].filter(Boolean).join(' › ')||'Chapter Archive';
+  document.getElementById('header-title').textContent=title;
+  document.getElementById('logo-placeholder').textContent=(ORG_L1||'O')[0].toUpperCase();
+  buildSpeakerFilters();render();
 }
 
-// Status filter buttons
-document.getElementById('status-filters').querySelectorAll('.filter-btn').forEach(btn => {
-  btn.addEventListener('click', () => {
-    document.getElementById('status-filters').querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
-    btn.classList.add('active');
-    state.statusFilter = btn.dataset.status;
-    render();
-  });
+document.getElementById('status-filters').querySelectorAll('.filter-btn').forEach(btn=>{
+  btn.addEventListener('click',()=>{document.getElementById('status-filters').querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');state.statusFilter=btn.dataset.status;render();});
 });
+document.getElementById('search-input').addEventListener('input',e=>{state.query=e.target.value.trim();render();});
 
-document.getElementById('search-input').addEventListener('input', e => { state.query = e.target.value.trim(); render(); });
-
-// Boot
 loadSessions(false);
 </script>
 </body>
