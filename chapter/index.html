@@ -501,7 +501,18 @@ function render() {
 
   const container = document.getElementById('sessions');
   if (!rows.length) {
-    container.innerHTML = '<div class="empty">No results — try a different filter or search term.</div>';
+    const orgName = [ORG_L3, ORG_L2, ORG_L1].find(Boolean) || 'This archive';
+    const isFiltered = state.speaker !== 'all' || state.tags.size > 0 || state.query;
+    if (isFiltered) {
+      container.innerHTML = '<div class="empty">No results — try a different filter or search term.</div>';
+    } else {
+      container.innerHTML = `
+        <div class="empty" style="line-height:1.8">
+          <div style="font-size:15px;font-weight:600;color:var(--ink-mid);margin-bottom:8px">${orgName} hasn't been set up yet.</div>
+          <div style="font-size:13px;color:var(--muted)">Sessions will appear here once an administrator creates the event lineup.<br>
+          If you manage this archive, use the <strong style="color:var(--ink-mid)">Admin Sign In</strong> button to get started.</div>
+        </div>`;
+    }
     return;
   }
 

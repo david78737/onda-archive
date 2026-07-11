@@ -356,7 +356,24 @@ function render() {
 
   const container = document.getElementById('sessions');
   if (!rows.length) {
-    container.innerHTML = '<div class="empty">No sessions found.</div>';
+    const orgName = [ORG_L3, ORG_L2, ORG_L1].find(Boolean) || 'This archive';
+    const isFiltered = state.speaker !== 'all' || state.statusFilter !== 'all' || state.query;
+    if (isFiltered) {
+      container.innerHTML = '<div class="empty">No sessions match — try a different filter or search term.</div>';
+    } else if (isAdmin) {
+      container.innerHTML = `
+        <div class="empty" style="line-height:1.8">
+          <div style="font-size:15px;font-weight:600;color:var(--admin);margin-bottom:8px">No slots created yet for ${orgName}.</div>
+          <div style="font-size:13px;color:var(--muted)">Use <a href="../nile-admin/?org_l1=${encodeURIComponent(ORG_L1)}&org_l2=${encodeURIComponent(ORG_L2)}&org_l3=${encodeURIComponent(ORG_L3)}" style="color:var(--accent)">Event Admin → Create Slots</a> to generate the presenter lineup, then return here to fill in names and topics.</div>
+        </div>`;
+    } else {
+      container.innerHTML = `
+        <div class="empty" style="line-height:1.8">
+          <div style="font-size:15px;font-weight:600;color:var(--ink-mid);margin-bottom:8px">${orgName} hasn't been set up yet.</div>
+          <div style="font-size:13px;color:var(--muted)">Sessions will appear here once an administrator creates the event lineup.<br>
+          If you manage this archive, use the <strong style="color:var(--ink-mid)">Admin Sign In</strong> button to get started.</div>
+        </div>`;
+    }
     return;
   }
 
