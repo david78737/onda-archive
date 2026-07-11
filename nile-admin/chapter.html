@@ -335,6 +335,9 @@
       <label>LinkedIn URL</label>
       <input type="url" id="ce-linkedin" placeholder="https://linkedin.com/in/…">
 
+      <label>YouTube URL <span style="font-weight:400;text-transform:none;letter-spacing:0;color:var(--muted-dim)">(optional — link to recording if published)</span></label>
+      <input type="url" id="ce-youtube" placeholder="https://youtube.com/watch?v=…">
+
       <label>Tags</label>
       <div class="tag-input-wrap">
         <input type="text" id="ce-tag-input" placeholder="Add a tag…" onkeydown="if(event.key==='Enter'){event.preventDefault();ceAddTag()}">
@@ -680,6 +683,7 @@ function ceShowEdit(){
   document.getElementById('ce-synopsis').value=s.synopsis||'';
   document.getElementById('ce-photo').value=s.photo_url||'';
   document.getElementById('ce-linkedin').value=s.linkedin||'';
+  document.getElementById('ce-youtube').value=s.youtube_url||'';
   ceTags=Array.isArray(s.tags)?[...s.tags]:[];
   renderCeTags();
   document.getElementById('ce-step-pick').style.display='none';
@@ -706,7 +710,7 @@ function ceRemoveTag(i){ceTags.splice(i,1);renderCeTags();}
 async function saveCardEditor(){
   clearMsg('ce-msg');
   const s=allSessions.find(x=>x.id==ceSessionId);if(!s)return;
-  const body={title:document.getElementById('ce-title').value.trim()||'TBD',synopsis:document.getElementById('ce-synopsis').value.trim(),photo_url:document.getElementById('ce-photo').value.trim(),linkedin:document.getElementById('ce-linkedin').value.trim(),tags:ceTags};
+  const body={title:document.getElementById('ce-title').value.trim()||'TBD',synopsis:document.getElementById('ce-synopsis').value.trim(),photo_url:document.getElementById('ce-photo').value.trim(),linkedin:document.getElementById('ce-linkedin').value.trim(),youtube_url:document.getElementById('ce-youtube').value.trim(),tags:ceTags};
   const btn=document.getElementById('ce-save-btn');btn.disabled=true;btn.textContent='Saving…';
   try{
     const r=await fetch(`${NILE_API}/nile/session/${ceSessionId}`,{method:'PATCH',headers:{'Content-Type':'application/json','Authorization':`Bearer ${authToken}`},body:JSON.stringify(body)});
