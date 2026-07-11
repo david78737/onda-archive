@@ -196,6 +196,14 @@
 <div class="layout">
   <aside class="left-panel" id="left-panel">
 
+    <!-- Admin tools — gold, visible only in admin mode -->
+    <div class="filter-group admin-tools-group">
+      <div class="filter-label gold">Admin Tools</div>
+      <button type="button" class="tool-btn" onclick="openCreateSlots()">＋ Create Slots</button>
+      <button type="button" class="tool-btn" onclick="openCardEditor()">✎ Session Card</button>
+      <button type="button" class="tool-btn" onclick="openIdentity()">◈ Archive Identity</button>
+    </div>
+
     <div class="filter-group">
       <div class="filter-label">Speaker</div>
       <div id="speaker-filters" style="display:flex;flex-direction:column;gap:3px;">
@@ -211,14 +219,6 @@
         <button type="button" class="filter-btn" data-status="done">Done</button>
         <button type="button" class="filter-btn" data-status="inactive">Inactive</button>
       </div>
-    </div>
-
-    <!-- Admin tools — gold, visible only in admin mode -->
-    <div class="filter-group admin-tools-group">
-      <div class="filter-label gold">Admin Tools</div>
-      <button type="button" class="tool-btn" onclick="openCreateSlots()">＋ Create Slots</button>
-      <button type="button" class="tool-btn" onclick="openCardEditor()">✎ Session Card</button>
-      <button type="button" class="tool-btn" onclick="openIdentity()">◈ Archive Identity</button>
     </div>
 
   </aside>
