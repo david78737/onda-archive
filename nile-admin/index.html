@@ -197,6 +197,12 @@
         <input type="text" id="org-l3" placeholder="Chapter 47 · July 15 Meeting">
       </div>
 
+      <div class="field">
+        <label for="event-date">Event date</label>
+        <input type="text" id="event-date" placeholder="November 21, 2026">
+        <div class="hint">Stamped on every slot in this batch</div>
+      </div>
+
       <div class="row2">
         <div class="field">
           <label for="slot-count">Number of slots</label>
@@ -321,6 +327,7 @@ async function createSlots() {
   const orgL1    = document.getElementById('org-l1').value.trim();
   const orgL2    = document.getElementById('org-l2').value.trim();
   const orgL3    = document.getElementById('org-l3').value.trim();
+  const eventDate = document.getElementById('event-date').value.trim();
   const count    = parseInt(document.getElementById('slot-count').value) || 1;
   const vis      = document.getElementById('visibility').value;
 
@@ -338,7 +345,7 @@ async function createSlots() {
       const r = await fetch(`${NILE_API}/nile/session/create`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${authToken}` },
-        body: JSON.stringify({ org_l1: orgL1, org_l2: orgL2, org_l3: orgL3, visibility: vis, status: 'pending' })
+        body: JSON.stringify({ org_l1: orgL1, org_l2: orgL2, org_l3: orgL3, date: eventDate, visibility: vis, status: 'pending' })
       });
       const data = await r.json();
       if (!r.ok) throw new Error(data.message || 'Create failed');
