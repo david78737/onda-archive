@@ -455,11 +455,25 @@ async function adminVerifyOtp() {
   const raw=document.getElementById('modal-phone').value.trim();
   const otp=document.getElementById('modal-otp').value.trim();
   try {
+    // Step 1: verify OTP
     const r=await fetch(`${NILE_AUTH}/presenter/magic/verify`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({contact:normalizePhone(raw),code:otp})});
     if(!r.ok){const e=await r.json();throw new Error(e.message||'Invalid code');}
     const data=await r.json();
     authToken=(data.profile_url||'').split('?token=')[1]?.split('&')[0]||null;
     if(!authToken) throw new Error('Auth failed — token not returned');
+
+    // Step 2: check admin_orgs for this org
+    const orgKey=[ORG_L1,ORG_L2,ORG_L3].filter(Boolean).join('|');
+    const meResp=await fetch(`${NILE_API}/nile/me`,{headers:{'Authorization':`Bearer ${authToken}`}});
+    if(meResp.ok){
+      const me=await meResp.json();
+      const adminOrgs=Array.isArray(me.admin_orgs)?me.admin_orgs:[];
+      if(orgKey && !adminOrgs.includes(orgKey)){
+        authToken=null;
+        throw new Error('The phone number you entered doesn\'t match our records for this archive. Please return later to view new sessions.');
+      }
+    }
+
     isAdmin=true;
     closeAuthModal();
     document.getElementById('admin-badge').classList.add('visible');
