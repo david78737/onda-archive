@@ -467,7 +467,7 @@ async function adminVerifyOtp() {
 
     // Step 2: check admin_orgs for this org
     const orgKey=[ORG_L1,ORG_L2,ORG_L3].filter(Boolean).join('|');
-    const meResp=await fetch(`${NILE_API}/nile/me`,{headers:{'Authorization':`Bearer ${authToken}`}});
+    const meResp=await fetch(`${NILE_API}/nile/me`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({magic_auth_token:authToken})});
     if(meResp.ok){
       const me=await meResp.json();
       const adminOrgs=Array.isArray(me.admin_orgs)?me.admin_orgs:[];
@@ -733,10 +733,10 @@ function syncColorPicker(){const v=document.getElementById('id-color-hex').value
 
 async function saveIdentity(){
   clearMsg('id-msg');
-  const body={org_l1:ORG_L1,org_l2:ORG_L2,org_l3:ORG_L3,name:document.getElementById('id-name').value.trim(),tagline:document.getElementById('id-tagline').value.trim(),logo_url:document.getElementById('id-logo').value.trim(),accent_color:document.getElementById('id-color-hex').value.trim()||document.getElementById('id-color').value,about:document.getElementById('id-about').value.trim()};
+  const body={magic_auth_token:authToken,org_l1:ORG_L1,org_l2:ORG_L2,org_l3:ORG_L3,name:document.getElementById('id-name').value.trim(),tagline:document.getElementById('id-tagline').value.trim(),logo_url:document.getElementById('id-logo').value.trim(),accent_color:document.getElementById('id-color-hex').value.trim()||document.getElementById('id-color').value,about:document.getElementById('id-about').value.trim()};
   const btn=document.getElementById('id-save-btn');btn.disabled=true;btn.textContent='Saving…';
   try{
-    const r=await fetch(`${NILE_API}/nile/org/identity`,{method:'POST',headers:{'Content-Type':'application/json','Authorization':`Bearer ${authToken}`},body:JSON.stringify(body)});
+    const r=await fetch(`${NILE_API}/nile/org/identity`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
     if(!r.ok){const e=await r.json();throw new Error(e.message||'Save failed');}
     showMsg('id-msg','ok','Identity saved ✓');
     if(body.accent_color) document.documentElement.style.setProperty('--accent',body.accent_color);
