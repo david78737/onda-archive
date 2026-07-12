@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ONDA · Presenter Enrollment</title>
+<style>
+  :root {
+    --accent:    #00C9BC;
+    --accent-dim:rgba(0,201,188,.15);
+    --bg:        #0f1117;
+    --surface:   #1a1d27;
+    --border:    #252838;
+    --ink:       #e8eaf0;
+    --ink-mid:   #c8d0e8;
+    --muted:     #8890b8;
+    --admin:     #f0c070;
+    --danger:    #f07070;
+    --ok:        #2ecc71;
+  }
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+  body{background:var(--bg);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:15px;line-height:1.6;min-height:100vh;display:flex;flex-direction:column;align-items:center;padding:48px 20px 80px;}
+
+  .wordmark{font-size:11px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--accent);margin-bottom:6px;text-align:center;}
+  h1{font-size:22px;font-weight:700;color:var(--ink);margin-bottom:4px;text-align:center;}
+  .subtitle{font-size:13px;color:var(--muted);margin-bottom:36px;text-align:center;}
+
+  .card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:28px;width:100%;max-width:480px;}
+
+  label{display:block;font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:6px;}
+  .field{margin-bottom:18px;}
+  input,select{width:100%;background:var(--bg);border:1px solid var(--border);border-radius:7px;padding:10px 13px;color:var(--ink);font-size:14px;outline:none;transition:border-color .15s;}
+  input:focus,select:focus{border-color:var(--accent);}
+  select option{background:var(--bg);}
+
+  .btn{width:100%;padding:12px;background:var(--accent);color:#0f1117;font-size:14px;font-weight:700;border:none;border-radius:8px;cursor:pointer;transition:opacity .15s;}
+  .btn:hover{opacity:.88;}
+  .btn:disabled{opacity:.4;cursor:default;}
+  .btn-secondary{background:transparent;color:var(--muted);border:1px solid var(--border);margin-top:10px;}
+
+  .msg{font-size:13px;min-height:20px;margin-bottom:14px;font-weight:600;}
+  .msg.err{color:var(--danger);}
+  .msg.ok{color:var(--ok);}
+
+  .divider{border:none;border-top:1px solid var(--border);margin:20px 0;}
+
+  .roster{margin-top:32px;width:100%;max-width:480px;}
+  .roster h2{font-size:12px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid var(--border);}
+  .roster-row{display:flex;align-items:center;gap:12px;padding:10px 14px;background:var(--surface);border:1px solid var(--border);border-radius:8px;margin-bottom:6px;}
+  .roster-name{flex:1;font-size:14px;font-weight:600;color:var(--ink-mid);}
+  .roster-org{font-size:12px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:180px;}
+  .roster-role{font-size:11px;font-weight:700;color:var(--admin);background:rgba(240,192,112,.12);border-radius:4px;padding:2px 7px;white-space:nowrap;}
+
+  #auth-section{width:100%;max-width:480px;}
+  #enroll-section{display:none;width:100%;max-width:480px;}
+</style>
+</head>
+<body>
+
+<div class="wordmark">ONDA Nile</div>
+<h1>Presenter Enrollment</h1>
+<div class="subtitle">Add presenters and assign their org roles. ONDA admin only.</div>
+
+<!-- ── Auth ── -->
+<div id="auth-section">
+  <div class="card">
+    <div id="auth-step-phone">
+      <div class="field">
+        <label>Your phone number</label>
+        <input type="tel" id="auth-phone" placeholder="+1 512 555 0100" autocomplete="tel">
+      </div>
+      <div class="msg err" id="auth-msg"></div>
+      <button class="btn" onclick="authSend()">Send Code</button>
+    </div>
+    <div id="auth-step-otp" style="display:none">
+      <div class="field">
+        <label>One-time code</label>
+        <input type="text" id="auth-otp" placeholder="6-digit code" inputmode="numeric" maxlength="6" autocomplete="one-time-code">
+      </div>
+      <div class="msg err" id="auth-msg2"></div>
+      <button class="btn" onclick="authVerify()">Verify</button>
+      <button class="btn btn-secondary" onclick="authBack()">Back</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── Enrollment form ── -->
+<div id="enroll-section">
+  <div class="card">
+    <div class="field">
+      <label>Presenter Name</label>
+      <input type="text" id="enroll-name" placeholder="Arturo Pina">
+    </div>
+    <div class="field">
+      <label>Phone Number</label>
+      <input type="tel" id="enroll-phone" placeholder="+1 972 533 9827">
+    </div>
+    <div class="field">
+      <label>Organization</label>
+      <select id="enroll-org">
+        <option value="">— select —</option>
+        <option value="ProductCamp|Austin|ProductCamp Austin 2026">ProductCamp · Austin · ProductCamp Austin 2026</option>
+        <option value="Toastmasters|Austin|Chapter 47">Toastmasters · Austin · Chapter 47</option>
+      </select>
+    </div>
+    <div class="field">
+      <label>Role</label>
+      <select id="enroll-role">
+        <option value="organizer">Organizer</option>
+        <option value="secretary">Secretary</option>
+        <option value="presenter">Presenter</option>
+      </select>
+    </div>
+    <div class="msg" id="enroll-msg"></div>
+    <button class="btn" id="enroll-btn" onclick="enroll()">Add Presenter</button>
+  </div>
+
+  <div class="roster" id="roster-section" style="display:none">
+    <h2>Enrolled Presenters</h2>
+    <div id="roster-list"></div>
+  </div>
+</div>
+
+<script>
+const NILE_API  = 'https://xrxm-29on-xlyt.n7e.xano.io/api:onda-nile';
+const NILE_AUTH = 'https://xrxm-29on-xlyt.n7e.xano.io/api:nile';
+
+let authToken = null;
+
+function normalizePhone(raw){
+  const d=raw.replace(/\D/g,'');
+  if(d.length===10) return '+1'+d;
+  if(d.length===11&&d[0]==='1') return '+'+d;
+  return '+'+d;
+}
+
+async function authSend(){
+  const raw=document.getElementById('auth-phone').value.trim();
+  const msg=document.getElementById('auth-msg');
+  msg.textContent='';
+  if(!raw){msg.textContent='Enter your phone number.';return;}
+  try{
+    const r=await fetch(`${NILE_AUTH}/presenter/magic/send`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({contact:normalizePhone(raw)})});
+    if(!r.ok){const e=await r.json();throw new Error(e.message||'Failed to send code');}
+    document.getElementById('auth-step-phone').style.display='none';
+    document.getElementById('auth-step-otp').style.display='block';
+    setTimeout(()=>document.getElementById('auth-otp').focus(),50);
+  }catch(e){msg.textContent=e.message;}
+}
+
+function authBack(){
+  document.getElementById('auth-step-otp').style.display='none';
+  document.getElementById('auth-step-phone').style.display='block';
+  document.getElementById('auth-msg2').textContent='';
+}
+
+async function authVerify(){
+  const raw=document.getElementById('auth-phone').value.trim();
+  const otp=document.getElementById('auth-otp').value.trim();
+  const msg=document.getElementById('auth-msg2');
+  msg.textContent='';
+  try{
+    const r=await fetch(`${NILE_AUTH}/presenter/magic/verify`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({contact:normalizePhone(raw),code:otp})});
+    if(!r.ok){const e=await r.json();throw new Error(e.message||'Invalid code');}
+    const data=await r.json();
+    authToken=(data.profile_url||'').split('?token=')[1]?.split('&')[0]||null;
+    if(!authToken) throw new Error('Auth failed — token not returned');
+    document.getElementById('auth-section').style.display='none';
+    document.getElementById('enroll-section').style.display='block';
+    loadRoster();
+  }catch(e){msg.textContent=e.message;}
+}
+
+async function enroll(){
+  const name=document.getElementById('enroll-name').value.trim();
+  const phone=document.getElementById('enroll-phone').value.trim();
+  const org=document.getElementById('enroll-org').value;
+  const role=document.getElementById('enroll-role').value;
+  const msg=document.getElementById('enroll-msg');
+  const btn=document.getElementById('enroll-btn');
+  msg.className='msg';msg.textContent='';
+  if(!name||!phone||!org){msg.className='msg err';msg.textContent='Name, phone, and organization are required.';return;}
+  btn.disabled=true;btn.textContent='Adding…';
+  try{
+    const r=await fetch(`${NILE_API}/nile/presenter/enroll`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({magic_auth_token:authToken,name,phone:normalizePhone(phone),org,role})});
+    if(!r.ok){const e=await r.json();throw new Error(e.message||'Enrollment failed');}
+    msg.className='msg ok';msg.textContent=`${name} enrolled as ${role} ✓`;
+    document.getElementById('enroll-name').value='';
+    document.getElementById('enroll-phone').value='';
+    document.getElementById('enroll-org').value='';
+    loadRoster();
+  }catch(e){msg.className='msg err';msg.textContent=e.message;}
+  finally{btn.disabled=false;btn.textContent='Add Presenter';}
+}
+
+async function loadRoster(){
+  try{
+    const r=await fetch(`${NILE_API}/nile/presenter/roster`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({magic_auth_token:authToken})});
+    if(!r.ok) return;
+    const data=await r.json();
+    const list=document.getElementById('roster-list');
+    if(!data.length){list.innerHTML='<div style="font-size:13px;color:var(--muted);padding:10px 0">No presenters enrolled yet.</div>';document.getElementById('roster-section').style.display='block';return;}
+    list.innerHTML=data.map(p=>`
+      <div class="roster-row">
+        <div class="roster-name">${p.name||p.phone}</div>
+        <div class="roster-org">${(p.org||'').split('|').join(' · ')}</div>
+        <span class="roster-role">${p.role}</span>
+      </div>`).join('');
+    document.getElementById('roster-section').style.display='block';
+  }catch(e){}
+}
+</script>
+</body>
+</html>
