@@ -605,7 +605,7 @@ async function saveSlot(btn){
   if(body.presenter) body.presenter_slug=body.presenter.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'');
   btn.textContent='Saving…';btn.disabled=true;
   try{
-    const r=await fetch(`${NILE_API}/nile/session/${id}`,{method:'PATCH',headers:{'Content-Type':'application/json','Authorization':`Bearer ${authToken}`},body:JSON.stringify(body)});
+    const r=await fetch(`${NILE_API}/nile/session/${id}`,{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify({...body,magic_auth_token:authToken})});
     if(!r.ok){const e=await r.json();throw new Error(e.message||'Save failed');}
     statusEl.textContent='Saved ✓';statusEl.className='edit-status show';
     const s=allSessions.find(x=>x.id==id);if(s)Object.assign(s,body);
@@ -646,7 +646,7 @@ async function createSlots(){
   const results=[];const errors=[];
   for(let i=0;i<count;i++){
     try{
-      const r=await fetch(`${NILE_API}/nile/session/create`,{method:'POST',headers:{'Content-Type':'application/json','Authorization':`Bearer ${authToken}`},body:JSON.stringify({org_l1:orgL1,org_l2:orgL2,org_l3:orgL3,date,visibility:vis,status:'pending'})});
+      const r=await fetch(`${NILE_API}/nile/session/create`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({magic_auth_token:authToken,org_l1:orgL1,org_l2:orgL2,org_l3:orgL3,date,visibility:vis,status:'pending'})});
       const data=await r.json();
       if(!r.ok) throw new Error(data.message||'Create failed');
       results.push(data);
@@ -734,7 +734,7 @@ async function saveCardEditor(){
   const body={title:document.getElementById('ce-title').value.trim()||'TBD',synopsis:document.getElementById('ce-synopsis').value.trim(),photo_url:document.getElementById('ce-photo').value.trim(),linkedin:document.getElementById('ce-linkedin').value.trim(),youtube_url:document.getElementById('ce-youtube').value.trim(),tags:ceTags};
   const btn=document.getElementById('ce-save-btn');btn.disabled=true;btn.textContent='Saving…';
   try{
-    const r=await fetch(`${NILE_API}/nile/session/${ceSessionId}`,{method:'PATCH',headers:{'Content-Type':'application/json','Authorization':`Bearer ${authToken}`},body:JSON.stringify(body)});
+    const r=await fetch(`${NILE_API}/nile/session/${ceSessionId}`,{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify({...body,magic_auth_token:authToken})});
     if(!r.ok){const e=await r.json();throw new Error(e.message||'Save failed');}
     Object.assign(s,body);showMsg('ce-msg','ok','Saved ✓');render();
     setTimeout(()=>closeModal('card-editor-modal'),1000);
