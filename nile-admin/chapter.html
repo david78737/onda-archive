@@ -475,7 +475,7 @@ async function adminVerifyOtp() {
     if(!meResp.ok) throw new Error('Could not load your profile.');
     const me=await meResp.json();
     const orgKey=[ORG_L1,ORG_L2,ORG_L3].filter(Boolean).join('|');
-    const matches=(Array.isArray(me.admin_orgs)?me.admin_orgs:[]).filter(a=>(typeof a==='object'?a.org:a)===orgKey);
+    const matches=(Array.isArray(me.memberships)?me.memberships:[]).filter(a=>a.org===orgKey);
     if(!matches.length) throw new Error('Your number isn\'t enrolled for this archive. Contact your ONDA administrator.');
 
     // Build role cards
