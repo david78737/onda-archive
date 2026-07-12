@@ -558,12 +558,15 @@ function render() {
     // Completeness indicator: green=complete, amber=partial, empty=not responded
     const hasName=!!(s.presenter&&s.presenter!=='Unassigned');
     const hasTitle=!!(s.title&&s.title!=='TBD');
+    const hasSynopsis=!!(s.synopsis&&s.synopsis.trim());
     const hasTags=Array.isArray(s.tags)&&s.tags.length>0;
+    const complete=hasName&&hasTitle&&hasSynopsis&&hasTags;
+    const partial=hasName||hasTitle;
     let dot='';
     if(isAdmin){
-      if(hasName&&hasTitle&&hasTags) dot='<span title="Complete" style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#2ecc71;margin-left:6px;flex-shrink:0;align-self:center"></span>';
-      else if(hasName||hasTitle) dot='<span title="Partial" style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#f39c12;margin-left:6px;flex-shrink:0;align-self:center"></span>';
-      else dot='<span title="Not responded" style="display:inline-block;width:10px;height:10px;border-radius:50%;border:2px solid var(--muted);margin-left:6px;flex-shrink:0;align-self:center"></span>';
+      if(complete) dot='<span title="Complete ✓" style="display:inline-block;width:12px;height:12px;border-radius:50%;background:#2ecc71;margin-left:8px;flex-shrink:0;align-self:center"></span>';
+      else if(partial) dot='<span title="Partial — missing synopsis or tags" style="display:inline-block;width:12px;height:12px;border-radius:50%;background:#f39c12;margin-left:8px;flex-shrink:0;align-self:center"></span>';
+      else dot='<span title="Not responded" style="display:inline-block;width:12px;height:12px;border-radius:50%;background:#e74c3c;margin-left:8px;flex-shrink:0;align-self:center"></span>';
     }
     const card=document.createElement('div');
     card.className='card'; card.dataset.id=s.id;
