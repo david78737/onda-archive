@@ -443,6 +443,7 @@ function toggleAdmin() {
     document.getElementById('auth-modal').classList.add('open');
     document.getElementById('auth-step-phone').style.display='block';
     document.getElementById('auth-step-otp').style.display='none';
+    document.getElementById('auth-step-context').style.display='none';
     document.getElementById('auth-error').className='modal-msg';
     setTimeout(()=>document.getElementById('modal-phone').focus(),50);
   }
