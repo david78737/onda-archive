@@ -97,11 +97,17 @@
     </div>
     <div class="field">
       <label>Organization</label>
-      <select id="enroll-org">
-        <option value="">— select —</option>
-        <option value="ProductCamp|Austin|ProductCamp Austin 2026">ProductCamp · Austin · ProductCamp Austin 2026</option>
-        <option value="Toastmasters|Austin|Chapter 47">Toastmasters · Austin · Chapter 47</option>
+      <select id="enroll-org" onchange="handleOrgSelect()">
+        <option value="">— loading… —</option>
       </select>
+    </div>
+    <div id="new-org-form" style="display:none;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:16px;margin-bottom:18px;">
+      <div style="font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--accent);margin-bottom:12px">New Organization</div>
+      <div class="field"><label>Level 1 — Organization</label><input type="text" id="new-l1" placeholder="ProductCamp"></div>
+      <div class="field"><label>Level 2 — City / Region</label><input type="text" id="new-l2" placeholder="Austin"></div>
+      <div class="field"><label>Level 3 — Chapter / Event</label><input type="text" id="new-l3" placeholder="ProductCamp Austin 2026"></div>
+      <div class="msg" id="new-org-msg"></div>
+      <button class="btn" onclick="createOrg()" id="new-org-btn">Create Organization</button>
     </div>
     <div class="field">
       <label>Role</label>
@@ -167,8 +173,58 @@ async function authVerify(){
     if(!authToken) throw new Error('Auth failed — token not returned');
     document.getElementById('auth-section').style.display='none';
     document.getElementById('enroll-section').style.display='block';
+    await loadOrgs();
     loadRoster();
   }catch(e){msg.textContent=e.message;}
+}
+
+async function loadOrgs(){
+  try{
+    const r=await fetch(`${NILE_API}/nile/orgs`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({})});
+    if(!r.ok) return;
+    const orgs=await r.json();
+    const sel=document.getElementById('enroll-org');
+    sel.innerHTML='<option value="">— select —</option>';
+    orgs.forEach(o=>{
+      const opt=document.createElement('option');
+      opt.value=o.org_key;
+      opt.textContent=`${o.org_l1} · ${o.org_l2} · ${o.org_l3}`;
+      sel.appendChild(opt);
+    });
+    const add=document.createElement('option');
+    add.value='__new__';
+    add.textContent='+ New Organization…';
+    sel.appendChild(add);
+  }catch(e){}
+}
+
+function handleOrgSelect(){
+  const val=document.getElementById('enroll-org').value;
+  document.getElementById('new-org-form').style.display=val==='__new__'?'block':'none';
+}
+
+async function createOrg(){
+  const l1=document.getElementById('new-l1').value.trim();
+  const l2=document.getElementById('new-l2').value.trim();
+  const l3=document.getElementById('new-l3').value.trim();
+  const msg=document.getElementById('new-org-msg');
+  const btn=document.getElementById('new-org-btn');
+  msg.className='msg';msg.textContent='';
+  if(!l1||!l2||!l3){msg.className='msg err';msg.textContent='All three levels are required.';return;}
+  btn.disabled=true;btn.textContent='Creating…';
+  try{
+    const r=await fetch(`${NILE_API}/nile/org/create`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({magic_auth_token:authToken,org_l1:l1,org_l2:l2,org_l3:l3})});
+    if(!r.ok){const e=await r.json();throw new Error(e.message||'Failed to create org');}
+    const org=await r.json();
+    msg.className='msg ok';msg.textContent='Organization created ✓';
+    document.getElementById('new-l1').value='';
+    document.getElementById('new-l2').value='';
+    document.getElementById('new-l3').value='';
+    await loadOrgs();
+    document.getElementById('enroll-org').value=org.org_key;
+    document.getElementById('new-org-form').style.display='none';
+  }catch(e){msg.className='msg err';msg.textContent=e.message;}
+  finally{btn.disabled=false;btn.textContent='Create Organization';}
 }
 
 async function enroll(){
