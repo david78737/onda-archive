@@ -555,6 +555,16 @@ function render() {
       :`<div class="card-avatar" style="background:${avatarColor(presName)}">${initials(presName)}</div>`;
     const statusBadge=s.status==='done'?`<span class="badge badge-done">Done</span>`:`<span class="badge badge-${s.status}">${s.status}</span>`;
     const tokenHtml=s.session_token?`<span class="card-token">${s.session_token}</span>`:'';
+    // Completeness indicator: green=complete, amber=partial, empty=not responded
+    const hasName=!!(s.presenter&&s.presenter!=='Unassigned');
+    const hasTitle=!!(s.title&&s.title!=='TBD');
+    const hasTags=Array.isArray(s.tags)&&s.tags.length>0;
+    let dot='';
+    if(isAdmin){
+      if(hasName&&hasTitle&&hasTags) dot='<span title="Complete" style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#2ecc71;margin-left:6px;flex-shrink:0;align-self:center"></span>';
+      else if(hasName||hasTitle) dot='<span title="Partial" style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#f39c12;margin-left:6px;flex-shrink:0;align-self:center"></span>';
+      else dot='<span title="Not responded" style="display:inline-block;width:10px;height:10px;border-radius:50%;border:2px solid var(--muted);margin-left:6px;flex-shrink:0;align-self:center"></span>';
+    }
     const card=document.createElement('div');
     card.className='card'; card.dataset.id=s.id;
     card.innerHTML=`
@@ -565,6 +575,7 @@ function render() {
           <div class="card-presenter">${presName} ${tokenHtml}</div>
           <div>${statusBadge}</div>
         </div>
+        ${dot}
         <button class="card-edit-btn" onclick="toggleEdit(event,this)">Edit</button>
       </div>
       <div class="card-edit">
