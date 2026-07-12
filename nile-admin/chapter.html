@@ -471,7 +471,8 @@ async function adminVerifyOtp() {
     if(meResp.ok){
       const me=await meResp.json();
       const adminOrgs=Array.isArray(me.admin_orgs)?me.admin_orgs:[];
-      if(orgKey && !adminOrgs.includes(orgKey)){
+      const hasAccess=adminOrgs.some(a=>typeof a==='object'?a.org===orgKey:a===orgKey);
+      if(orgKey && !hasAccess){
         authToken=null;
         throw new Error('The phone number you entered doesn\'t match our records for this archive. Please return later to view new sessions.');
       }
