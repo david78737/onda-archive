@@ -251,11 +251,9 @@
       <button class="modal-auth-btn" onclick="adminVerifyOtp()">Verify</button>
     </div>
 
-    <div id="auth-step-context" style="display:none">
-      <label>Activation code</label>
-      <p style="font-size:12px;color:var(--muted);margin-bottom:10px">Enter the code provided by your ONDA administrator to link your role to this archive.</p>
-      <input type="text" id="modal-context-code" class="auth-input" placeholder="ONDA-ORG-0001" autocomplete="off" style="text-transform:uppercase">
-      <button class="modal-auth-btn" onclick="adminActivate()">Activate</button>
+    <div id="auth-step-orgs" style="display:none">
+      <p style="font-size:12px;color:var(--muted);margin-bottom:12px">Tap the role you're entering as.</p>
+      <div id="auth-org-list" style="display:flex;flex-direction:column;gap:8px"></div>
     </div>
 
     <span class="modal-cancel-link" onclick="closeAuthModal()">Cancel</span>
@@ -443,7 +441,7 @@ function toggleAdmin() {
     document.getElementById('auth-modal').classList.add('open');
     document.getElementById('auth-step-phone').style.display='block';
     document.getElementById('auth-step-otp').style.display='none';
-    document.getElementById('auth-step-context').style.display='none';
+    document.getElementById('auth-step-orgs').style.display='none';
     document.getElementById('auth-error').className='modal-msg';
     setTimeout(()=>document.getElementById('modal-phone').focus(),50);
   }
@@ -471,29 +469,45 @@ async function adminVerifyOtp() {
     const data=await r.json();
     authToken=(data.profile_url||'').split('?token=')[1]?.split('&')[0]||null;
     if(!authToken) throw new Error('Auth failed — token not returned');
-    // Identity confirmed — now require context (role) activation
+
+    // Fetch their enrolled orgs
+    const meResp=await fetch(`${NILE_API}/nile/me`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({magic_auth_token:authToken})});
+    if(!meResp.ok) throw new Error('Could not load your profile.');
+    const me=await meResp.json();
+    const orgKey=[ORG_L1,ORG_L2,ORG_L3].filter(Boolean).join('|');
+    const matches=(Array.isArray(me.admin_orgs)?me.admin_orgs:[]).filter(a=>(typeof a==='object'?a.org:a)===orgKey);
+    if(!matches.length) throw new Error('Your number isn\'t enrolled for this archive. Contact your ONDA administrator.');
+
+    // Build role cards
+    const list=document.getElementById('auth-org-list');
+    list.innerHTML='';
+    matches.forEach(a=>{
+      const role=typeof a==='object'?a.role:'admin';
+      const label=[ORG_L1,ORG_L2,ORG_L3].filter(Boolean).join(' · ');
+      const btn=document.createElement('button');
+      btn.type='button';
+      btn.style.cssText='display:flex;flex-direction:column;align-items:flex-start;gap:2px;width:100%;padding:12px 14px;background:var(--surface);border:1px solid var(--accent);border-radius:8px;cursor:pointer;text-align:left;';
+      btn.innerHTML=`<span style="font-size:13px;font-weight:600;color:var(--accent)">${role.charAt(0).toUpperCase()+role.slice(1)}</span><span style="font-size:12px;color:var(--muted)">${label}</span>`;
+      btn.onclick=()=>adminEnterAs(role);
+      list.appendChild(btn);
+    });
+
     document.getElementById('auth-step-otp').style.display='none';
-    document.getElementById('auth-step-context').style.display='block';
-    setTimeout(()=>document.getElementById('modal-context-code').focus(),50);
+    document.getElementById('auth-step-orgs').style.display='block';
   } catch(e){showMsg('auth-error','err',e.message);}
 }
 
-async function adminActivate() {
-  const code=document.getElementById('modal-context-code').value.trim().toUpperCase();
-  if(!code){showMsg('auth-error','err','Enter your activation code.');return;}
-  try {
-    const r=await fetch(`${NILE_API}/nile/activate`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({magic_auth_token:authToken,activation_code:code})});
-    if(!r.ok){const e=await r.json();throw new Error(e.message||'Invalid activation code');}
-    isAdmin=true;
-    closeAuthModal();
-    document.getElementById('admin-badge').classList.add('visible');
-    document.getElementById('admin-toggle-btn').classList.add('active');
-    document.getElementById('admin-toggle-btn').textContent='Exit Admin';
-    document.getElementById('right-panel').classList.add('admin-mode-on');
-    document.getElementById('left-panel').classList.add('admin-mode-on');
-    document.getElementById('status-filters').style.cssText='display:flex;flex-direction:column;gap:3px;';
-    await loadSessions(true);
-  } catch(e){showMsg('auth-error','err',e.message);}
+function adminEnterAs(role) {
+  isAdmin=true;
+  closeAuthModal();
+  document.getElementById('admin-badge').classList.add('visible');
+  document.getElementById('admin-badge').textContent=role.charAt(0).toUpperCase()+role.slice(1);
+  document.getElementById('admin-toggle-btn').classList.add('active');
+  document.getElementById('admin-toggle-btn').textContent='Exit Admin';
+  document.getElementById('right-panel').classList.add('admin-mode-on');
+  document.getElementById('left-panel').classList.add('admin-mode-on');
+  document.getElementById('status-filters').style.cssText='display:flex;flex-direction:column;gap:3px;';
+  loadSessions(true);
 }
 
 // ── Filters ───────────────────────────────────────────────────────────────────
