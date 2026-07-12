@@ -734,6 +734,7 @@ function syncColorPicker(){const v=document.getElementById('id-color-hex').value
 
 async function saveIdentity(){
   clearMsg('id-msg');
+  console.log('saveIdentity — authToken:', authToken);
   const body={magic_auth_token:authToken,org_l1:ORG_L1,org_l2:ORG_L2,org_l3:ORG_L3,name:document.getElementById('id-name').value.trim(),tagline:document.getElementById('id-tagline').value.trim(),logo_url:document.getElementById('id-logo').value.trim(),accent_color:document.getElementById('id-color-hex').value.trim()||document.getElementById('id-color').value,about:document.getElementById('id-about').value.trim()};
   const btn=document.getElementById('id-save-btn');btn.disabled=true;btn.textContent='Saving…';
   try{
