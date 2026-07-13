@@ -100,12 +100,26 @@
   .edit-btn-save { background: var(--admin); color: #000; }
   .edit-btn-cancel { background: var(--surface2); color: var(--muted); border: 1px solid var(--border); }
   .edit-btn-deactivate { background: var(--danger-dim); color: var(--danger); border: 1px solid var(--danger); margin-left: auto; }
+  .edit-btn-flag { background: transparent; color: #f0a050; border: 1px solid #f0a050; }
   .edit-status { font-size: 12px; color: var(--accent); margin-top: 6px; display: none; }
   .edit-status.show { display: block; }
   .edit-error { font-size: 12px; color: var(--danger); margin-top: 6px; display: none; }
   .edit-error.show { display: block; }
   .card-edit-btn { display: none; margin-left: auto; flex-shrink: 0; padding: 4px 10px; font-size: 11px; font-weight: 600; background: var(--admin-dim); color: var(--admin); border: 1px solid var(--admin); border-radius: 4px; cursor: pointer; }
   .admin-mode-on .card-edit-btn { display: inline-block; }
+
+  /* ── Presenter card read-only summary ── */
+  .card-summary { margin-top: 14px; padding-top: 14px; border-top: 1px solid var(--border); display: flex; flex-direction: column; gap: 10px; }
+  .summary-label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .1em; color: var(--muted-dim); margin-bottom: 3px; }
+  .summary-value { font-size: 13px; color: var(--ink-mid); line-height: 1.5; }
+  .summary-value.empty { color: var(--muted-dim); font-style: italic; }
+  .summary-tags { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 2px; }
+  .summary-tag { font-size: 11px; background: var(--accent-dim); color: var(--accent); border: 1px solid rgba(0,201,188,.3); border-radius: 3px; padding: 2px 7px; }
+  .flag-area { margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--border); display: none; flex-direction: column; gap: 8px; }
+  .flag-area.open { display: flex; }
+  .flag-area textarea { background: var(--surface2); border: 1px solid #f0a050; color: var(--ink); font-size: 13px; border-radius: 5px; padding: 8px 10px; resize: vertical; min-height: 70px; font-family: inherit; outline: none; }
+  .flag-send-btn { align-self: flex-start; padding: 6px 16px; font-size: 13px; font-weight: 600; background: #f0a050; color: #000; border: none; border-radius: 6px; cursor: pointer; }
+  .flag-send-btn:hover { opacity: .85; }
 
   .loading, .empty { text-align: center; padding: 4rem 2rem; color: var(--muted-dim); font-size: 14px; }
 
@@ -606,10 +620,42 @@ function render() {
         <div class="edit-actions">
           <button class="edit-btn edit-btn-save" onclick="saveSlot(this)">Save</button>
           <button class="edit-btn edit-btn-cancel" onclick="cancelEdit(this)">Cancel</button>
+          <button class="edit-btn edit-btn-flag" onclick="toggleFlag(this)">⚑ Flag</button>
           <button class="edit-btn edit-btn-deactivate" onclick="deactivateSlot(this)">Deactivate</button>
         </div>
         <div class="edit-status"></div>
         <div class="edit-error"></div>
+
+        <div class="card-summary">
+          <div>
+            <div class="summary-label">Synopsis</div>
+            <div class="summary-value ${s.synopsis?'':'empty'}">${s.synopsis||'Not yet provided'}</div>
+          </div>
+          <div>
+            <div class="summary-label">Key Takeaways</div>
+            <div class="summary-value ${s.takeaways?'':'empty'}">${s.takeaways?s.takeaways.split('\n').map(t=>t.trim()).filter(Boolean).map(t=>`• ${t}`).join('<br>'):'Not yet provided'}</div>
+          </div>
+          <div>
+            <div class="summary-label">Best For</div>
+            <div class="summary-value ${s.best_for?'':'empty'}">${s.best_for||'Not yet provided'}</div>
+          </div>
+          <div>
+            <div class="summary-label">Topic Tags</div>
+            <div class="summary-tags">${Array.isArray(s.tags)&&s.tags.length?s.tags.map(t=>`<span class="summary-tag">${t}</span>`).join(''):'<span class="summary-value empty">None added</span>'}</div>
+          </div>
+          <div>
+            <div class="summary-label">Visibility</div>
+            <div class="summary-value">${s.visibility||'chapter'}</div>
+          </div>
+          ${s.linkedin?`<div><div class="summary-label">LinkedIn</div><div class="summary-value"><a href="${s.linkedin}" target="_blank" rel="noopener" style="color:var(--accent)">${s.linkedin}</a></div></div>`:''}
+        </div>
+
+        <div class="flag-area">
+          <div class="summary-label" style="color:#f0a050">Flag note — will be texted to presenter</div>
+          <textarea placeholder="e.g. Please add a synopsis. Your photo URL appears to be broken."></textarea>
+          <button class="flag-send-btn" onclick="sendFlag(this)">Send to Presenter</button>
+          <div class="flag-msg" style="font-size:12px;margin-top:4px"></div>
+        </div>
       </div>`;
     container.appendChild(card);
   });
@@ -640,6 +686,31 @@ async function deactivateSlot(btn){
   if(!confirm('Mark this slot as inactive?')) return;
   btn.closest('.card').querySelector('[name=status]').value='inactive';
   await saveSlot(btn.closest('.card').querySelector('.edit-btn-save'));
+}
+
+function toggleFlag(btn){
+  const flagArea=btn.closest('.card-edit').querySelector('.flag-area');
+  flagArea.classList.toggle('open');
+  if(flagArea.classList.contains('open')) flagArea.querySelector('textarea').focus();
+}
+
+async function sendFlag(btn){
+  const card=btn.closest('.card');
+  const id=card.dataset.id;
+  const s=allSessions.find(x=>x.id==id);
+  const note=btn.closest('.flag-area').querySelector('textarea').value.trim();
+  const msgEl=btn.closest('.flag-area').querySelector('.flag-msg');
+  if(!note){msgEl.style.color='var(--danger)';msgEl.textContent='Please enter a note before sending.';return;}
+  const phone=card.querySelector('[name=phone]').value.trim();
+  if(!phone){msgEl.style.color='var(--danger)';msgEl.textContent='No phone number on file for this presenter.';return;}
+  btn.disabled=true;btn.textContent='Sending…';
+  try{
+    const r=await fetch(`${NILE_AUTH}/session/${id}/flag`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({magic_auth_token:authToken,flag_note:note,phone:normalizePhone(phone),presenter:s?.presenter||'',title:s?.title||''})});
+    if(!r.ok){const e=await r.json();throw new Error(e.message||'Send failed');}
+    msgEl.style.color='var(--accent)';msgEl.textContent='Sent ✓ Presenter has been notified by text.';
+    btn.closest('.flag-area').querySelector('textarea').value='';
+  }catch(e){msgEl.style.color='var(--danger)';msgEl.textContent=e.message;}
+  finally{btn.disabled=false;btn.textContent='Send to Presenter';}
 }
 
 // ── Create Slots modal ────────────────────────────────────────────────────────
