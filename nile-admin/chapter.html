@@ -424,6 +424,7 @@ let isAdmin       = false;
 let ceTags        = [];
 let ceSessionId   = null;
 let csTokenList   = [];
+let orgAccentColor = null;
 const state       = { speaker: 'all', statusFilter: 'all', query: '' };
 
 // ── Utilities ─────────────────────────────────────────────────────────────────
@@ -501,8 +502,11 @@ async function adminVerifyOtp() {
       const label=[ORG_L1,ORG_L2,ORG_L3].filter(Boolean).join(' · ');
       const btn=document.createElement('button');
       btn.type='button';
-      btn.style.cssText='display:flex;flex-direction:column;align-items:flex-start;gap:2px;width:100%;padding:12px 14px;background:var(--surface);border:1px solid var(--accent);border-radius:8px;cursor:pointer;text-align:left;';
-      btn.innerHTML=`<span style="font-size:13px;font-weight:600;color:var(--accent)">${role.charAt(0).toUpperCase()+role.slice(1)}</span><span style="font-size:12px;color:var(--muted)">${label}</span>`;
+      const isOndaAdmin = role === 'onda_admin';
+      const cardColor = isOndaAdmin ? '#f0c070' : (orgAccentColor || 'var(--accent)');
+      const cardBg = isOndaAdmin ? 'rgba(240,192,112,.12)' : `${cardColor}18`;
+      btn.style.cssText=`display:flex;flex-direction:column;align-items:flex-start;gap:2px;width:100%;padding:12px 14px;background:${cardBg};border:1px solid ${cardColor};border-radius:8px;cursor:pointer;text-align:left;`;
+      btn.innerHTML=`<span style="font-size:13px;font-weight:600;color:${cardColor}">${role.charAt(0).toUpperCase()+role.slice(1)}</span><span style="font-size:12px;color:var(--muted)">${label}</span>`;
       btn.onclick=()=>adminEnterAs(role);
       list.appendChild(btn);
     });
@@ -886,6 +890,34 @@ document.getElementById('status-filters').querySelectorAll('.filter-btn').forEac
   btn.addEventListener('click',()=>{document.getElementById('status-filters').querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');state.statusFilter=btn.dataset.status;render();});
 });
 document.getElementById('search-input').addEventListener('input',e=>{state.query=e.target.value.trim();render();});
+
+// Load org identity to apply chapter skin at boot
+(async () => {
+  if (!ORG_L1) return;
+  try {
+    const qp = new URLSearchParams();
+    if (ORG_L1) qp.set('org_l1', ORG_L1);
+    if (ORG_L2) qp.set('org_l2', ORG_L2);
+    if (ORG_L3) qp.set('org_l3', ORG_L3);
+    const r = await fetch(`${NILE_API}/nile/org/identity?${qp}`);
+    if (r.ok) {
+      const cfg = await r.json();
+      if (cfg.accent_color) {
+        orgAccentColor = cfg.accent_color;
+        const root = document.documentElement;
+        root.style.setProperty('--accent', cfg.accent_color);
+        root.style.setProperty('--accent-dim', cfg.accent_color + '26');
+      }
+      if (cfg.logo_url) {
+        const ph = document.getElementById('logo-placeholder');
+        const img = document.createElement('img');
+        img.src = cfg.logo_url; img.alt = cfg.name || ORG_L1;
+        img.style.cssText = 'height:36px;width:auto;border-radius:4px;';
+        ph.replaceWith(img);
+      }
+    }
+  } catch(e) { /* non-fatal — default theme stays */ }
+})();
 
 loadSessions(false);
 </script>
