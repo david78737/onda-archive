@@ -216,6 +216,7 @@
       <button type="button" class="tool-btn" onclick="openCreateSlots()">＋ Create Slots</button>
       <button type="button" class="tool-btn" onclick="openCardEditor()">✎ Session Card</button>
       <button type="button" class="tool-btn" onclick="openIdentity()">◈ Archive Identity</button>
+      <button type="button" class="tool-btn" onclick="refreshSessions()" id="refresh-btn">↺ Refresh</button>
     </div>
 
     <div class="filter-group">
@@ -711,6 +712,13 @@ async function sendFlag(btn){
     btn.closest('.flag-area').querySelector('textarea').value='';
   }catch(e){msgEl.style.color='var(--danger)';msgEl.textContent=e.message;}
   finally{btn.disabled=false;btn.textContent='Send to Presenter';}
+}
+
+async function refreshSessions(){
+  const btn=document.getElementById('refresh-btn');
+  btn.textContent='↺ Loading…';btn.disabled=true;
+  await loadSessions(true);
+  btn.textContent='↺ Refresh';btn.disabled=false;
 }
 
 // ── Create Slots modal ────────────────────────────────────────────────────────
