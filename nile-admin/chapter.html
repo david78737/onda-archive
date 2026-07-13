@@ -248,16 +248,17 @@
 <div class="modal-overlay" id="auth-modal">
   <div class="modal">
     <div class="modal-header">
-      <div class="modal-title" style="color:var(--accent)">Admin Sign In</div>
+      <div class="modal-title" style="color:var(--accent)" id="auth-modal-title">Sign In</div>
       <button class="modal-close" onclick="closeAuthModal()">×</button>
     </div>
-    <div class="modal-sub">Enter your phone number to manage session slots.</div>
+    <div class="modal-sub" id="auth-modal-sub">Enter your phone number to continue.</div>
     <div class="modal-msg err" id="auth-error"></div>
 
     <div id="auth-step-phone">
       <label>Phone number</label>
       <input type="tel" id="modal-phone" class="auth-input" placeholder="+1 512 555 0100" autocomplete="tel">
       <button class="modal-auth-btn" onclick="adminSendOtp()">Send Code</button>
+      <p style="font-size:11px;color:var(--muted-dim);margin-top:10px;line-height:1.5">Your number must be enrolled by an ONDA administrator before signing in. <a href="../nile-admin/enroll.html" target="_blank" rel="noopener" style="color:var(--accent)">Request access →</a></p>
     </div>
 
     <div id="auth-step-otp" style="display:none">
@@ -425,6 +426,7 @@ let ceTags        = [];
 let ceSessionId   = null;
 let csTokenList   = [];
 let orgAccentColor = null;
+let pendingSessionContext = null;
 const state       = { speaker: 'all', statusFilter: 'all', query: '' };
 
 // ── Utilities ─────────────────────────────────────────────────────────────────
@@ -454,6 +456,9 @@ function toggleAdmin() {
     document.getElementById('status-filters').style.display='none';
     render();
   } else {
+    pendingSessionContext=null;
+    document.getElementById('auth-modal-title').textContent='Sign In';
+    document.getElementById('auth-modal-sub').textContent='Enter your phone number to manage session slots.';
     document.getElementById('auth-modal').classList.add('open');
     document.getElementById('auth-step-phone').style.display='block';
     document.getElementById('auth-step-otp').style.display='none';
@@ -505,8 +510,12 @@ async function adminVerifyOtp() {
       const isOndaAdmin = role === 'onda_admin';
       const cardColor = isOndaAdmin ? '#f0c070' : (orgAccentColor || 'var(--accent)');
       const cardBg = isOndaAdmin ? 'rgba(240,192,112,.12)' : `${cardColor}18`;
+      const roleLabel = role.charAt(0).toUpperCase()+role.slice(1);
+      const sessionLine = (role==='presenter'&&pendingSessionContext&&pendingSessionContext.title&&pendingSessionContext.title!=='TBD')
+        ? `<span style="font-size:11px;color:${cardColor};opacity:.8;margin-top:1px">"${pendingSessionContext.title}"</span>`
+        : '';
       btn.style.cssText=`display:flex;flex-direction:column;align-items:flex-start;gap:2px;width:100%;padding:12px 14px;background:${cardBg};border:1px solid ${cardColor};border-radius:8px;cursor:pointer;text-align:left;`;
-      btn.innerHTML=`<span style="font-size:13px;font-weight:600;color:${cardColor}">${role.charAt(0).toUpperCase()+role.slice(1)}</span><span style="font-size:12px;color:var(--muted)">${label}</span>`;
+      btn.innerHTML=`<span style="font-size:13px;font-weight:600;color:${cardColor}">${roleLabel}</span><span style="font-size:12px;color:var(--muted)">${label}</span>${sessionLine}`;
       btn.onclick=()=>adminEnterAs(role);
       list.appendChild(btn);
     });
@@ -666,7 +675,31 @@ function render() {
   });
 }
 
-function toggleEdit(event,btn){event.stopPropagation();if(!isAdmin)return;const card=btn.closest('.card');const isOpen=card.classList.contains('editing');document.querySelectorAll('.card.editing').forEach(c=>c.classList.remove('editing'));if(!isOpen)card.classList.add('editing');}
+function toggleEdit(event,btn){
+  event.stopPropagation();
+  const card=btn.closest('.card');
+  const id=card.dataset.id;
+  const s=allSessions.find(x=>x.id==id);
+  if(!isAdmin){
+    // Store context so auth modal can show it on role cards
+    pendingSessionContext=s?{id:s.id,title:s.title,presenter:s.presenter}:null;
+    document.getElementById('auth-modal-title').textContent='Sign In to Edit';
+    document.getElementById('auth-modal-sub').textContent=
+      s&&s.title&&s.title!=='TBD'
+        ? `Editing: "${s.title}"`
+        : 'Enter your phone number to manage this session.';
+    document.getElementById('auth-modal').classList.add('open');
+    document.getElementById('auth-step-phone').style.display='block';
+    document.getElementById('auth-step-otp').style.display='none';
+    document.getElementById('auth-step-orgs').style.display='none';
+    document.getElementById('auth-error').className='modal-msg';
+    setTimeout(()=>document.getElementById('modal-phone').focus(),50);
+    return;
+  }
+  const isOpen=card.classList.contains('editing');
+  document.querySelectorAll('.card.editing').forEach(c=>c.classList.remove('editing'));
+  if(!isOpen)card.classList.add('editing');
+}
 function cancelEdit(btn){btn.closest('.card').classList.remove('editing');}
 
 async function saveSlot(btn){
