@@ -291,8 +291,7 @@
   footer a { color: var(--accent); text-decoration: none; }
 
   /* ── Pending tile ── */
-  .card.pending { opacity: .6; }
-  .card.pending .card-header { cursor: default; }
+  .card.pending { opacity: .7; }
 
   @media (max-width: 480px) {
     .left-panel { width: 110px; }
@@ -569,17 +568,15 @@ function render() {
         <div class="action-row">${ondaBtn}</div>
       </div>`;
 
-    if (!isPending) {
-      card.querySelector('.card-header').addEventListener('click', () => card.classList.toggle('open'));
-      card.querySelectorAll('.card-tag').forEach(chip => {
-        chip.addEventListener('click', e => {
-          e.stopPropagation();
-          const t = chip.dataset.tag;
-          if (state.tags.has(t)) state.tags.delete(t); else state.tags.add(t);
-          render();
-        });
+    card.querySelector('.card-header').addEventListener('click', () => card.classList.toggle('open'));
+    card.querySelectorAll('.card-tag').forEach(chip => {
+      chip.addEventListener('click', e => {
+        e.stopPropagation();
+        const t = chip.dataset.tag;
+        if (state.tags.has(t)) state.tags.delete(t); else state.tags.add(t);
+        render();
       });
-    }
+    });
 
     container.appendChild(card);
   });
