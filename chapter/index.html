@@ -602,18 +602,26 @@ document.getElementById('search-input').addEventListener('input', e => {
   if (ORG_L3) qp.set('org_l3', ORG_L3);
   qp.set('visibility', 'chapter');
 
-  // Fetch sessions + optional org theme config in parallel
-  const orgSlug = [ORG_L1, ORG_L2, ORG_L3].filter(Boolean).map(s=>s.toLowerCase().replace(/\s+/g,'-')).join('-');
-  const [sessResp, orgResp] = await Promise.all([
+  // Fetch sessions + org identity in parallel
+  const identityParams = new URLSearchParams({ org_l1: ORG_L1, org_l2: ORG_L2, org_l3: ORG_L3 });
+  const [sessResp, identityResp] = await Promise.all([
     fetch(`${NILE_API}/sessions?${qp}`),
-    fetch(`${NILE_API}/org?slug=${orgSlug}`).catch(() => null),
+    fetch(`${NILE_API}/org/identity?${identityParams}`).catch(() => null),
   ]);
 
-  // Apply org theme if available
-  if (orgResp && orgResp.ok) {
-    try { applyTheme(await orgResp.json()); } catch(_) {}
+  // Apply org skin if available
+  if (identityResp && identityResp.ok) {
+    try {
+      const skin = await identityResp.json();
+      applyTheme({
+        accent_color:   skin.accent_color,
+        display_name:   skin.wordmark,
+        tagline:        skin.tagline,
+        logo_url:       skin.logo_url,
+      });
+    } catch(_) {}
   } else {
-    // No org record yet — just use URL params for title
+    // No skin record yet — just use URL params for title
     document.getElementById('header-title').textContent = defaultTitle;
     document.getElementById('logo-placeholder').textContent = (ORG_L1||'O')[0].toUpperCase();
   }
