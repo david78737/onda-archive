@@ -227,6 +227,11 @@
     text-transform: uppercase; letter-spacing: .06em;
   }
   .badge-source { border-color: #009688; color: #009688; }
+  .badge-update {
+    border-color: #009688; color: #fff; background: #009688;
+    text-decoration: none; cursor: pointer;
+  }
+  .badge-update:hover { background: #007a70; border-color: #007a70; }
 
   .card-tags { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 2px; }
   .card-tag {
@@ -565,6 +570,7 @@ function render() {
           </div>
           <div class="badges">
             <span class="badge badge-source">${s.source}</span>
+            <a class="badge badge-update" href="../nile-session-update/?session_id=${s.id}" onclick="event.stopPropagation()">update</a>
           </div>
           <div class="card-tags">${tagChips}</div>
         </div>

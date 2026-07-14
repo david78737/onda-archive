@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Update Your Session — ONDA Nile</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: #F0F0F0;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    font-size: 16px; color: #222; min-height: 100vh;
+  }
+  header {
+    background: #009688; padding: 14px 24px;
+    display: flex; align-items: center; gap: 10px;
+  }
+  header a { color: rgba(255,255,255,0.8); font-size: 13px; text-decoration: none; }
+  header a:hover { color: #fff; }
+  .wordmark { font-size: 18px; font-weight: 700; color: #fff; letter-spacing: .04em; }
+  .wrap { max-width: 560px; margin: 40px auto; padding: 0 16px 60px; }
+  h2 { color: #009688; font-size: 24px; margin-bottom: 6px; }
+  .sub { color: #666; font-size: 15px; margin-bottom: 28px; line-height: 1.5; }
+  .field { margin-bottom: 18px; }
+  .field label { display: block; font-size: 14px; font-weight: 600; color: #555; margin-bottom: 4px; }
+  .field input, .field textarea {
+    width: 100%; padding: 11px 14px; font-size: 16px;
+    border: 1px solid #CCC; border-radius: 6px; color: #222; background: #FFF;
+    transition: border-color .15s;
+  }
+  .field input:focus, .field textarea:focus { border-color: #009688; outline: none; }
+  .field textarea { min-height: 90px; resize: vertical; }
+  .field .hint { font-size: 12px; color: #999; margin-top: 3px; }
+  .btn {
+    width: 100%; padding: 13px; background: #009688; color: #fff;
+    font-size: 16px; font-weight: 600; border: none; border-radius: 6px;
+    cursor: pointer; margin-top: 6px; transition: background .15s;
+  }
+  .btn:hover { background: #007a70; }
+  .btn:disabled { background: #AAA; cursor: default; }
+  .btn-ghost {
+    width: 100%; padding: 12px; background: none; color: #009688;
+    font-size: 15px; border: 1px solid #009688; border-radius: 6px;
+    cursor: pointer; margin-top: 10px; transition: opacity .15s;
+  }
+  .btn-ghost:hover { opacity: .75; }
+  .msg { margin-top: 14px; font-size: 14px; display: none; }
+  .msg.ok { color: #009688; }
+  .msg.err { color: #c0392b; }
+  .snackbar {
+    position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%);
+    background: #333; color: #fff; padding: 12px 24px; border-radius: 6px;
+    font-size: 14px; font-weight: 600; display: none; z-index: 999;
+    white-space: nowrap;
+  }
+  /* Tags */
+  .tags-wrap { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
+  .tag-pill {
+    display: inline-flex; align-items: center; gap: 4px;
+    background: #E8F8F6; border: 1px solid #009688; border-radius: 4px;
+    padding: 3px 8px; font-size: 13px; color: #009688;
+  }
+  .tag-pill button {
+    background: none; border: none; color: #009688;
+    cursor: pointer; font-size: 15px; line-height: 1; padding: 0 0 1px 0;
+  }
+  .tag-input-row { display: flex; gap: 8px; margin-top: 8px; }
+  .tag-input-row input { flex: 1; }
+  .tag-add {
+    padding: 8px 14px; background: #009688; color: #fff;
+    border: none; border-radius: 6px; font-size: 14px; cursor: pointer;
+  }
+  /* Takeaways */
+  .takeaway-list { list-style: none; margin-bottom: 8px; }
+  .takeaway-item {
+    display: flex; align-items: flex-start; gap: 8px;
+    margin-bottom: 6px;
+  }
+  .takeaway-item textarea {
+    flex: 1; min-height: 56px; resize: vertical;
+    padding: 8px 12px; font-size: 15px;
+    border: 1px solid #CCC; border-radius: 6px;
+  }
+  .takeaway-item textarea:focus { border-color: #009688; outline: none; }
+  .takeaway-remove {
+    background: none; border: none; color: #aaa;
+    font-size: 20px; cursor: pointer; line-height: 1; padding-top: 10px;
+  }
+  .takeaway-remove:hover { color: #c0392b; }
+  .btn-add-item {
+    background: none; border: 1px dashed #009688; color: #009688;
+    border-radius: 6px; padding: 8px 14px; font-size: 14px;
+    cursor: pointer; margin-top: 4px; width: 100%;
+  }
+  .btn-add-item:hover { background: #E8F8F6; }
+  /* Steps */
+  #step-phone, #step-otp, #step-check-email, #step-edit { display: none; }
+  .session-locked {
+    background: #F5F5F5; border-radius: 6px; padding: 12px 14px;
+    font-size: 14px; color: #555; margin-bottom: 20px; line-height: 1.6;
+  }
+  .session-locked strong { color: #222; }
+</style>
+</head>
+<body>
+
+<header>
+  <span class="wordmark">ONDA Nile</span>
+  <a href="../ondanile/" style="margin-left:auto;">← Back to Nile</a>
+</header>
+
+<div class="wrap">
+
+  <!-- Step 1: Phone entry -->
+  <div id="step-phone">
+    <h2>Update Your Session</h2>
+    <p class="sub">Enter the phone number associated with your presenter profile. We'll send a verification code.</p>
+    <div class="field">
+      <label>Phone Number</label>
+      <input id="inp-phone" type="tel" placeholder="+1 512 555 0100" autocomplete="tel" />
+    </div>
+    <button class="btn" id="btn-send-otp">Send Code</button>
+    <div class="msg" id="msg-phone"></div>
+  </div>
+
+  <!-- Step 2: OTP entry -->
+  <div id="step-otp">
+    <h2>Enter Your Code</h2>
+    <p class="sub">We sent a 6-digit code to your phone. Enter it below.</p>
+    <div class="field">
+      <label>Verification Code</label>
+      <input id="inp-otp" type="text" inputmode="numeric" maxlength="6" placeholder="123456" autocomplete="one-time-code" />
+    </div>
+    <button class="btn" id="btn-verify-otp">Verify</button>
+    <button class="btn-ghost" id="btn-back-phone">← Use a different number</button>
+    <div class="msg" id="msg-otp"></div>
+  </div>
+
+  <!-- Step 3: Check email -->
+  <div id="step-check-email">
+    <h2>Check Your Email</h2>
+    <p class="sub" id="check-email-msg">We've sent an edit link to your email address. Open it on your computer to update your session.</p>
+    <p style="font-size:13px;color:#888;margin-top:16px;">The link is valid for 24 hours. If you don't see it, check your spam folder.</p>
+    <a href="../ondanile/" class="btn-ghost" style="display:block;text-align:center;margin-top:24px;text-decoration:none;">← Back to ONDA Nile</a>
+  </div>
+
+  <!-- Step 4: Edit form (desktop, via email token) -->
+  <div id="step-edit">
+    <h2>Update Your Session</h2>
+    <div class="session-locked" id="session-locked-info"></div>
+
+    <div class="field">
+      <label>Session Title</label>
+      <input id="ef-title" type="text" placeholder="The title of your talk" />
+    </div>
+
+    <div class="field">
+      <label>Synopsis <span style="font-weight:400;color:#999">(1–3 sentences)</span></label>
+      <textarea id="ef-synopsis" placeholder="What this session is about"></textarea>
+    </div>
+
+    <div class="field">
+      <label>Key Takeaways</label>
+      <ul class="takeaway-list" id="ef-takeaways"></ul>
+      <button class="btn-add-item" id="btn-add-takeaway" type="button">+ Add Takeaway</button>
+    </div>
+
+    <div class="field">
+      <label>Best For</label>
+      <input id="ef-bestfor" type="text" placeholder="Who gets the most from this session" />
+    </div>
+
+    <div class="field">
+      <label>Tags <span style="font-weight:400;color:#999">(topics covered)</span></label>
+      <div class="tags-wrap" id="ef-tags-wrap"></div>
+      <div class="tag-input-row">
+        <input id="ef-tag-input" type="text" placeholder="Add a tag and press +" />
+        <button class="tag-add" type="button" id="btn-add-tag">+</button>
+      </div>
+      <div class="hint">Use topics your audience would search for, e.g. "leadership", "AI", "sales".</div>
+    </div>
+
+    <button class="btn" id="btn-save">Save Changes</button>
+    <div class="msg" id="msg-edit"></div>
+  </div>
+
+</div>
+
+<div class="snackbar" id="snackbar"></div>
+
+<script>
+(function () {
+  const API   = 'https://xrxm-29on-xlyt.n7e.xano.io/api:nile';
+  const NILE  = '../ondanile/';
+
+  const params     = new URLSearchParams(window.location.search);
+  const sessionId  = params.get('session_id');
+  const token      = params.get('token');
+
+  let phone = '';
+  let tags  = [];
+
+  // ── Utilities ────────────────────────────────────────────────────────────────
+  function show(id)  { document.getElementById(id).style.display = 'block'; }
+  function hide(id)  { document.getElementById(id).style.display = 'none'; }
+  function qs(id)    { return document.getElementById(id); }
+
+  function setMsg(id, text, type) {
+    const el = qs(id);
+    el.textContent = text;
+    el.className = 'msg ' + type;
+    el.style.display = 'block';
+  }
+  function clearMsg(id) {
+    const el = qs(id);
+    el.style.display = 'none';
+    el.textContent = '';
+  }
+
+  function snackbar(text, duration) {
+    const el = qs('snackbar');
+    el.textContent = text;
+    el.style.display = 'block';
+    setTimeout(() => { el.style.display = 'none'; }, duration || 3000);
+  }
+
+  // ── Entry point ──────────────────────────────────────────────────────────────
+  if (token && sessionId) {
+    // Came via email link — validate token and load edit form
+    loadEditForm(token, sessionId);
+  } else if (sessionId) {
+    // Came from tile Update button — start OTP flow
+    show('step-phone');
+    qs('inp-phone').focus();
+  } else {
+    // No session_id — nothing to do
+    document.querySelector('.wrap').innerHTML =
+      '<h2 style="color:#c0392b;margin-top:40px;">No session specified.</h2>' +
+      '<p style="margin-top:12px;"><a href="' + NILE + '">← Back to ONDA Nile</a></p>';
+  }
+
+  // ── Step 1: Send OTP ─────────────────────────────────────────────────────────
+  qs('btn-send-otp').addEventListener('click', sendOtp);
+  qs('inp-phone').addEventListener('keydown', e => { if (e.key === 'Enter') sendOtp(); });
+
+  async function sendOtp() {
+    clearMsg('msg-phone');
+    phone = qs('inp-phone').value.trim();
+    if (!phone) { setMsg('msg-phone', 'Please enter your phone number.', 'err'); return; }
+    qs('btn-send-otp').disabled = true;
+    qs('btn-send-otp').textContent = 'Sending…';
+    try {
+      const res  = await fetch(`${API}/presenter/magic/send`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ contact: phone, method: 'sms' }),
+      });
+      const data = await res.json();
+      if (!res.ok || data.error) {
+        setMsg('msg-phone', data.message || data.error || 'Could not send code. Check your number and try again.', 'err');
+        qs('btn-send-otp').disabled = false;
+        qs('btn-send-otp').textContent = 'Send Code';
+        return;
+      }
+      hide('step-phone');
+      show('step-otp');
+      qs('inp-otp').focus();
+    } catch (e) {
+      setMsg('msg-phone', 'Network error. Please try again.', 'err');
+      qs('btn-send-otp').disabled = false;
+      qs('btn-send-otp').textContent = 'Send Code';
+    }
+  }
+
+  // ── Step 2: Verify OTP ───────────────────────────────────────────────────────
+  qs('btn-verify-otp').addEventListener('click', verifyOtp);
+  qs('inp-otp').addEventListener('keydown', e => { if (e.key === 'Enter') verifyOtp(); });
+  qs('btn-back-phone').addEventListener('click', () => { hide('step-otp'); show('step-phone'); });
+
+  async function verifyOtp() {
+    clearMsg('msg-otp');
+    const code = qs('inp-otp').value.trim();
+    if (!code) { setMsg('msg-otp', 'Please enter the code.', 'err'); return; }
+    qs('btn-verify-otp').disabled = true;
+    qs('btn-verify-otp').textContent = 'Verifying…';
+    try {
+      const res  = await fetch(`${API}/presenter/session_edit/verify`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ contact: phone, code, session_id: parseInt(sessionId, 10) }),
+      });
+      const data = await res.json();
+      if (!res.ok || data.error) {
+        const isUnauth = res.status === 401 || res.status === 403;
+        if (isUnauth) {
+          snackbar('Unauthorized — this session is not linked to your account.');
+          setTimeout(() => { window.location.href = NILE; }, 3000);
+        } else {
+          setMsg('msg-otp', data.message || data.error || 'Incorrect code. Please try again.', 'err');
+          qs('btn-verify-otp').disabled = false;
+          qs('btn-verify-otp').textContent = 'Verify';
+        }
+        return;
+      }
+      // Success — email sent
+      hide('step-otp');
+      if (data.email_hint) {
+        qs('check-email-msg').textContent =
+          `We've sent an edit link to ${data.email_hint}. Open it on your computer to update your session.`;
+      }
+      show('step-check-email');
+    } catch (e) {
+      setMsg('msg-otp', 'Network error. Please try again.', 'err');
+      qs('btn-verify-otp').disabled = false;
+      qs('btn-verify-otp').textContent = 'Verify';
+    }
+  }
+
+  // ── Step 4: Load edit form via token ─────────────────────────────────────────
+  async function loadEditForm(tok, sid) {
+    try {
+      const res  = await fetch(`${API}/verify-token?token=${encodeURIComponent(tok)}&session_id=${encodeURIComponent(sid)}`);
+      const data = await res.json();
+      if (!res.ok || data.error) {
+        document.querySelector('.wrap').innerHTML =
+          '<h2 style="color:#c0392b;margin-top:40px;">Link expired or invalid.</h2>' +
+          '<p style="margin-top:12px;color:#666;">Request a new edit link from the ONDA Nile page.</p>' +
+          '<p style="margin-top:12px;"><a href="' + NILE + '">← Back to ONDA Nile</a></p>';
+        return;
+      }
+      populateEditForm(data);
+      show('step-edit');
+    } catch (e) {
+      document.querySelector('.wrap').innerHTML =
+        '<h2 style="color:#c0392b;margin-top:40px;">Could not connect.</h2>' +
+        '<p style="margin-top:12px;"><a href="' + NILE + '">← Back to ONDA Nile</a></p>';
+    }
+  }
+
+  function populateEditForm(data) {
+    const s = data.session || {};
+    qs('session-locked-info').innerHTML =
+      `<strong>${s.presenter || 'Your session'}</strong> · ${s.org || ''} · ${s.source || ''}`;
+    qs('ef-title').value    = s.title    || '';
+    qs('ef-synopsis').value = s.synopsis || '';
+    qs('ef-bestfor').value  = s.who      || '';
+    tags = Array.isArray(s.tags) ? [...s.tags] : [];
+    renderTags();
+    renderTakeaways(Array.isArray(s.takeaways) ? s.takeaways : []);
+  }
+
+  // ── Tags ─────────────────────────────────────────────────────────────────────
+  function renderTags() {
+    const wrap = qs('ef-tags-wrap');
+    wrap.innerHTML = '';
+    tags.forEach((t, i) => {
+      const pill = document.createElement('span');
+      pill.className = 'tag-pill';
+      pill.innerHTML = `${t}<button type="button" aria-label="Remove ${t}" data-i="${i}">×</button>`;
+      pill.querySelector('button').addEventListener('click', () => { tags.splice(i, 1); renderTags(); });
+      wrap.appendChild(pill);
+    });
+  }
+
+  qs('btn-add-tag').addEventListener('click', addTag);
+  qs('ef-tag-input').addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); addTag(); } });
+
+  function addTag() {
+    const val = qs('ef-tag-input').value.trim().toLowerCase();
+    if (!val || tags.includes(val)) return;
+    tags.push(val);
+    renderTags();
+    qs('ef-tag-input').value = '';
+  }
+
+  // ── Takeaways ────────────────────────────────────────────────────────────────
+  function renderTakeaways(items) {
+    const list = qs('ef-takeaways');
+    list.innerHTML = '';
+    items.forEach(text => addTakeawayRow(text));
+  }
+
+  function addTakeawayRow(text) {
+    const list = qs('ef-takeaways');
+    const li   = document.createElement('li');
+    li.className = 'takeaway-item';
+    li.innerHTML =
+      `<textarea placeholder="Key takeaway">${text || ''}</textarea>` +
+      `<button class="takeaway-remove" type="button" title="Remove">×</button>`;
+    li.querySelector('.takeaway-remove').addEventListener('click', () => li.remove());
+    list.appendChild(li);
+  }
+
+  qs('btn-add-takeaway').addEventListener('click', () => addTakeawayRow(''));
+
+  // ── Save ─────────────────────────────────────────────────────────────────────
+  qs('btn-save').addEventListener('click', saveSession);
+
+  async function saveSession() {
+    clearMsg('msg-edit');
+    const takeaways = [...qs('ef-takeaways').querySelectorAll('textarea')]
+      .map(t => t.value.trim()).filter(Boolean);
+
+    const payload = {
+      token,
+      session_id: parseInt(sessionId, 10),
+      title:      qs('ef-title').value.trim(),
+      synopsis:   qs('ef-synopsis').value.trim(),
+      who:        qs('ef-bestfor').value.trim(),
+      takeaways,
+      tags,
+    };
+
+    qs('btn-save').disabled = true;
+    qs('btn-save').textContent = 'Saving…';
+
+    try {
+      const res  = await fetch(`${API}/session/update`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+      const data = await res.json();
+      if (!res.ok || data.error) {
+        setMsg('msg-edit', data.message || data.error || 'Could not save. Please try again.', 'err');
+        qs('btn-save').disabled = false;
+        qs('btn-save').textContent = 'Save Changes';
+        return;
+      }
+      setMsg('msg-edit', 'Saved! Your session has been updated.', 'ok');
+      qs('btn-save').textContent = 'Saved ✓';
+    } catch (e) {
+      setMsg('msg-edit', 'Network error. Please try again.', 'err');
+      qs('btn-save').disabled = false;
+      qs('btn-save').textContent = 'Save Changes';
+    }
+  }
+
+})();
+</script>
+</body>
+</html>
