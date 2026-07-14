@@ -618,7 +618,6 @@ document.getElementById('search-input').addEventListener('input', e => {
       const skin = await identityResp.json();
       applyTheme({
         accent_color:    skin.accent_color,
-        header_bg_color: skin.accent_color,
         display_name:    skin.wordmark,
         tagline:         skin.tagline,
         logo_url:        skin.logo_url,
