@@ -650,7 +650,7 @@ function normalizeNileSession(s) {
     if (!staticResp.ok) throw new Error(`sessions.json: ${staticResp.status}`);
     const staticSessions = await staticResp.json();
     const liveSessions = liveResp && liveResp.ok ? (await liveResp.json()).map(normalizeNileSession) : [];
-    allSessions = [...liveSessions, ...staticSessions];
+    allSessions = [...liveSessions.filter(s => s.status === 'claimed'), ...staticSessions];
 
     // Build ranked tag list — event tags (PCA##, Elevate Summit *) pinned first
     const tagCount = {};

@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Claim Your Session — ONDA Nile</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: #F0F0F0;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    font-size: 16px; color: #222; min-height: 100vh;
+  }
+  header {
+    background: #009688; padding: 14px 24px;
+    display: flex; align-items: center;
+  }
+  .wordmark { font-size: 18px; font-weight: 700; color: #fff; letter-spacing: .04em; }
+  .wrap { max-width: 500px; margin: 48px auto; padding: 0 16px 60px; }
+  h2 { color: #009688; font-size: 24px; margin-bottom: 8px; }
+  .sub { color: #666; font-size: 15px; margin-bottom: 28px; line-height: 1.5; }
+  .field { margin-bottom: 18px; }
+  .field label { display: block; font-size: 14px; font-weight: 600; color: #555; margin-bottom: 4px; }
+  .field input {
+    width: 100%; padding: 11px 14px; font-size: 16px;
+    border: 1px solid #CCC; border-radius: 6px; color: #222; background: #FFF;
+    transition: border-color .15s;
+  }
+  .field input:focus { border-color: #009688; outline: none; }
+  .btn {
+    width: 100%; padding: 13px; background: #009688; color: #fff;
+    font-size: 16px; font-weight: 600; border: none; border-radius: 6px;
+    cursor: pointer; margin-top: 6px; transition: background .15s;
+  }
+  .btn:hover { background: #007a70; }
+  .btn:disabled { background: #AAA; cursor: default; }
+  .btn-ghost {
+    width: 100%; padding: 12px; background: none; color: #009688;
+    font-size: 15px; border: 1px solid #009688; border-radius: 6px;
+    cursor: pointer; margin-top: 10px;
+  }
+  .btn-ghost:hover { opacity: .75; }
+  .msg { margin-top: 14px; font-size: 14px; display: none; }
+  .msg.ok { color: #009688; }
+  .msg.err { color: #c0392b; }
+  .success-box {
+    background: #E8F8F6; border: 1px solid #009688; border-radius: 8px;
+    padding: 24px; text-align: center; display: none;
+  }
+  .success-box h3 { color: #009688; font-size: 20px; margin-bottom: 10px; }
+  .success-box p { color: #444; font-size: 15px; line-height: 1.6; }
+  #step-phone, #step-otp { display: none; }
+</style>
+</head>
+<body>
+
+<header>
+  <span class="wordmark">ONDA Nile</span>
+</header>
+
+<div class="wrap">
+
+  <!-- Step 1: Phone -->
+  <div id="step-phone">
+    <h2>Claim Your Session</h2>
+    <p class="sub">Enter the phone number your station provided when setting up your slot. We'll send a verification code.</p>
+    <div class="field">
+      <label>Phone Number</label>
+      <input id="inp-phone" type="tel" placeholder="+1 512 555 0100" autocomplete="tel" />
+    </div>
+    <button class="btn" id="btn-send-otp">Send Code</button>
+    <div class="msg" id="msg-phone"></div>
+  </div>
+
+  <!-- Step 2: OTP -->
+  <div id="step-otp">
+    <h2>Enter Your Code</h2>
+    <p class="sub">We sent a 6-digit code to your phone. Enter it below to claim your session.</p>
+    <div class="field">
+      <label>Verification Code</label>
+      <input id="inp-otp" type="text" inputmode="numeric" maxlength="6" placeholder="123456" autocomplete="one-time-code" />
+    </div>
+    <button class="btn" id="btn-claim">Claim My Session</button>
+    <button class="btn-ghost" id="btn-back">← Use a different number</button>
+    <div class="msg" id="msg-otp"></div>
+  </div>
+
+  <!-- Success -->
+  <div class="success-box" id="step-success">
+    <h3>Session Claimed!</h3>
+    <p>Your session is now live on ONDA Nile. Check your email for a link to fill in your title, synopsis, and key takeaways.</p>
+    <a href="../ondanile/" style="display:inline-block;margin-top:20px;color:#009688;font-weight:600;text-decoration:none;">View ONDA Nile →</a>
+  </div>
+
+</div>
+
+<script>
+(function () {
+  const API = 'https://xrxm-29on-xlyt.n7e.xano.io/api:nile';
+
+  const params     = new URLSearchParams(window.location.search);
+  const sessionId  = parseInt(params.get('session_id'), 10);
+  const inviteCode = params.get('invite_code');
+
+  let phone = '';
+
+  function show(id) { document.getElementById(id).style.display = 'block'; }
+  function hide(id) { document.getElementById(id).style.display = 'none'; }
+  function qs(id)   { return document.getElementById(id); }
+
+  function setMsg(id, text, type) {
+    const el = qs(id);
+    el.textContent = text;
+    el.className = 'msg ' + type;
+    el.style.display = 'block';
+  }
+  function clearMsg(id) {
+    const el = qs(id);
+    el.style.display = 'none';
+  }
+
+  if (!sessionId || !inviteCode) {
+    document.querySelector('.wrap').innerHTML =
+      '<h2 style="color:#c0392b;margin-top:40px;">Invalid claim link.</h2>' +
+      '<p style="margin-top:12px;color:#666;">Please use the link provided by your station organizer.</p>';
+  } else {
+    show('step-phone');
+    qs('inp-phone').focus();
+  }
+
+  // ── Step 1: Send OTP ─────────────────────────────────────────────────────────
+  qs('btn-send-otp').addEventListener('click', sendOtp);
+  qs('inp-phone').addEventListener('keydown', e => { if (e.key === 'Enter') sendOtp(); });
+
+  async function sendOtp() {
+    clearMsg('msg-phone');
+    phone = qs('inp-phone').value.trim();
+    if (!phone) { setMsg('msg-phone', 'Please enter your phone number.', 'err'); return; }
+    qs('btn-send-otp').disabled = true;
+    qs('btn-send-otp').textContent = 'Sending…';
+    try {
+      const res  = await fetch(`${API}/presenter/magic/send`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ contact: phone, method: 'sms' }),
+      });
+      const data = await res.json();
+      if (!res.ok || data.error) {
+        setMsg('msg-phone', data.message || 'Could not send code. Check your number and try again.', 'err');
+        qs('btn-send-otp').disabled = false;
+        qs('btn-send-otp').textContent = 'Send Code';
+        return;
+      }
+      hide('step-phone');
+      show('step-otp');
+      qs('inp-otp').focus();
+    } catch (e) {
+      setMsg('msg-phone', 'Network error. Please try again.', 'err');
+      qs('btn-send-otp').disabled = false;
+      qs('btn-send-otp').textContent = 'Send Code';
+    }
+  }
+
+  // ── Step 2: Claim ────────────────────────────────────────────────────────────
+  qs('btn-claim').addEventListener('click', claimSession);
+  qs('inp-otp').addEventListener('keydown', e => { if (e.key === 'Enter') claimSession(); });
+  qs('btn-back').addEventListener('click', () => { hide('step-otp'); show('step-phone'); });
+
+  async function claimSession() {
+    clearMsg('msg-otp');
+    const code = qs('inp-otp').value.trim();
+    if (!code) { setMsg('msg-otp', 'Please enter the code.', 'err'); return; }
+    qs('btn-claim').disabled = true;
+    qs('btn-claim').textContent = 'Claiming…';
+    try {
+      const res  = await fetch(`${API}/session/claim`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ phone, code, session_id: sessionId, invite_code: inviteCode }),
+      });
+      const data = await res.json();
+      if (!res.ok || data.error) {
+        setMsg('msg-otp', data.message || 'Could not claim session. Please check your code and try again.', 'err');
+        qs('btn-claim').disabled = false;
+        qs('btn-claim').textContent = 'Claim My Session';
+        return;
+      }
+      hide('step-otp');
+      show('step-success');
+    } catch (e) {
+      setMsg('msg-otp', 'Network error. Please try again.', 'err');
+      qs('btn-claim').disabled = false;
+      qs('btn-claim').textContent = 'Claim My Session';
+    }
+  }
+
+})();
+</script>
+</body>
+</html>
