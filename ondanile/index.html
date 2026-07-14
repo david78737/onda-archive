@@ -570,7 +570,9 @@ function render() {
           </div>
           <div class="badges">
             <span class="badge badge-source">${s.source}</span>
-            <a class="badge badge-update" href="../nile-session-update/?session_id=${s.id}" onclick="event.stopPropagation()">update</a>
+            ${s.id.toString().startsWith('nile-')
+              ? `<a class="badge badge-update" href="../nile-session-update/?session_id=${s.id.toString().replace('nile-','')}" onclick="event.stopPropagation()">update</a>`
+              : ''}
           </div>
           <div class="card-tags">${tagChips}</div>
         </div>
