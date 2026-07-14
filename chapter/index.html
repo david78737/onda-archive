@@ -606,7 +606,7 @@ document.getElementById('search-input').addEventListener('input', e => {
   const identityParams = new URLSearchParams({ org_l1: ORG_L1, org_l2: ORG_L2, org_l3: ORG_L3 });
   const [sessResp, identityResp] = await Promise.all([
     fetch(`${NILE_API}/sessions?${qp}`),
-    fetch(`${NILE_API}/org/identity?${identityParams}`).catch(() => null),
+    fetch(`https://xrxm-29on-xlyt.n7e.xano.io/api:nile/org/identity?${identityParams}`).catch(() => null),
   ]);
 
   // Apply org skin if available
