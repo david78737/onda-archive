@@ -60,11 +60,13 @@
     display: block;
   }
   .header-logo-placeholder {
-    width: 36px; height: 36px; border-radius: 6px;
+    min-width: 36px; height: 36px; border-radius: 6px;
+    padding: 0 8px;
     background: var(--accent-dim);
     border: 1px solid var(--accent);
     display: flex; align-items: center; justify-content: center;
-    font-size: 18px; font-weight: 700; color: var(--accent);
+    font-size: 13px; font-weight: 700; color: var(--accent);
+    letter-spacing: .05em;
   }
   .header-text {
     display: flex;
@@ -414,8 +416,17 @@ function applyTheme(org) {
     img.alt = title;
     placeholder.parentNode.replaceChild(img, placeholder);
   } else {
-    document.getElementById('logo-placeholder').textContent = (ORG_L1 || 'O')[0].toUpperCase();
+    document.getElementById('logo-placeholder').textContent = getInitials(ORG_L1, ORG_L2, ORG_L3);
   }
+}
+
+const INITIALS_MAP = {
+  'elevate|summit|elevate-summit':  'ES',
+  'productcamp|austin|pca':         'PCA',
+  'toastmasters|austin|chapter-47': 'TM47',
+};
+function getInitials(l1, l2, l3) {
+  return INITIALS_MAP[[l1,l2,l3].join('|')] || (l1||'O')[0].toUpperCase();
 }
 
 // ── Filter ─────────────────────────────────────────────────────────────────────
@@ -625,7 +636,7 @@ document.getElementById('search-input').addEventListener('input', e => {
     } catch(_) {}
   } else {
     document.getElementById('header-title').textContent = defaultTitle;
-    document.getElementById('logo-placeholder').textContent = (ORG_L1||'O')[0].toUpperCase();
+    document.getElementById('logo-placeholder').textContent = getInitials(ORG_L1, ORG_L2, ORG_L3);
   }
 
   if (!sessResp || !sessResp.ok) {
