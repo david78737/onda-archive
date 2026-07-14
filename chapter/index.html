@@ -595,17 +595,19 @@ document.getElementById('search-input').addEventListener('input', e => {
   document.getElementById('header-title').textContent = defaultTitle;
   document.title = 'ONDA Archive — ' + defaultTitle;
 
-  // Build session query params
-  const qp = new URLSearchParams({ per_page: 1000 });
-  if (ORG_L1) qp.set('org_l1', ORG_L1);
-  if (ORG_L2) qp.set('org_l2', ORG_L2);
-  if (ORG_L3) qp.set('org_l3', ORG_L3);
-  qp.set('visibility', 'chapter');
+  // Map org URL params to sessions.json org name
+  const ORG_NAME_MAP = {
+    'elevate|summit|elevate-summit': 'Elevate Summit',
+    'productcamp|austin|pca':        'ProductCamp Austin',
+    'toastmasters|austin|chapter-47':'Toastmasters',
+  };
+  const orgKey = [ORG_L1, ORG_L2, ORG_L3].join('|');
+  const orgName = ORG_NAME_MAP[orgKey] || null;
 
-  // Fetch sessions + org identity in parallel
+  // Fetch sessions.json + org identity in parallel
   const identityParams = new URLSearchParams({ org_l1: ORG_L1, org_l2: ORG_L2, org_l3: ORG_L3 });
   const [sessResp, identityResp] = await Promise.all([
-    fetch(`${NILE_API}/sessions?${qp}`),
+    fetch('../ondanile/sessions.json').catch(() => null),
     fetch(`https://xrxm-29on-xlyt.n7e.xano.io/api:nile/org/identity?${identityParams}`).catch(() => null),
   ]);
 
@@ -622,22 +624,25 @@ document.getElementById('search-input').addEventListener('input', e => {
       });
     } catch(_) {}
   } else {
-    // No skin record yet — just use URL params for title
     document.getElementById('header-title').textContent = defaultTitle;
     document.getElementById('logo-placeholder').textContent = (ORG_L1||'O')[0].toUpperCase();
   }
 
-  if (!sessResp.ok) {
+  if (!sessResp || !sessResp.ok) {
     document.getElementById('sessions').innerHTML =
-      `<div class="empty">Could not load sessions (${sessResp.status}). Try again shortly.</div>`;
+      `<div class="empty">Could not load sessions. Try again shortly.</div>`;
     return;
   }
 
-  allSessions = (await sessResp.json()).map(s => ({
+  const allData = await sessResp.json();
+  const filtered = orgName
+    ? allData.filter(s => (s.org || '').toLowerCase().includes(orgName.toLowerCase()) ||
+                          (s.source || '').toLowerCase().includes(orgName.toLowerCase().split(' ')[0]))
+    : allData;
+
+  allSessions = filtered.map(s => ({
     ...s,
-    presenter: s.presenter || (s.presenter_slug
-      ? s.presenter_slug.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase())
-      : 'Unknown'),
+    presenter: s.presenter || 'Unknown',
     onda_url: s.onda_url || s.file_url || s.session_url || null,
     tags: Array.isArray(s.tags) ? s.tags : [],
     takeaways: Array.isArray(s.takeaways) ? s.takeaways : [],
