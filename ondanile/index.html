@@ -260,6 +260,15 @@
     display: flex; flex-wrap: wrap; gap: 12px;
     margin-top: 16px; align-items: center;
   }
+  .station-badge {
+    display: inline-flex; align-items: center; gap: 6px;
+    font-size: 11px; font-weight: 700; letter-spacing: .06em;
+    text-transform: uppercase; text-decoration: none;
+    border: 1.5px solid; border-radius: 4px;
+    padding: 4px 10px; transition: opacity .15s;
+    margin-left: auto;
+  }
+  .station-badge:hover { opacity: .75; }
 
   .yt-btn { display: inline-block; text-decoration: none; line-height: 0; transition: opacity .15s; }
   .yt-btn:hover { opacity: .8; }
@@ -527,7 +536,18 @@ function render() {
          </a>`
       : `<span class="buy-soon">$4.99 — Coming to ONDA Replay</span>`;
 
-    const actionRow = `<div class="action-row">${ytBtn}${ondaBtn}</div>`;
+    const STATION_MAP = {
+      'Elevate Summit':     { initials: 'ES',  color: '#004EFF', url: '../chapter/?org_l1=elevate&org_l2=summit&org_l3=elevate-summit' },
+      'ProductCamp Austin': { initials: 'PCA', color: '#EE3947', url: '../chapter/?org_l1=productcamp&org_l2=austin&org_l3=pca' },
+      'Toastmasters':       { initials: 'TM47',color: '#004165', url: '../chapter/?org_l1=toastmasters&org_l2=austin&org_l3=chapter-47' },
+    };
+    const station = STATION_MAP[s.org];
+    const stationBadge = station
+      ? `<a class="station-badge" href="${station.url}"
+            style="color:${station.color};border-color:${station.color}"
+            title="View all ${s.org} sessions">${station.initials}</a>`
+      : '';
+    const actionRow = `<div class="action-row">${ytBtn}${ondaBtn}${stationBadge}</div>`;
 
     const card = document.createElement('div');
     card.className = 'card';
