@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Curator Registration — ONDA Nile</title>
+<title>ONDA Nile Admin</title>
 <style>
   :root {
     --teal: #009688;
@@ -31,33 +31,23 @@
     padding: 0 0 80px;
   }
 
-  header {
-    background: var(--teal);
-    padding: 16px 24px;
-  }
+  header { background: var(--teal); padding: 16px 24px; }
   .wordmark { font-size: 18px; font-weight: 700; color: #fff; letter-spacing: .03em; }
   .header-sub { font-size: 12px; color: rgba(255,255,255,.75); margin-top: 1px; }
 
   .wrap { max-width: 560px; margin: 0 auto; padding: 32px 20px 0; }
 
   .card {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    padding: 24px;
-    margin-bottom: 20px;
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 10px; padding: 24px; margin-bottom: 20px;
   }
   .card-title {
     font-size: 13px; font-weight: 700; text-transform: uppercase;
     letter-spacing: .1em; color: var(--teal); margin-bottom: 4px;
   }
-  .card-desc {
-    font-size: 13px; color: var(--muted); margin-bottom: 20px;
-  }
+  .card-desc { font-size: 13px; color: var(--muted); margin-bottom: 20px; }
 
-  .step-indicator {
-    display: flex; gap: 0; margin-bottom: 28px;
-  }
+  .step-indicator { display: flex; gap: 0; margin-bottom: 28px; }
   .step-dot {
     flex: 1; height: 4px; background: var(--border); border-radius: 2px;
     margin-right: 4px; transition: background .2s;
@@ -77,7 +67,6 @@
   }
   input:focus { border-color: var(--teal); outline: none; }
   .hint { font-size: 12px; color: var(--muted); margin-top: 4px; }
-
   .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
 
   .btn {
@@ -88,9 +77,7 @@
   .btn-primary { background: var(--teal); color: #fff; margin-top: 4px; }
   .btn-primary:hover { background: var(--teal-dark); }
   .btn-primary:disabled { background: #aaa; cursor: default; }
-  .btn-ghost {
-    background: none; color: var(--teal); border: 1px solid var(--teal); margin-top: 8px;
-  }
+  .btn-ghost { background: none; color: var(--teal); border: 1px solid var(--teal); margin-top: 8px; }
   .btn-ghost:hover { background: var(--teal-light); }
 
   .banner {
@@ -103,20 +90,70 @@
   .otp-row { display: flex; gap: 10px; }
   .otp-row input { flex: 1; }
 
-  .optional-label {
-    font-size: 12px; font-weight: 400; color: var(--muted); margin-left: 6px;
+  .optional-label { font-size: 12px; font-weight: 400; color: var(--muted); margin-left: 6px; }
+
+  /* ── ORG PICKER ── */
+  .org-list { display: flex; flex-direction: column; gap: 8px; margin-bottom: 16px; }
+
+  .org-tile {
+    display: flex; align-items: center; gap: 14px;
+    padding: 14px 16px; border: 1.5px solid var(--border);
+    border-radius: 8px; cursor: pointer; background: var(--surface);
+    transition: border-color .15s, background .15s; text-align: left;
+    font-family: inherit; width: 100%;
+  }
+  .org-tile:hover { border-color: var(--teal); background: var(--teal-light); }
+  .org-tile.selected { border-color: var(--teal); background: var(--teal-light); }
+
+  .org-tile-icon {
+    width: 36px; height: 36px; border-radius: 8px; background: var(--teal);
+    color: #fff; font-size: 16px; font-weight: 700; display: flex;
+    align-items: center; justify-content: center; flex-shrink: 0;
+  }
+  .org-tile-text { flex: 1; min-width: 0; }
+  .org-tile-name { font-size: 15px; font-weight: 600; color: var(--ink); }
+  .org-tile-meta { font-size: 12px; color: var(--muted); margin-top: 1px; }
+  .org-tile-role {
+    font-size: 11px; font-weight: 700; text-transform: uppercase;
+    letter-spacing: .08em; padding: 3px 8px; border-radius: 20px;
+    flex-shrink: 0;
+  }
+  .role-curator { background: #E3F2FD; color: #1565C0; }
+  .role-coordinator { background: #F3E5F5; color: #6A1B9A; }
+
+  .org-actions {
+    display: flex; flex-direction: column; gap: 8px;
+    padding: 14px 16px; border-radius: 8px;
+    background: var(--teal-light); margin-top: 4px;
+  }
+  .org-actions-label { font-size: 12px; font-weight: 700; color: var(--teal); margin-bottom: 4px; text-transform: uppercase; letter-spacing: .08em; }
+  .action-row { display: flex; gap: 8px; }
+  .btn-action {
+    flex: 1; padding: 10px 14px; font-size: 14px; font-weight: 600;
+    border: none; border-radius: 7px; cursor: pointer; font-family: inherit;
+    text-decoration: none; text-align: center; display: inline-block;
+    transition: opacity .15s;
+  }
+  .btn-action:hover { opacity: .85; }
+  .btn-action-primary { background: var(--teal); color: #fff; }
+  .btn-action-secondary { background: #fff; color: var(--teal); border: 1px solid var(--teal); }
+
+  .divider {
+    display: flex; align-items: center; gap: 12px;
+    font-size: 12px; color: var(--muted); margin: 16px 0 8px;
+  }
+  .divider::before, .divider::after {
+    content: ''; flex: 1; height: 1px; background: var(--border);
   }
 
-  .success-display {
-    text-align: center; padding: 24px 16px;
-  }
-  .success-icon { font-size: 48px; margin-bottom: 12px; }
-  .success-title { font-size: 20px; font-weight: 700; color: var(--ink); margin-bottom: 8px; }
+  /* ── SUCCESS ── */
+  .success-display { text-align: center; padding: 20px 16px; }
+  .success-icon { font-size: 44px; margin-bottom: 10px; }
+  .success-title { font-size: 20px; font-weight: 700; color: var(--ink); margin-bottom: 6px; }
   .success-body { font-size: 14px; color: var(--body); margin-bottom: 20px; }
   .next-steps {
     text-align: left; background: var(--teal-light);
-    border-radius: 8px; padding: 16px;
-    font-size: 13px; color: var(--body);
+    border-radius: 8px; padding: 16px; font-size: 13px; color: var(--body);
   }
   .next-steps strong { color: var(--ink); display: block; margin-bottom: 8px; }
   .next-steps ol { padding-left: 18px; display: flex; flex-direction: column; gap: 6px; }
@@ -139,29 +176,24 @@
 <body>
 
 <header>
-  <div class="wordmark">ONDA Nile · Curator Registration</div>
-  <div class="header-sub">Set up your station and get started</div>
+  <div class="wordmark">ONDA Nile · Admin</div>
+  <div class="header-sub">Curator &amp; coordinator access</div>
 </header>
 
 <div class="wrap">
 
-  <!-- STEP 1 — PHONE -->
+  <!-- SCREEN: PHONE -->
   <div id="screen-phone">
     <div class="card">
-      <div class="card-title">Step 1 of 3 — Verify your phone</div>
-      <div class="card-desc">This becomes your login for all ONDA Nile admin actions.</div>
-      <div class="step-indicator">
-        <div class="step-dot active"></div>
-        <div class="step-dot"></div>
-        <div class="step-dot"></div>
-      </div>
+      <div class="card-title">Sign in</div>
+      <div class="card-desc">Enter your mobile number to access your stations.</div>
       <div id="phone-banner" class="banner"></div>
 
       <div id="step-phone-input">
         <div class="field">
-          <label for="phone-input">Your mobile number</label>
+          <label for="phone-input">Mobile number</label>
           <input type="tel" id="phone-input" placeholder="+1 512 555 0100" autocomplete="tel">
-          <div class="hint">US number — we'll send a one-time code</div>
+          <div class="hint">US number — we'll text you a one-time code</div>
         </div>
         <button class="btn btn-primary" onclick="sendOtp()">Send Code</button>
       </div>
@@ -181,11 +213,32 @@
     </div>
   </div>
 
-  <!-- STEP 2 — ORG -->
+  <!-- SCREEN: ORG PICKER -->
+  <div id="screen-picker" style="display:none">
+    <div class="card">
+      <div class="card-title">Your stations</div>
+      <div class="card-desc" id="picker-desc">Select a station to manage, or register a new one.</div>
+
+      <div id="org-list" class="org-list"></div>
+
+      <!-- Expanded actions for selected org -->
+      <div id="org-actions" style="display:none">
+        <div class="org-actions">
+          <div class="org-actions-label" id="actions-label">Actions</div>
+          <div class="action-row" id="actions-row"></div>
+        </div>
+      </div>
+
+      <div class="divider">or</div>
+      <button class="btn btn-ghost" onclick="showRegisterFlow()">+ Register a new station</button>
+    </div>
+  </div>
+
+  <!-- SCREEN: ORG REGISTRATION (step 2 of 3) -->
   <div id="screen-org" style="display:none">
     <div class="card">
-      <div class="card-title">Step 2 of 3 — Your station</div>
-      <div class="card-desc">This identifies your organization on ONDA Nile. Use short lowercase values — these are internal identifiers, not display names.</div>
+      <div class="card-title">New station</div>
+      <div class="card-desc">Identify your organization on ONDA Nile. Use short lowercase values — these are internal IDs, not display names.</div>
       <div class="step-indicator">
         <div class="step-dot done"></div>
         <div class="step-dot active"></div>
@@ -198,7 +251,6 @@
         <input type="text" id="org-name" placeholder="ProductCamp Austin">
         <div class="hint">How it appears publicly on ONDA Nile</div>
       </div>
-
       <div class="row2">
         <div class="field">
           <label for="org-l1">Org ID</label>
@@ -211,7 +263,6 @@
           <div class="hint">Lowercase, no spaces</div>
         </div>
       </div>
-
       <div class="field">
         <label for="org-l3">Station ID</label>
         <input type="text" id="org-l3" placeholder="pca">
@@ -219,14 +270,15 @@
       </div>
 
       <button class="btn btn-primary" onclick="submitOrg()">Continue</button>
+      <button class="btn btn-ghost" style="margin-top:8px" onclick="backToPicker()">← Back to my stations</button>
     </div>
   </div>
 
-  <!-- STEP 3 — COORDINATOR -->
+  <!-- SCREEN: ADD COORDINATOR (step 3 of 3) -->
   <div id="screen-coordinator" style="display:none">
     <div class="card">
-      <div class="card-title">Step 3 of 3 — Add a coordinator <span class="optional-label">optional</span></div>
-      <div class="card-desc">A coordinator (secretary) can review presenter cards and manage day-of slot assignments. You can add more later.</div>
+      <div class="card-title">Add a coordinator <span class="optional-label">optional</span></div>
+      <div class="card-desc">A coordinator can review presenter cards and manage day-of assignments. You can add more later.</div>
       <div class="step-indicator">
         <div class="step-dot done"></div>
         <div class="step-dot done"></div>
@@ -235,17 +287,17 @@
       <div id="coord-banner" class="banner"></div>
 
       <div class="field">
-        <label for="coord-phone">Coordinator phone number <span class="optional-label">optional</span></label>
+        <label for="coord-phone">Coordinator phone <span class="optional-label">optional</span></label>
         <input type="tel" id="coord-phone" placeholder="+1 512 555 0200" autocomplete="tel">
         <div class="hint">They'll receive OTP access to card review and slot assignment</div>
       </div>
 
-      <button class="btn btn-primary" onclick="submitRegistration()">Complete Registration</button>
+      <button class="btn btn-primary" id="btn-complete" onclick="submitRegistration(false)">Complete Registration</button>
       <button class="btn btn-ghost" onclick="submitRegistration(true)">Skip — I'll add coordinators later</button>
     </div>
   </div>
 
-  <!-- SUCCESS -->
+  <!-- SCREEN: SUCCESS (new registration) -->
   <div id="screen-success" style="display:none">
     <div class="card">
       <div class="success-display">
@@ -275,12 +327,19 @@ const NILE_API  = 'https://xrxm-29on-xlyt.n7e.xano.io/api:onda-nile';
 let authToken   = null;
 let authedPhone = null;
 let orgData     = {};
+let userOrgs    = [];
+let selectedOrg = null;
 
 function dbg(msg) {
   const el = document.getElementById('debug-panel');
   el.style.display = 'block';
   el.textContent += '[' + new Date().toLocaleTimeString() + '] ' + msg + '\n';
   el.scrollTop = el.scrollHeight;
+}
+
+function show(id) {
+  ['screen-phone','screen-picker','screen-org','screen-coordinator','screen-success']
+    .forEach(s => document.getElementById(s).style.display = s === id ? 'block' : 'none');
 }
 
 function normalizePhone(raw) {
@@ -296,8 +355,7 @@ function showBanner(id, type, msg) {
   el.textContent = msg;
 }
 function hideBanner(id) {
-  const el = document.getElementById(id);
-  el.className = 'banner'; el.textContent = '';
+  const el = document.getElementById(id); el.className = 'banner'; el.textContent = '';
 }
 
 // ── STEP 1: PHONE + OTP ──
@@ -338,11 +396,10 @@ async function verifyOtp() {
     dbg('OTP verify ' + r.status + ': ' + JSON.stringify(data));
     if (!r.ok) throw new Error(data.message || 'Invalid code');
     authToken = (data.profile_url || '').split('?token=')[1]?.split('&')[0] || data.token || null;
-    dbg('authToken: ' + (authToken ? authToken.substring(0,20) + '...' : 'NULL'));
     if (!authToken) throw new Error('Verification failed — token not returned');
     authedPhone = phone;
-    document.getElementById('screen-phone').style.display = 'none';
-    document.getElementById('screen-org').style.display = 'block';
+    dbg('Auth OK for ' + phone);
+    await loadOrgs();
   } catch(e) { dbg('Error: ' + e.message); showBanner('phone-banner', 'error', e.message); }
 }
 
@@ -353,41 +410,146 @@ function resetPhone() {
   hideBanner('phone-banner');
 }
 
-// ── STEP 2: ORG ──
+// ── ORG LOOKUP ──
+
+async function loadOrgs() {
+  dbg('GET /nile/coordinator/orgs for ' + authedPhone);
+  try {
+    const url = `${NILE_API}/nile/coordinator/orgs?phone=${encodeURIComponent(authedPhone)}&magic_auth_token=${encodeURIComponent(authToken)}`;
+    const r = await fetch(url);
+    const data = await r.json();
+    dbg('orgs response ' + r.status + ': ' + JSON.stringify(data));
+
+    if (!r.ok) {
+      // Endpoint may not exist yet — fall through to registration
+      dbg('orgs endpoint not available, going to registration');
+      show('screen-org');
+      return;
+    }
+
+    userOrgs = Array.isArray(data) ? data : (data.items || data.orgs || []);
+    dbg('Found ' + userOrgs.length + ' org(s)');
+
+    if (userOrgs.length === 0) {
+      show('screen-org');
+    } else {
+      renderPicker();
+      show('screen-picker');
+    }
+  } catch(e) {
+    dbg('orgs error: ' + e.message + ' — going to registration');
+    show('screen-org');
+  }
+}
+
+// ── ORG PICKER ──
+
+function renderPicker() {
+  const list = document.getElementById('org-list');
+  list.innerHTML = '';
+  document.getElementById('org-actions').style.display = 'none';
+
+  const desc = document.getElementById('picker-desc');
+  desc.textContent = userOrgs.length === 1
+    ? 'You have one station. Select it to manage events and cards.'
+    : `You have ${userOrgs.length} stations. Select one to manage.`;
+
+  userOrgs.forEach((org, i) => {
+    const initial = (org.org_l3 || org.org_l1 || '?').charAt(0).toUpperCase();
+    const roleClass = org.role === 'curator' ? 'role-curator' : 'role-coordinator';
+    const roleLabel = org.role === 'curator' ? 'Curator' : 'Coordinator';
+    const displayName = org.org_name || [org.org_l1, org.org_l2, org.org_l3].filter(Boolean).join(' · ');
+
+    const tile = document.createElement('button');
+    tile.className = 'org-tile';
+    tile.innerHTML = `
+      <div class="org-tile-icon">${initial}</div>
+      <div class="org-tile-text">
+        <div class="org-tile-name">${displayName}</div>
+        <div class="org-tile-meta">${org.org_l1} · ${org.org_l2} · ${org.org_l3}</div>
+      </div>
+      <span class="org-tile-role ${roleClass}">${roleLabel}</span>
+    `;
+    tile.onclick = () => selectOrg(org, tile);
+    list.appendChild(tile);
+  });
+}
+
+function selectOrg(org, tile) {
+  // Deselect all
+  document.querySelectorAll('.org-tile').forEach(t => t.classList.remove('selected'));
+  tile.classList.add('selected');
+  selectedOrg = org;
+
+  const actionsEl = document.getElementById('org-actions');
+  const labelEl   = document.getElementById('actions-label');
+  const rowEl     = document.getElementById('actions-row');
+
+  const displayName = org.org_name || [org.org_l1, org.org_l2, org.org_l3].filter(Boolean).join(' · ');
+  labelEl.textContent = displayName;
+
+  const params = `?org_l1=${encodeURIComponent(org.org_l1)}&org_l2=${encodeURIComponent(org.org_l2)}&org_l3=${encodeURIComponent(org.org_l3)}`;
+
+  if (org.role === 'curator') {
+    rowEl.innerHTML = `
+      <a class="btn-action btn-action-primary" href="event.html${params}">Create Event</a>
+      <a class="btn-action btn-action-secondary" href="cards.html${params}">Review Cards</a>
+    `;
+  } else {
+    rowEl.innerHTML = `
+      <a class="btn-action btn-action-primary" href="cards.html${params}">Review Cards</a>
+    `;
+  }
+
+  actionsEl.style.display = 'block';
+  actionsEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+
+function showRegisterFlow() {
+  show('screen-org');
+}
+
+function backToPicker() {
+  if (userOrgs.length > 0) {
+    show('screen-picker');
+  } else {
+    show('screen-phone');
+  }
+}
+
+// ── STEP 2: ORG FIELDS ──
 
 function submitOrg() {
   hideBanner('org-banner');
   const org_name = document.getElementById('org-name').value.trim();
-  const org_l1   = document.getElementById('org-l1').value.trim().toLowerCase().replace(/\s+/g, '');
-  const org_l2   = document.getElementById('org-l2').value.trim().toLowerCase().replace(/\s+/g, '');
-  const org_l3   = document.getElementById('org-l3').value.trim().toLowerCase().replace(/\s+/g, '');
+  const org_l1   = document.getElementById('org-l1').value.trim().toLowerCase().replace(/\s+/g,'');
+  const org_l2   = document.getElementById('org-l2').value.trim().toLowerCase().replace(/\s+/g,'');
+  const org_l3   = document.getElementById('org-l3').value.trim().toLowerCase().replace(/\s+/g,'');
 
-  if (!org_name) { showBanner('org-banner', 'error', 'Enter your organization display name.'); return; }
-  if (!org_l1)   { showBanner('org-banner', 'error', 'Enter an Org ID.'); return; }
-  if (!org_l2)   { showBanner('org-banner', 'error', 'Enter a Region ID.'); return; }
-  if (!org_l3)   { showBanner('org-banner', 'error', 'Enter a Station ID.'); return; }
+  if (!org_name) { showBanner('org-banner','error','Enter your organization display name.'); return; }
+  if (!org_l1)   { showBanner('org-banner','error','Enter an Org ID.'); return; }
+  if (!org_l2)   { showBanner('org-banner','error','Enter a Region ID.'); return; }
+  if (!org_l3)   { showBanner('org-banner','error','Enter a Station ID.'); return; }
 
   orgData = { org_name, org_l1, org_l2, org_l3 };
-  dbg('Org data: ' + JSON.stringify(orgData));
-
-  document.getElementById('screen-org').style.display = 'none';
-  document.getElementById('screen-coordinator').style.display = 'block';
+  dbg('Org: ' + JSON.stringify(orgData));
+  show('screen-coordinator');
 }
 
 // ── STEP 3: COORDINATOR + SUBMIT ──
 
-async function submitRegistration(skip = false) {
+async function submitRegistration(skip) {
   hideBanner('coord-banner');
-
   const coordRaw   = document.getElementById('coord-phone').value.trim();
   const coordPhone = coordRaw ? normalizePhone(coordRaw) : null;
 
-  const btn = event.target;
+  const btn = skip
+    ? document.querySelector('#screen-coordinator .btn-ghost')
+    : document.getElementById('btn-complete');
   btn.disabled = true;
   btn.innerHTML = '<span class="spinner"></span>Registering…';
 
   try {
-    // Register Curator (bootstrap — no prior auth required, only OTP verification)
     const payload = {
       magic_auth_token: authToken,
       phone: authedPhone,
@@ -396,15 +558,12 @@ async function submitRegistration(skip = false) {
       org_l3: orgData.org_l3,
       org_name: orgData.org_name
     };
-    dbg('POST /nile/curator/register payload: ' + JSON.stringify(payload));
-
+    dbg('POST /nile/curator/register: ' + JSON.stringify(payload));
     const r = await fetch(`${NILE_API}/nile/curator/register`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload)
+      method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify(payload)
     });
     const data = await r.json();
-    dbg('curator/register response ' + r.status + ': ' + JSON.stringify(data));
+    dbg('curator/register ' + r.status + ': ' + JSON.stringify(data));
 
     if (!r.ok) {
       const msg = (data.message || '').toLowerCase();
@@ -414,9 +573,8 @@ async function submitRegistration(skip = false) {
       dbg('Curator row already exists — continuing');
     }
 
-    // Add coordinator if provided (curator row now exists, so /nile/coordinator/add will work)
     if (!skip && coordPhone) {
-      const coordPayload = {
+      const cp = {
         magic_auth_token: authToken,
         phone: authedPhone,
         org_l1: orgData.org_l1,
@@ -425,26 +583,22 @@ async function submitRegistration(skip = false) {
         coordinator_phone: coordPhone,
         role: 'coordinator'
       };
-      dbg('POST /nile/coordinator/add payload: ' + JSON.stringify(coordPayload));
+      dbg('POST /nile/coordinator/add: ' + JSON.stringify(cp));
       const r2 = await fetch(`${NILE_API}/nile/coordinator/add`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(coordPayload)
+        method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify(cp)
       });
-      const data2 = await r2.json();
-      dbg('coordinator/add response ' + r2.status + ': ' + JSON.stringify(data2));
+      const d2 = await r2.json();
+      dbg('coordinator/add ' + r2.status + ': ' + JSON.stringify(d2));
     }
 
-    // Show success
     document.getElementById('result-org-name').textContent = orgData.org_name;
-    document.getElementById('screen-coordinator').style.display = 'none';
-    document.getElementById('screen-success').style.display = 'block';
+    show('screen-success');
 
   } catch(e) {
     dbg('Error: ' + e.message);
-    showBanner('coord-banner', 'error', e.message);
+    showBanner('coord-banner','error', e.message);
     btn.disabled = false;
-    btn.textContent = skip ? 'Skip — I\'ll add coordinators later' : 'Complete Registration';
+    btn.textContent = skip ? "Skip — I'll add coordinators later" : 'Complete Registration';
   }
 }
 </script>
