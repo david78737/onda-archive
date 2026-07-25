@@ -576,6 +576,7 @@
       document.getElementById('screen-auth').classList.remove('active');
       document.getElementById('screen-main').classList.add('active');
       dbg('Token from admin page — skipping OTP for ' + phone);
+      loadProfile(p.get('org_l1'), p.get('org_l2'), p.get('org_l3'));
     }
   })();
 
@@ -620,15 +621,41 @@
 
       document.getElementById('screen-auth').classList.remove('active');
       document.getElementById('screen-main').classList.add('active');
+      loadProfile();
     } catch (e) {
       showMsg('msg-verify', 'err', 'Verification failed: ' + e.message);
     }
   });
 
   // ── Load existing profile ────────────────────────────────────
-  async function loadProfile() {
-    // Will load from Xano once endpoint exists
-    // GET /nile/station/profile?phone=...&magic_auth_token=...
+  async function loadProfile(org_l1, org_l2, org_l3) {
+    if (!authToken || !authedPhone) return;
+    try {
+      let url = `${NILE_API}/nile/station/profile?phone=${encodeURIComponent(authedPhone)}&magic_auth_token=${encodeURIComponent(authToken)}`;
+      if (org_l1) url += `&org_l1=${encodeURIComponent(org_l1)}&org_l2=${encodeURIComponent(org_l2 || '')}&org_l3=${encodeURIComponent(org_l3 || '')}`;
+      const r = await fetch(url);
+      if (r.status === 404) { dbg('No existing profile — blank form'); return; }
+      if (!r.ok) throw new Error(await r.text());
+      const d = await r.json();
+      dbg('Loaded existing profile: ' + d.station_name);
+
+      // Populate fields
+      if (d.station_name) document.getElementById('station-name').value = d.station_name;
+      if (d.city)         document.getElementById('station-city').value = d.city;
+      if (d.region)       document.getElementById('station-region').value = d.region;
+      if (d.description)  document.getElementById('station-desc').value = d.description;
+      if (d.curator_name) document.getElementById('curator-name').value = d.curator_name;
+      if (d.linkedin_url) document.getElementById('curator-linkedin').value = d.linkedin_url;
+      if (d.photo_url)    document.getElementById('curator-photo').value = d.photo_url;
+      if (d.badge_icon)   document.getElementById('station-icon').value = d.badge_icon === '◆' ? '' : d.badge_icon;
+      if (d.skin) {
+        const radio = document.querySelector(`input[name="skin"][value="${d.skin}"]`);
+        if (radio) radio.checked = true;
+      }
+      updateBadge();
+    } catch (e) {
+      dbg('loadProfile error: ' + e.message);
+    }
   }
 
   // ── Save ─────────────────────────────────────────────────────
