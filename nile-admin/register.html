@@ -490,14 +490,16 @@ function selectOrg(org, tile) {
 
   const params = `?org_l1=${encodeURIComponent(org.org_l1)}&org_l2=${encodeURIComponent(org.org_l2)}&org_l3=${encodeURIComponent(org.org_l3)}`;
 
+  const authParams = `&phone=${encodeURIComponent(authedPhone)}&token=${encodeURIComponent(authToken)}`;
+
   if (org.role === 'curator') {
     rowEl.innerHTML = `
-      <a class="btn-action btn-action-primary" href="event.html${params}">Create Event</a>
-      <a class="btn-action btn-action-secondary" href="cards.html${params}">Review Cards</a>
+      <a class="btn-action btn-action-primary" href="event.html${params}${authParams}">Create Event</a>
+      <a class="btn-action btn-action-secondary" href="cards.html${params}${authParams}">Review Cards</a>
     `;
   } else {
     rowEl.innerHTML = `
-      <a class="btn-action btn-action-primary" href="cards.html${params}">Review Cards</a>
+      <a class="btn-action btn-action-primary" href="cards.html${params}${authParams}">Review Cards</a>
     `;
   }
 

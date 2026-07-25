@@ -148,7 +148,7 @@
 <header>
   <div>
     <div class="wordmark">ONDA Nile · Event Admin</div>
-    <div class="header-sub">Create a new event for your station</div>
+    <div class="header-sub">Create a new event for your station · <a href="register.html" style="color:rgba(255,255,255,.8);font-size:12px">New curator? Register first →</a></div>
   </div>
 </header>
 
@@ -257,6 +257,24 @@ const NILE_API  = 'https://xrxm-29on-xlyt.n7e.xano.io/api:onda-nile';
 
 let authToken = null;
 let authedPhone = null;
+
+// Read token + phone + org from URL params (passed from register.html picker)
+(function bootstrap() {
+  const p = new URLSearchParams(window.location.search);
+  const token = p.get('token');
+  const phone = p.get('phone');
+  if (token && phone) {
+    authToken   = token;
+    authedPhone = phone;
+    // Pre-fill org fields if passed
+    if (p.get('org_l1')) document.getElementById('org-l1').value = p.get('org_l1');
+    if (p.get('org_l2')) document.getElementById('org-l2').value = p.get('org_l2');
+    if (p.get('org_l3')) document.getElementById('org-l3').value = p.get('org_l3');
+    document.getElementById('screen-auth').style.display = 'none';
+    document.getElementById('screen-main').style.display = 'block';
+    dbg('Token passed from admin page — skipping OTP for ' + phone);
+  }
+})();
 
 function dbg(msg) {
   const el = document.getElementById('debug-panel');
