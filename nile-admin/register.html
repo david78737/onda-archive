@@ -308,6 +308,7 @@
       <div class="next-steps">
         <strong>What's next:</strong>
         <ol>
+          <li><a id="link-station-profile" href="station.html">Set up your station profile</a> — name, location, LinkedIn, and your station's look</li>
           <li><a href="event.html">Create your first event</a> — set up an event code like PCA35</li>
           <li>Share the event code with presenter candidates</li>
           <li><a href="cards.html">Review presenter cards</a> as they come in</li>
@@ -609,6 +610,8 @@ async function submitRegistration(skip) {
     }
 
     document.getElementById('result-org-name').textContent = orgData.org_name;
+    const stationParams = `?org_l1=${encodeURIComponent(orgData.org_l1)}&org_l2=${encodeURIComponent(orgData.org_l2)}&org_l3=${encodeURIComponent(orgData.org_l3)}&phone=${encodeURIComponent(authedPhone)}&token=${encodeURIComponent(authToken)}`;
+    document.getElementById('link-station-profile').href = 'station.html' + stationParams;
     show('screen-success');
 
   } catch(e) {
