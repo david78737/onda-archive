@@ -226,7 +226,7 @@
         </div>
       </div>
 
-      <button class="btn btn-primary" id="create-btn" onclick="createEvent()">Create Event</button>
+      <button class="btn btn-primary" id="create-btn" onclick="submitNewEvent()">Create Event</button>
     </div>
   </div>
 
@@ -335,7 +335,7 @@ function resetAuth() {
   hideBanner('auth-banner');
 }
 
-async function createEvent() {
+async function submitNewEvent() {
   hideBanner('create-banner');
 
   const org_l1       = document.getElementById('org-l1').value.trim().toLowerCase();
