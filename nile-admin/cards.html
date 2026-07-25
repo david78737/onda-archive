@@ -1,0 +1,605 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Card Review — ONDA Nile</title>
+<style>
+  :root {
+    --teal: #009688;
+    --teal-dark: #007a70;
+    --teal-light: #E8F8F6;
+    --ink: #1a1a1a;
+    --body: #333;
+    --muted: #666;
+    --border: #CCC;
+    --bg: #F7F9F9;
+    --surface: #FFF;
+    --error: #c0392b;
+    --success: #1a7f4b;
+    --success-bg: #eafaf1;
+    --warn: #B45A00;
+    --warn-bg: #FEF3E6;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--body);
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    font-size: 16px;
+    line-height: 1.6;
+    padding: 0 0 80px;
+  }
+
+  header {
+    background: var(--teal);
+    padding: 16px 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .wordmark { font-size: 18px; font-weight: 700; color: #fff; letter-spacing: .03em; }
+  .header-sub { font-size: 12px; color: rgba(255,255,255,.75); margin-top: 1px; }
+  .header-event {
+    font-size: 13px; font-weight: 700; color: rgba(255,255,255,.9);
+    background: rgba(255,255,255,.15); padding: 4px 12px; border-radius: 20px;
+    display: none;
+  }
+
+  .wrap { max-width: 680px; margin: 0 auto; padding: 32px 20px 0; }
+
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 24px;
+    margin-bottom: 20px;
+  }
+  .card-title {
+    font-size: 13px; font-weight: 700; text-transform: uppercase;
+    letter-spacing: .1em; color: var(--teal); margin-bottom: 16px;
+  }
+
+  .field { margin-bottom: 16px; }
+  .field:last-child { margin-bottom: 0; }
+  label { display: block; font-size: 14px; font-weight: 600; color: var(--ink); margin-bottom: 5px; }
+  input[type="text"], input[type="tel"] {
+    width: 100%; padding: 11px 13px; font-size: 15px;
+    border: 1px solid var(--border); border-radius: 7px;
+    color: var(--ink); background: var(--surface);
+    transition: border-color .15s; font-family: inherit;
+  }
+  input:focus { border-color: var(--teal); outline: none; }
+  .hint { font-size: 12px; color: var(--muted); margin-top: 4px; }
+
+  .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+
+  .btn {
+    display: inline-block; padding: 13px 28px; font-size: 15px; font-weight: 600;
+    border: none; border-radius: 8px; cursor: pointer; transition: background .15s;
+    font-family: inherit;
+  }
+  .btn-primary { background: var(--teal); color: #fff; width: 100%; margin-top: 4px; }
+  .btn-primary:hover { background: var(--teal-dark); }
+  .btn-primary:disabled { background: #aaa; cursor: default; }
+
+  .banner {
+    padding: 12px 16px; border-radius: 8px; font-size: 14px;
+    font-weight: 600; margin-bottom: 16px; display: none;
+  }
+  .banner.error { background: #fdecea; color: var(--error); display: block; }
+  .banner.success { background: var(--success-bg); color: var(--success); display: block; }
+
+  .otp-row { display: flex; gap: 10px; }
+  .otp-row input { flex: 1; }
+
+  /* Event selector */
+  #screen-event { display: none; }
+  #screen-cards { display: none; }
+
+  .filter-row {
+    display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 20px;
+  }
+  .filter-btn {
+    padding: 6px 14px; font-size: 13px; font-weight: 600;
+    border: 1px solid var(--border); border-radius: 20px;
+    background: var(--surface); color: var(--muted); cursor: pointer;
+    font-family: inherit; transition: all .12s;
+  }
+  .filter-btn.active {
+    background: var(--teal); color: #fff; border-color: var(--teal);
+  }
+  .filter-btn:hover:not(.active) { border-color: var(--teal); color: var(--teal); }
+
+  .empty-state {
+    text-align: center; padding: 40px 20px;
+    color: var(--muted); font-size: 14px;
+  }
+
+  /* Candidate card */
+  .candidate-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    margin-bottom: 16px;
+    overflow: hidden;
+  }
+  .candidate-card.status-public { border-left: 4px solid var(--success); }
+  .candidate-card.status-submitted { border-left: 4px solid var(--teal); }
+  .candidate-card.status-draft { border-left: 4px solid var(--border); }
+
+  .cc-header {
+    padding: 16px 20px 12px;
+    border-bottom: 1px solid #f0f0f0;
+  }
+  .cc-title-row {
+    display: flex; align-items: flex-start; gap: 10px; margin-bottom: 4px;
+  }
+  .cc-title { font-size: 16px; font-weight: 700; color: var(--ink); flex: 1; }
+  .status-pill {
+    font-size: 11px; font-weight: 700; letter-spacing: .06em;
+    text-transform: uppercase; padding: 3px 9px; border-radius: 20px;
+    white-space: nowrap; flex-shrink: 0;
+  }
+  .status-pill.submitted { background: var(--teal-light); color: var(--teal); }
+  .status-pill.public    { background: var(--success-bg); color: var(--success); }
+  .status-pill.draft     { background: #f0f0f0; color: var(--muted); }
+
+  .cc-presenter { font-size: 13px; color: var(--muted); }
+
+  .cc-body { padding: 16px 20px; }
+  .cc-field-label {
+    font-size: 11px; font-weight: 700; text-transform: uppercase;
+    letter-spacing: .08em; color: var(--muted); margin-bottom: 4px;
+  }
+  .cc-field { margin-bottom: 14px; }
+  .cc-field:last-child { margin-bottom: 0; }
+  .cc-text { font-size: 14px; color: var(--body); }
+  .cc-tags { display: flex; flex-wrap: wrap; gap: 6px; }
+  .cc-tag {
+    font-size: 12px; font-weight: 600; padding: 3px 10px;
+    background: var(--teal-light); color: var(--teal);
+    border-radius: 20px;
+  }
+
+  .cc-actions {
+    padding: 14px 20px;
+    border-top: 1px solid #f0f0f0;
+    display: flex; gap: 10px; flex-wrap: wrap; align-items: flex-start;
+  }
+  .btn-approve {
+    padding: 9px 20px; font-size: 14px; font-weight: 600;
+    background: var(--success); color: #fff; border: none;
+    border-radius: 7px; cursor: pointer; font-family: inherit;
+    transition: background .12s;
+  }
+  .btn-approve:hover { background: #15693c; }
+  .btn-approve:disabled { background: #aaa; cursor: default; }
+  .btn-return {
+    padding: 9px 20px; font-size: 14px; font-weight: 600;
+    background: none; color: var(--warn); border: 1px solid var(--warn);
+    border-radius: 7px; cursor: pointer; font-family: inherit;
+    transition: background .12s;
+  }
+  .btn-return:hover { background: var(--warn-bg); }
+
+  .return-form {
+    width: 100%; margin-top: 10px; display: none;
+  }
+  .return-form textarea {
+    width: 100%; padding: 10px 12px; font-size: 14px;
+    border: 1px solid var(--border); border-radius: 7px;
+    font-family: inherit; resize: vertical; min-height: 72px;
+    color: var(--ink);
+  }
+  .return-form textarea:focus { border-color: var(--warn); outline: none; }
+  .return-form-actions { display: flex; gap: 8px; margin-top: 8px; }
+  .btn-send-return {
+    padding: 8px 16px; font-size: 13px; font-weight: 600;
+    background: var(--warn); color: #fff; border: none;
+    border-radius: 6px; cursor: pointer; font-family: inherit;
+  }
+  .btn-cancel-return {
+    padding: 8px 16px; font-size: 13px; font-weight: 600;
+    background: none; color: var(--muted); border: 1px solid var(--border);
+    border-radius: 6px; cursor: pointer; font-family: inherit;
+  }
+
+  .action-result {
+    font-size: 13px; font-weight: 600; padding: 8px 12px;
+    border-radius: 6px; display: none; width: 100%;
+  }
+  .action-result.success { background: var(--success-bg); color: var(--success); display: block; }
+  .action-result.error   { background: #fdecea; color: var(--error); display: block; }
+
+  .cards-header {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 16px;
+  }
+  .cards-title { font-size: 18px; font-weight: 700; color: var(--ink); }
+  .cards-count { font-size: 13px; color: var(--muted); }
+
+  .refresh-btn {
+    padding: 6px 14px; font-size: 13px; font-weight: 600;
+    background: var(--teal-light); color: var(--teal);
+    border: 1px solid var(--teal); border-radius: 6px; cursor: pointer;
+    font-family: inherit;
+  }
+  .refresh-btn:hover { background: #d0f0ec; }
+
+  .spinner { display: inline-block; width: 16px; height: 16px; border: 2px solid currentColor;
+    border-top-color: transparent; border-radius: 50%; animation: spin .6s linear infinite;
+    vertical-align: middle; margin-right: 4px; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+</style>
+</head>
+<body>
+
+<header>
+  <div>
+    <div class="wordmark">ONDA Nile · Card Review</div>
+    <div class="header-sub">Review and approve presenter candidates</div>
+  </div>
+  <div class="header-event" id="header-event"></div>
+</header>
+
+<div class="wrap">
+
+  <!-- ── AUTH ── -->
+  <div id="screen-auth">
+    <div class="card">
+      <div class="card-title">Coordinator Sign In</div>
+      <div id="auth-banner" class="banner"></div>
+
+      <div id="step-phone">
+        <div class="field">
+          <label for="phone-input">Your phone number</label>
+          <input type="tel" id="phone-input" placeholder="+1 512 555 0100" autocomplete="tel">
+          <div class="hint">Must be registered as Curator or Coordinator for your station</div>
+        </div>
+        <button class="btn btn-primary" onclick="sendOtp()">Send Code</button>
+      </div>
+
+      <div id="step-otp" style="display:none">
+        <div class="field">
+          <label for="otp-input">Enter your code</label>
+          <div class="otp-row">
+            <input type="text" id="otp-input" placeholder="6-digit code" inputmode="numeric" maxlength="6" autocomplete="one-time-code">
+            <button class="btn btn-primary" style="width:auto" onclick="verifyOtp()">Verify</button>
+          </div>
+          <div class="hint" style="margin-top:6px">
+            <a href="#" onclick="resetAuth(); return false;" style="color:var(--teal)">Wrong number?</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── EVENT SELECTOR ── -->
+  <div id="screen-event">
+    <div class="card">
+      <div class="card-title">Select Event</div>
+      <div id="event-banner" class="banner"></div>
+      <div class="row2">
+        <div class="field">
+          <label for="s-org-l1">Organization</label>
+          <input type="text" id="s-org-l1" placeholder="productcamp">
+        </div>
+        <div class="field">
+          <label for="s-org-l2">Region</label>
+          <input type="text" id="s-org-l2" placeholder="austin">
+        </div>
+      </div>
+      <div class="row2">
+        <div class="field">
+          <label for="s-org-l3">Station ID</label>
+          <input type="text" id="s-org-l3" placeholder="pca">
+        </div>
+        <div class="field">
+          <label for="s-event-code">Event code</label>
+          <input type="text" id="s-event-code" placeholder="PCA35" style="text-transform:uppercase">
+        </div>
+      </div>
+      <button class="btn btn-primary" onclick="loadCards('submitted')">Load Cards</button>
+    </div>
+  </div>
+
+  <!-- ── CARDS ── -->
+  <div id="screen-cards">
+    <div class="cards-header">
+      <div>
+        <div class="cards-title" id="cards-title">Presenter Cards</div>
+        <div class="cards-count" id="cards-count"></div>
+      </div>
+      <button class="refresh-btn" onclick="loadCards(currentFilter)">↻ Refresh</button>
+    </div>
+
+    <div class="filter-row">
+      <button class="filter-btn active" onclick="loadCards('submitted')" id="filter-submitted">Needs Review</button>
+      <button class="filter-btn" onclick="loadCards('public')" id="filter-public">Approved</button>
+      <button class="filter-btn" onclick="loadCards('draft')" id="filter-draft">Returned</button>
+      <button class="filter-btn" onclick="loadCards('')" id="filter-all">All</button>
+    </div>
+
+    <div id="cards-banner" class="banner"></div>
+    <div id="cards-list"></div>
+  </div>
+
+</div>
+
+<script>
+const NILE_AUTH = 'https://xrxm-29on-xlyt.n7e.xano.io/api:nile';
+const NILE_API  = 'https://xrxm-29on-xlyt.n7e.xano.io/api:onda-nile';
+
+let authToken   = null;
+let authedPhone = null;
+let currentOrg  = {};
+let currentEventCode = '';
+let currentFilter = 'submitted';
+
+function normalizePhone(raw) {
+  const digits = raw.replace(/\D/g, '');
+  if (digits.length === 10) return '+1' + digits;
+  if (digits.length === 11 && digits[0] === '1') return '+' + digits;
+  return '+' + digits;
+}
+
+function showBanner(id, type, msg) {
+  const el = document.getElementById(id);
+  el.className = 'banner ' + type;
+  el.textContent = msg;
+}
+function hideBanner(id) {
+  const el = document.getElementById(id);
+  el.className = 'banner'; el.textContent = '';
+}
+
+async function sendOtp() {
+  hideBanner('auth-banner');
+  const raw = document.getElementById('phone-input').value.trim();
+  if (!raw) { showBanner('auth-banner', 'error', 'Enter your phone number.'); return; }
+  const phone = normalizePhone(raw);
+  try {
+    const r = await fetch(`${NILE_AUTH}/presenter/magic/send`, {
+      method: 'POST', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ contact: phone })
+    });
+    if (!r.ok) { const e = await r.json(); throw new Error(e.message || 'Failed to send code'); }
+    document.getElementById('step-phone').style.display = 'none';
+    document.getElementById('step-otp').style.display = 'block';
+    setTimeout(() => document.getElementById('otp-input').focus(), 50);
+  } catch(e) { showBanner('auth-banner', 'error', e.message); }
+}
+
+async function verifyOtp() {
+  hideBanner('auth-banner');
+  const raw = document.getElementById('phone-input').value.trim();
+  const otp = document.getElementById('otp-input').value.trim();
+  const phone = normalizePhone(raw);
+  if (!otp) { showBanner('auth-banner', 'error', 'Enter the code from your text.'); return; }
+  try {
+    const r = await fetch(`${NILE_AUTH}/presenter/magic/verify`, {
+      method: 'POST', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ contact: phone, code: otp })
+    });
+    if (!r.ok) { const e = await r.json(); throw new Error(e.message || 'Invalid code'); }
+    const data = await r.json();
+    authToken = (data.profile_url || '').split('?token=')[1]?.split('&')[0] || null;
+    if (!authToken) throw new Error('Auth failed — check that your phone is registered as a Coordinator');
+    authedPhone = phone;
+    document.getElementById('screen-auth').style.display = 'none';
+    document.getElementById('screen-event').style.display = 'block';
+  } catch(e) { showBanner('auth-banner', 'error', e.message); }
+}
+
+function resetAuth() {
+  document.getElementById('step-phone').style.display = 'block';
+  document.getElementById('step-otp').style.display = 'none';
+  document.getElementById('otp-input').value = '';
+  hideBanner('auth-banner');
+}
+
+async function loadCards(statusFilter) {
+  hideBanner('event-banner');
+  hideBanner('cards-banner');
+
+  const org_l1       = (document.getElementById('s-org-l1').value.trim() || currentOrg.l1).toLowerCase();
+  const org_l2       = (document.getElementById('s-org-l2').value.trim() || currentOrg.l2).toLowerCase();
+  const org_l3       = (document.getElementById('s-org-l3').value.trim() || currentOrg.l3).toLowerCase();
+  const event_code   = (document.getElementById('s-event-code').value.trim() || currentEventCode).toUpperCase();
+
+  if (!org_l1 || !org_l2 || !org_l3 || !event_code) {
+    showBanner('event-banner', 'error', 'Fill in all fields.');
+    return;
+  }
+
+  currentOrg = { l1: org_l1, l2: org_l2, l3: org_l3 };
+  currentEventCode = event_code;
+  currentFilter = statusFilter;
+
+  // Update filter buttons
+  ['submitted','public','draft',''].forEach(f => {
+    const id = 'filter-' + (f || 'all');
+    const btn = document.getElementById(id);
+    if (btn) btn.className = 'filter-btn' + (f === statusFilter ? ' active' : '');
+  });
+
+  document.getElementById('cards-list').innerHTML = '<div class="empty-state"><span class="spinner"></span> Loading…</div>';
+  document.getElementById('screen-event').style.display = 'none';
+  document.getElementById('screen-cards').style.display = 'block';
+
+  const headerEvent = document.getElementById('header-event');
+  headerEvent.textContent = event_code;
+  headerEvent.style.display = 'block';
+
+  document.getElementById('cards-title').textContent = event_code + ' — Presenter Cards';
+
+  try {
+    let url = `${NILE_API}/nile/cards/event?org_l1=${org_l1}&org_l2=${org_l2}&org_l3=${org_l3}&event_code=${event_code}`;
+    if (statusFilter) url += `&status=${statusFilter}`;
+
+    const r = await fetch(url, { headers: { 'Authorization': `Bearer ${authToken}` } });
+    if (!r.ok) { const e = await r.json(); throw new Error(e.message || 'Failed to load cards'); }
+    const cards = await r.json();
+
+    const label = statusFilter === 'submitted' ? 'Needs Review'
+                : statusFilter === 'public'    ? 'Approved'
+                : statusFilter === 'draft'     ? 'Returned'
+                : 'All';
+    document.getElementById('cards-count').textContent = `${cards.length} card${cards.length !== 1 ? 's' : ''} · ${label}`;
+
+    if (cards.length === 0) {
+      document.getElementById('cards-list').innerHTML = `<div class="empty-state">No cards with status "${label.toLowerCase()}".</div>`;
+      return;
+    }
+
+    document.getElementById('cards-list').innerHTML = cards.map(c => renderCard(c)).join('');
+  } catch(e) {
+    showBanner('cards-banner', 'error', e.message);
+    document.getElementById('cards-list').innerHTML = '';
+  }
+}
+
+function renderCard(c) {
+  const tags = Array.isArray(c.tags) && c.tags.length
+    ? `<div class="cc-tags">${c.tags.map(t => `<span class="cc-tag">${t}</span>`).join('')}</div>`
+    : '<span style="color:var(--muted);font-size:13px">No tags</span>';
+
+  const statusLabel = c.status === 'submitted' ? 'Needs Review'
+                    : c.status === 'public'    ? 'Approved'
+                    : c.status.charAt(0).toUpperCase() + c.status.slice(1);
+
+  const actions = c.status === 'public'
+    ? `<div class="action-result success" style="display:block">✓ Approved — visible on ONDA Nile</div>`
+    : `
+      <button class="btn-approve" onclick="approveCard('${c.presenter_phone}', this)">Approve</button>
+      <button class="btn-return" onclick="toggleReturnForm(this)">Return with note</button>
+      <div class="return-form">
+        <textarea placeholder="What needs to be fixed? (optional)"></textarea>
+        <div class="return-form-actions">
+          <button class="btn-send-return" onclick="returnCard('${c.presenter_phone}', this)">Send back</button>
+          <button class="btn-cancel-return" onclick="toggleReturnForm(this.closest('.cc-actions').querySelector('.btn-return'))">Cancel</button>
+        </div>
+      </div>
+      <div class="action-result"></div>
+    `;
+
+  const reviewerNote = c.reviewer_note
+    ? `<div class="cc-field"><div class="cc-field-label">Last Note</div><div class="cc-text" style="color:var(--warn)">${c.reviewer_note}</div></div>`
+    : '';
+
+  return `
+    <div class="candidate-card status-${c.status}" id="card-${c.presenter_phone.replace(/\+/g,'')}">
+      <div class="cc-header">
+        <div class="cc-title-row">
+          <div class="cc-title">${c.title || '<em style="color:var(--muted);font-weight:400">No title yet</em>'}</div>
+          <span class="status-pill ${c.status}">${statusLabel}</span>
+        </div>
+        <div class="cc-presenter">${c.presenter_phone}</div>
+      </div>
+      <div class="cc-body">
+        <div class="cc-field">
+          <div class="cc-field-label">Synopsis</div>
+          <div class="cc-text">${c.synopsis || '<em style="color:var(--muted)">Not provided</em>'}</div>
+        </div>
+        <div class="cc-field">
+          <div class="cc-field-label">Bio</div>
+          <div class="cc-text">${c.bio || '<em style="color:var(--muted)">Not provided</em>'}</div>
+        </div>
+        <div class="cc-field">
+          <div class="cc-field-label">Tags</div>
+          ${tags}
+        </div>
+        ${reviewerNote}
+      </div>
+      <div class="cc-actions">${actions}</div>
+    </div>
+  `;
+}
+
+function toggleReturnForm(btn) {
+  const actions = btn.closest('.cc-actions');
+  const form = actions.querySelector('.return-form');
+  const showing = form.style.display === 'block';
+  form.style.display = showing ? 'none' : 'block';
+  if (!showing) form.querySelector('textarea').focus();
+}
+
+async function approveCard(presenterPhone, btn) {
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span>';
+  const resultEl = btn.closest('.cc-actions').querySelector('.action-result');
+
+  try {
+    const r = await fetch(`${NILE_API}/nile/card/review`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${authToken}` },
+      body: JSON.stringify({
+        phone: authedPhone,
+        org_l1: currentOrg.l1, org_l2: currentOrg.l2, org_l3: currentOrg.l3,
+        event_code: currentEventCode,
+        presenter_phone: presenterPhone,
+        decision: 'approve'
+      })
+    });
+    const data = await r.json();
+    if (!r.ok) throw new Error(data.message || 'Approve failed');
+
+    // Update card UI in place
+    const card = btn.closest('.candidate-card');
+    card.className = 'candidate-card status-public';
+    card.querySelector('.status-pill').className = 'status-pill public';
+    card.querySelector('.status-pill').textContent = 'Approved';
+    const actions = btn.closest('.cc-actions');
+    actions.innerHTML = '<div class="action-result success" style="display:block">✓ Approved — visible on ONDA Nile</div>';
+  } catch(e) {
+    btn.disabled = false;
+    btn.textContent = 'Approve';
+    resultEl.className = 'action-result error';
+    resultEl.textContent = e.message;
+    resultEl.style.display = 'block';
+  }
+}
+
+async function returnCard(presenterPhone, btn) {
+  const actions = btn.closest('.cc-actions');
+  const note = actions.querySelector('textarea').value.trim();
+  const resultEl = actions.querySelector('.action-result');
+
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span>';
+
+  try {
+    const r = await fetch(`${NILE_API}/nile/card/review`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${authToken}` },
+      body: JSON.stringify({
+        phone: authedPhone,
+        org_l1: currentOrg.l1, org_l2: currentOrg.l2, org_l3: currentOrg.l3,
+        event_code: currentEventCode,
+        presenter_phone: presenterPhone,
+        decision: 'return',
+        reviewer_note: note
+      })
+    });
+    const data = await r.json();
+    if (!r.ok) throw new Error(data.message || 'Return failed');
+
+    const card = btn.closest('.candidate-card');
+    card.className = 'candidate-card status-draft';
+    card.querySelector('.status-pill').className = 'status-pill draft';
+    card.querySelector('.status-pill').textContent = 'Returned';
+    actions.innerHTML = `<div class="action-result success" style="display:block">↩ Returned to presenter${note ? ' with note' : ''}.</div>`;
+  } catch(e) {
+    btn.disabled = false;
+    btn.textContent = 'Send back';
+    resultEl.className = 'action-result error';
+    resultEl.textContent = e.message;
+    resultEl.style.display = 'block';
+  }
+}
+</script>
+</body>
+</html>
