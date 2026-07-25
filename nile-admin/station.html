@@ -311,19 +311,6 @@
   .msg.ok  { display: block; background: var(--teal-light); color: var(--teal-dark); }
   .msg.err { display: block; background: #FDECEA; color: var(--error); }
 
-  /* Debug */
-  #dbg {
-    font-family: monospace;
-    font-size: 11px;
-    color: var(--muted);
-    white-space: pre-wrap;
-    margin-top: 12px;
-    padding: 10px;
-    background: #F0EDE8;
-    border-radius: 6px;
-    display: none;
-  }
-
   @media (max-width: 400px) {
     .field-row { grid-template-columns: 1fr; }
     .skin-grid { grid-template-columns: repeat(3, 1fr); }
@@ -499,7 +486,6 @@
 
     <button class="btn-primary" id="btn-save">Save station profile</button>
     <div id="msg-save" class="msg"></div>
-    <pre id="dbg"></pre>
 
   </div><!-- /screen-main -->
 
@@ -522,11 +508,7 @@
     minimal:      { primary: '#111111', bg: 'rgba(0,0,0,0.08)',     text: '#111111' },
   };
 
-  function dbg(msg) {
-    const el = document.getElementById('dbg');
-    el.style.display = 'block';
-    el.textContent += msg + '\n';
-  }
+  function dbg(msg) { console.log('[station]', msg); }
 
   function showMsg(id, type, text) {
     const el = document.getElementById(id);
@@ -706,11 +688,11 @@
       });
       const data = await r.json();
       if (!r.ok) throw new Error(data.message || JSON.stringify(data));
-      showMsg('msg-save', 'ok', '✓ Station profile saved. Your station is updated on ONDA Nile.');
-      dbg('Response: ' + JSON.stringify(data, null, 2));
+      // Redirect back to admin picker with token preserved
+      const params = `?org_l1=${encodeURIComponent(currentOrg.l1)}&org_l2=${encodeURIComponent(currentOrg.l2)}&org_l3=${encodeURIComponent(currentOrg.l3)}&phone=${encodeURIComponent(authedPhone)}&token=${encodeURIComponent(authToken)}&saved=station`;
+      window.location.href = 'register.html' + params;
     } catch (e) {
       showMsg('msg-save', 'err', 'Save failed: ' + e.message);
-      dbg('Error: ' + e.message);
     }
   });
 </script>

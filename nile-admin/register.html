@@ -330,6 +330,26 @@ let orgData     = {};
 let userOrgs    = [];
 let selectedOrg = null;
 
+// Bootstrap from URL params — returning from station.html, event.html, cards.html
+(function bootstrap() {
+  const p = new URLSearchParams(window.location.search);
+  const token = p.get('token');
+  const phone = p.get('phone');
+  if (token && phone) {
+    authToken   = token;
+    authedPhone = phone;
+    if (p.get('saved') === 'station') {
+      // Show a success toast after returning from station profile save
+      const toast = document.createElement('div');
+      toast.textContent = '✓ Station profile saved';
+      toast.style.cssText = 'position:fixed;top:16px;left:50%;transform:translateX(-50%);background:#008B82;color:white;padding:10px 20px;border-radius:8px;font-size:14px;font-weight:600;z-index:999;box-shadow:0 2px 8px rgba(0,0,0,0.2)';
+      document.body.appendChild(toast);
+      setTimeout(() => toast.remove(), 3000);
+    }
+    loadOrgs();
+  }
+})();
+
 function dbg(msg) {
   const el = document.getElementById('debug-panel');
   el.style.display = 'block';
