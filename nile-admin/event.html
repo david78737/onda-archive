@@ -135,12 +135,6 @@
     vertical-align: middle; margin-right: 6px; }
   @keyframes spin { to { transform: rotate(360deg); } }
 
-  #debug-panel {
-    margin-top: 16px; background: #1a1a1a; color: #00ff88;
-    font-family: monospace; font-size: 12px; border-radius: 8px;
-    padding: 14px 16px; white-space: pre-wrap; word-break: break-all;
-    max-height: 300px; overflow-y: auto; display: none;
-  }
 </style>
 </head>
 <body>
@@ -247,7 +241,6 @@
     </div>
   </div>
 
-  <div id="debug-panel"></div>
 
 </div><!-- /wrap -->
 
@@ -276,12 +269,7 @@ let authedPhone = null;
   }
 })();
 
-function dbg(msg) {
-  const el = document.getElementById('debug-panel');
-  el.style.display = 'block';
-  el.textContent += '[' + new Date().toLocaleTimeString() + '] ' + msg + '\n';
-  el.scrollTop = el.scrollHeight;
-}
+function dbg(msg) { console.log('[event]', msg); }
 
 function normalizePhone(raw) {
   const digits = raw.replace(/\D/g, '');
