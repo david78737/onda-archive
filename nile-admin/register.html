@@ -422,7 +422,8 @@ async function submitRegistration(skip = false) {
         org_l1: orgData.org_l1,
         org_l2: orgData.org_l2,
         org_l3: orgData.org_l3,
-        coordinator_phone: coordPhone
+        coordinator_phone: coordPhone,
+        role: 'coordinator'
       };
       dbg('POST /nile/coordinator/add payload: ' + JSON.stringify(coordPayload));
       const r2 = await fetch(`${NILE_API}/nile/coordinator/add`, {
