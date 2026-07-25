@@ -1,0 +1,686 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Station Profile — ONDA Nile</title>
+<style>
+  :root {
+    --teal: #008B82;
+    --teal-dark: #006B63;
+    --teal-light: #E4F2F1;
+    --bg: #F6F3EE;
+    --card: #FFFFFF;
+    --ink: #0C2320;
+    --body: #2D4A47;
+    --muted: #5A7870;
+    --border: #DDD8CF;
+    --error: #C0392B;
+    --required: #C0392B;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--body);
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+    font-size: 16px;
+    line-height: 1.6;
+    padding-bottom: 80px;
+  }
+
+  header {
+    background: var(--teal);
+    padding: 20px 24px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .back-link {
+    color: rgba(255,255,255,0.75);
+    text-decoration: none;
+    font-size: 13px;
+    font-weight: 600;
+  }
+  .back-link:hover { color: white; }
+  .header-title {
+    font-size: 17px;
+    font-weight: 700;
+    color: white;
+    letter-spacing: -0.01em;
+  }
+
+  .wrap { max-width: 540px; margin: 0 auto; padding: 28px 16px 0; }
+
+  /* Section cards */
+  .section-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 24px;
+    margin-bottom: 16px;
+  }
+  .section-label {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--teal);
+    margin-bottom: 4px;
+  }
+  .section-title {
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--ink);
+    margin-bottom: 4px;
+  }
+  .section-desc {
+    font-size: 13px;
+    color: var(--muted);
+    margin-bottom: 20px;
+    line-height: 1.5;
+  }
+
+  /* Fields */
+  .field { margin-bottom: 16px; }
+  .field:last-child { margin-bottom: 0; }
+  .field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+
+  label {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--ink);
+    margin-bottom: 5px;
+  }
+  .req {
+    font-size: 10px;
+    font-weight: 700;
+    color: var(--required);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+  .opt {
+    font-size: 10px;
+    font-weight: 600;
+    color: var(--muted);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+
+  input[type="text"],
+  input[type="tel"],
+  input[type="url"],
+  textarea {
+    width: 100%;
+    padding: 11px 13px;
+    font-size: 15px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    color: var(--ink);
+    background: var(--card);
+    font-family: inherit;
+    transition: border-color 0.15s;
+  }
+  input:focus, textarea:focus {
+    border-color: var(--teal);
+    outline: none;
+  }
+  textarea { resize: vertical; min-height: 90px; }
+  .hint { font-size: 12px; color: var(--muted); margin-top: 4px; line-height: 1.4; }
+  .hint a { color: var(--teal); text-decoration: none; }
+
+  /* LinkedIn gate note */
+  .gate-note {
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+    background: #FFF8E1;
+    border: 1px solid #F9A825;
+    border-radius: 8px;
+    padding: 12px 14px;
+    margin-bottom: 16px;
+    font-size: 13px;
+    color: #5D4000;
+    line-height: 1.5;
+  }
+  .gate-note-icon { font-size: 16px; flex-shrink: 0; margin-top: 1px; }
+
+  /* OTP */
+  .otp-row { display: flex; gap: 8px; }
+  .otp-row input {
+    flex: 1;
+    letter-spacing: 0.2em;
+    font-size: 22px;
+    text-align: center;
+  }
+  .otp-row button {
+    flex-shrink: 0;
+    padding: 11px 16px;
+    background: var(--teal);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    font-family: inherit;
+  }
+  .otp-row button:hover { background: var(--teal-dark); }
+
+  /* Skin presets */
+  .skin-grid {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 8px;
+    margin-bottom: 20px;
+  }
+  .skin-opt { position: relative; }
+  .skin-opt input[type="radio"] { position: absolute; opacity: 0; width: 0; height: 0; }
+  .skin-opt label {
+    display: block;
+    cursor: pointer;
+    border-radius: 8px;
+    border: 2px solid var(--border);
+    overflow: hidden;
+    transition: border-color 0.15s;
+    margin-bottom: 0;
+  }
+  .skin-opt input:checked + label { border-color: var(--teal); }
+  .skin-swatch {
+    height: 40px;
+    display: flex;
+    gap: 3px;
+    padding: 6px;
+  }
+  .skin-dot { flex: 1; border-radius: 3px; }
+  .skin-name {
+    font-size: 9px;
+    font-weight: 700;
+    text-align: center;
+    padding: 3px 0 4px;
+    color: var(--ink);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  .skin-classic   .skin-swatch { background: #0D1F1E; }
+  .skin-classic   .d1 { background: #009688; }
+  .skin-classic   .d2 { background: #00BCD4; }
+  .skin-classic   .d3 { background: #152322; }
+
+  .skin-professional .skin-swatch { background: #F3F6F9; }
+  .skin-professional .d1 { background: #0A66C2; }
+  .skin-professional .d2 { background: #00BCD4; }
+  .skin-professional .d3 { background: #FFFFFF; }
+
+  .skin-academic  .skin-swatch { background: #F8F5EE; }
+  .skin-academic  .d1 { background: #2C3E50; }
+  .skin-academic  .d2 { background: #8B6F47; }
+  .skin-academic  .d3 { background: #F0EBE0; }
+
+  .skin-vibrant   .skin-swatch { background: #1A0533; }
+  .skin-vibrant   .d1 { background: #7C3AED; }
+  .skin-vibrant   .d2 { background: #F59E0B; }
+  .skin-vibrant   .d3 { background: #2D1052; }
+
+  .skin-minimal   .skin-swatch { background: #FAFAFA; }
+  .skin-minimal   .d1 { background: #111111; }
+  .skin-minimal   .d2 { background: #666666; }
+  .skin-minimal   .d3 { background: #EEEEEE; }
+
+  /* Badge preview */
+  .badge-preview-wrap {
+    background: #1A2B2A;
+    border-radius: 10px;
+    padding: 20px;
+    margin-bottom: 20px;
+  }
+  .preview-label {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: rgba(255,255,255,0.45);
+    margin-bottom: 14px;
+  }
+  .mock-tile {
+    background: #0D1F1E;
+    border-radius: 8px;
+    padding: 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .mock-tile-title {
+    font-size: 13px;
+    font-weight: 600;
+    color: rgba(255,255,255,0.85);
+    line-height: 1.3;
+  }
+  .mock-tile-meta {
+    font-size: 11px;
+    color: rgba(255,255,255,0.4);
+  }
+  .mock-tile-footer {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 4px;
+  }
+  .station-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 3px 10px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.03em;
+    text-decoration: none;
+    cursor: default;
+    transition: background 0.2s, color 0.2s;
+  }
+
+  /* Buttons */
+  .btn-primary {
+    width: 100%;
+    padding: 15px;
+    background: var(--teal);
+    color: white;
+    font-size: 16px;
+    font-weight: 700;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    font-family: inherit;
+    transition: background 0.15s;
+    margin-top: 8px;
+  }
+  .btn-primary:hover { background: var(--teal-dark); }
+  .btn-primary:disabled { background: #AAA; cursor: default; }
+
+  /* Screens */
+  .screen { display: none; }
+  .screen.active { display: block; }
+
+  /* Messages */
+  .msg { margin-top: 10px; font-size: 14px; display: none; padding: 10px 12px; border-radius: 7px; }
+  .msg.ok  { display: block; background: var(--teal-light); color: var(--teal-dark); }
+  .msg.err { display: block; background: #FDECEA; color: var(--error); }
+
+  /* Debug */
+  #dbg {
+    font-family: monospace;
+    font-size: 11px;
+    color: var(--muted);
+    white-space: pre-wrap;
+    margin-top: 12px;
+    padding: 10px;
+    background: #F0EDE8;
+    border-radius: 6px;
+    display: none;
+  }
+
+  @media (max-width: 400px) {
+    .field-row { grid-template-columns: 1fr; }
+    .skin-grid { grid-template-columns: repeat(3, 1fr); }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <a class="back-link" href="register.html">← Admin</a>
+  <span class="header-title">Station Profile</span>
+</header>
+
+<div class="wrap">
+
+  <!-- SCREEN: Auth -->
+  <div id="screen-auth" class="screen active">
+    <div class="section-card">
+      <div class="section-label">ONDA Nile · Curator</div>
+      <div class="section-title">Sign in to edit your station</div>
+      <div class="section-desc">Enter your curator phone number. We'll send a one-time code.</div>
+
+      <div class="field">
+        <label for="phone">Phone number <span class="req">required</span></label>
+        <input type="tel" id="phone" placeholder="+1 512 555 0100" autocomplete="tel">
+      </div>
+      <button class="btn-primary" id="btn-send">Send code</button>
+      <div id="msg-send" class="msg"></div>
+    </div>
+
+    <div class="section-card" id="otp-card" style="display:none;">
+      <div class="section-label">Verification</div>
+      <div class="section-title">Enter your code</div>
+      <div class="section-desc">Sent to <span id="phone-display"></span></div>
+      <div class="otp-row">
+        <input type="text" id="otp" maxlength="6" placeholder="······" inputmode="numeric">
+        <button id="btn-verify">Verify</button>
+      </div>
+      <div id="msg-verify" class="msg"></div>
+    </div>
+  </div>
+
+  <!-- SCREEN: Profile form -->
+  <div id="screen-main" class="screen">
+
+    <!-- Badge live preview -->
+    <div class="section-card">
+      <div class="section-label">Badge preview</div>
+      <div class="section-title" style="margin-bottom:14px;">How your station appears on every tile</div>
+      <div class="badge-preview-wrap">
+        <div class="preview-label">Example tile on ONDA Nile</div>
+        <div class="mock-tile">
+          <div class="mock-tile-title">The Future of Product Development</div>
+          <div class="mock-tile-meta">42 min · Nov 21 2026</div>
+          <div class="mock-tile-footer">
+            <span class="station-badge" id="badge-preview" style="background:rgba(0,139,130,0.2);color:#00B8AC;">
+              ◆ <span id="badge-text">Your Station Name</span>
+            </span>
+          </div>
+        </div>
+      </div>
+      <p class="hint">The badge uses your station name and color theme. Tap on any tile → badge → goes to your station archive.</p>
+    </div>
+
+    <!-- Station Identity -->
+    <div class="section-card">
+      <div class="section-label">Station Identity</div>
+      <div class="section-title">About your station</div>
+      <div class="section-desc">This is how your station appears to listeners browsing ONDA Nile.</div>
+
+      <div class="field">
+        <label for="station-name">Station name <span class="req">required</span></label>
+        <input type="text" id="station-name" placeholder="ProductCamp Austin">
+        <div class="hint">This becomes the badge text on every tile.</div>
+      </div>
+
+      <div class="field-row">
+        <div class="field">
+          <label for="station-city">City <span class="req">required</span></label>
+          <input type="text" id="station-city" placeholder="Austin">
+        </div>
+        <div class="field">
+          <label for="station-region">Region <span class="req">required</span></label>
+          <input type="text" id="station-region" placeholder="TX">
+        </div>
+      </div>
+
+      <div class="field">
+        <label for="station-desc">About this station <span class="opt">encouraged</span></label>
+        <textarea id="station-desc" placeholder="What you curate and why. Who your listeners are. What makes this station worth following."></textarea>
+        <div class="hint">Shown on your station archive page. 2–4 sentences is plenty.</div>
+      </div>
+    </div>
+
+    <!-- Curator Identity -->
+    <div class="section-card">
+      <div class="section-label">Curator Identity</div>
+      <div class="section-title">Who's behind this station</div>
+
+      <div class="gate-note">
+        <span class="gate-note-icon">🔗</span>
+        <span>A LinkedIn profile is required before your station goes live on ONDA Nile. It confirms you're a real person — ONDA Nile is a human-curated platform, not an algorithm. Your profile doesn't have to be public-facing on the tile, but it must be on file.</span>
+      </div>
+
+      <div class="field">
+        <label for="curator-name">Your name <span class="req">required</span></label>
+        <input type="text" id="curator-name" placeholder="Arturo Pina">
+      </div>
+
+      <div class="field">
+        <label for="curator-linkedin">LinkedIn profile URL <span class="req">required · listing gate</span></label>
+        <input type="url" id="curator-linkedin" placeholder="https://linkedin.com/in/yourname">
+        <div class="hint">Required to publish your station to the public ONDA Nile directory. <a href="https://linkedin.com" target="_blank" rel="noopener">Find your profile URL →</a></div>
+      </div>
+
+      <div class="field">
+        <label for="curator-photo">Photo URL <span class="opt">optional</span></label>
+        <input type="url" id="curator-photo" placeholder="https://...">
+        <div class="hint">A headshot or professional photo shown on your station page. Not required — the LinkedIn profile establishes your identity.</div>
+      </div>
+    </div>
+
+    <!-- Visual Identity -->
+    <div class="section-card">
+      <div class="section-label">Visual Identity</div>
+      <div class="section-title">Station color theme</div>
+      <div class="section-desc">Choose the palette for your station archive and tile badge.</div>
+
+      <div class="skin-grid">
+        <div class="skin-opt skin-classic">
+          <input type="radio" name="skin" id="skin-classic" value="classic" checked>
+          <label for="skin-classic">
+            <div class="skin-swatch"><div class="skin-dot d1"></div><div class="skin-dot d2"></div><div class="skin-dot d3"></div></div>
+            <div class="skin-name">Classic</div>
+          </label>
+        </div>
+        <div class="skin-opt skin-professional">
+          <input type="radio" name="skin" id="skin-professional" value="professional">
+          <label for="skin-professional">
+            <div class="skin-swatch"><div class="skin-dot d1"></div><div class="skin-dot d2"></div><div class="skin-dot d3"></div></div>
+            <div class="skin-name">Pro</div>
+          </label>
+        </div>
+        <div class="skin-opt skin-academic">
+          <input type="radio" name="skin" id="skin-academic" value="academic">
+          <label for="skin-academic">
+            <div class="skin-swatch"><div class="skin-dot d1"></div><div class="skin-dot d2"></div><div class="skin-dot d3"></div></div>
+            <div class="skin-name">Academic</div>
+          </label>
+        </div>
+        <div class="skin-opt skin-vibrant">
+          <input type="radio" name="skin" id="skin-vibrant" value="vibrant">
+          <label for="skin-vibrant">
+            <div class="skin-swatch"><div class="skin-dot d1"></div><div class="skin-dot d2"></div><div class="skin-dot d3"></div></div>
+            <div class="skin-name">Vibrant</div>
+          </label>
+        </div>
+        <div class="skin-opt skin-minimal">
+          <input type="radio" name="skin" id="skin-minimal" value="minimal">
+          <label for="skin-minimal">
+            <div class="skin-swatch"><div class="skin-dot d1"></div><div class="skin-dot d2"></div><div class="skin-dot d3"></div></div>
+            <div class="skin-name">Minimal</div>
+          </label>
+        </div>
+      </div>
+
+      <div class="field">
+        <label for="station-icon">Station icon <span class="opt">optional</span></label>
+        <input type="text" id="station-icon" placeholder="e.g. 🎤 or a single letter like P">
+        <div class="hint">A short symbol or emoji that sits next to your station name in the badge. Leave blank to use ◆.</div>
+      </div>
+    </div>
+
+    <button class="btn-primary" id="btn-save">Save station profile</button>
+    <div id="msg-save" class="msg"></div>
+    <pre id="dbg"></pre>
+
+  </div><!-- /screen-main -->
+
+</div><!-- /wrap -->
+
+<script>
+  const NILE_AUTH = 'https://xrxm-29on-xlyt.n7e.xano.io/api:nile';
+  const NILE_API  = 'https://xrxm-29on-xlyt.n7e.xano.io/api:onda-nile';
+
+  let authToken   = '';
+  let authedPhone = '';
+
+  // Skin palette map for badge preview
+  const SKINS = {
+    classic:      { primary: '#009688', bg: 'rgba(0,150,136,0.2)',  text: '#00E5D4' },
+    professional: { primary: '#0A66C2', bg: 'rgba(10,102,194,0.15)', text: '#4A9EE8' },
+    academic:     { primary: '#2C3E50', bg: 'rgba(44,62,80,0.12)',  text: '#2C3E50' },
+    vibrant:      { primary: '#7C3AED', bg: 'rgba(124,58,237,0.2)', text: '#C084FC' },
+    minimal:      { primary: '#111111', bg: 'rgba(0,0,0,0.08)',     text: '#111111' },
+  };
+
+  function dbg(msg) {
+    const el = document.getElementById('dbg');
+    el.style.display = 'block';
+    el.textContent += msg + '\n';
+  }
+
+  function showMsg(id, type, text) {
+    const el = document.getElementById(id);
+    el.className = 'msg ' + type;
+    el.textContent = text;
+  }
+
+  // ── Badge live preview ──────────────────────────────────────
+  function updateBadge() {
+    const name    = document.getElementById('station-name').value.trim() || 'Your Station Name';
+    const icon    = document.getElementById('station-icon')?.value.trim() || '◆';
+    const skin    = document.querySelector('input[name="skin"]:checked')?.value || 'classic';
+    const palette = SKINS[skin];
+
+    document.getElementById('badge-text').textContent = name;
+    const badge = document.getElementById('badge-preview');
+    badge.style.background = palette.bg;
+    badge.style.color = palette.text;
+
+    // Update icon character
+    const iconNode = badge.childNodes[0];
+    if (iconNode && iconNode.nodeType === Node.TEXT_NODE) {
+      iconNode.textContent = (icon || '◆') + ' ';
+    }
+  }
+
+  document.getElementById('station-name').addEventListener('input', updateBadge);
+  document.getElementById('station-icon').addEventListener('input', updateBadge);
+  document.querySelectorAll('input[name="skin"]').forEach(r => r.addEventListener('change', updateBadge));
+
+  // ── Bootstrap from URL params (coming from register.html picker) ──
+  (function bootstrap() {
+    const p = new URLSearchParams(window.location.search);
+    const token = p.get('token');
+    const phone = p.get('phone');
+    if (token && phone) {
+      authToken   = token;
+      authedPhone = phone;
+      if (p.get('org_l1')) {
+        // Pre-fill station name from org if available
+        const l1 = p.get('org_l1');
+        const l2 = p.get('org_l2') || '';
+        const combined = l2 ? l1 + ' · ' + l2 : l1;
+        const nameField = document.getElementById('station-name');
+        if (!nameField.value) nameField.value = combined;
+        updateBadge();
+      }
+      document.getElementById('screen-auth').classList.remove('active');
+      document.getElementById('screen-main').classList.add('active');
+      dbg('Token from admin page — skipping OTP for ' + phone);
+    }
+  })();
+
+  // ── OTP: Send ───────────────────────────────────────────────
+  document.getElementById('btn-send').addEventListener('click', async () => {
+    const phone = document.getElementById('phone').value.trim();
+    if (!phone) { showMsg('msg-send', 'err', 'Enter your phone number.'); return; }
+
+    try {
+      const r = await fetch(NILE_AUTH + '/presenter/magic/send', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ phone })
+      });
+      if (!r.ok) throw new Error(await r.text());
+      document.getElementById('phone-display').textContent = phone;
+      document.getElementById('otp-card').style.display = 'block';
+      showMsg('msg-send', 'ok', 'Code sent.');
+    } catch (e) {
+      showMsg('msg-send', 'err', 'Could not send code: ' + e.message);
+    }
+  });
+
+  // ── OTP: Verify ─────────────────────────────────────────────
+  document.getElementById('btn-verify').addEventListener('click', async () => {
+    const phone = document.getElementById('phone').value.trim();
+    const otp   = document.getElementById('otp').value.trim();
+
+    try {
+      const r = await fetch(NILE_AUTH + '/presenter/magic/verify', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ phone, token: otp })
+      });
+      const data = await r.json();
+      if (!r.ok) throw new Error(data.message || JSON.stringify(data));
+
+      // Extract token from profile_url
+      const url = new URL(data.profile_url || data.redirect_url || '');
+      authToken   = url.searchParams.get('token') || data.authToken || '';
+      authedPhone = phone;
+
+      document.getElementById('screen-auth').classList.remove('active');
+      document.getElementById('screen-main').classList.add('active');
+    } catch (e) {
+      showMsg('msg-verify', 'err', 'Verification failed: ' + e.message);
+    }
+  });
+
+  // ── Load existing profile ────────────────────────────────────
+  async function loadProfile() {
+    // Will load from Xano once endpoint exists
+    // GET /nile/station/profile?phone=...&magic_auth_token=...
+  }
+
+  // ── Save ─────────────────────────────────────────────────────
+  document.getElementById('btn-save').addEventListener('click', async () => {
+    const stationName = document.getElementById('station-name').value.trim();
+    const city        = document.getElementById('station-city').value.trim();
+    const region      = document.getElementById('station-region').value.trim();
+    const description = document.getElementById('station-desc').value.trim();
+    const curatorName = document.getElementById('curator-name').value.trim();
+    const linkedin    = document.getElementById('curator-linkedin').value.trim();
+    const photo       = document.getElementById('curator-photo').value.trim();
+    const skin        = document.querySelector('input[name="skin"]:checked')?.value || 'classic';
+    const icon        = document.getElementById('station-icon').value.trim() || '◆';
+
+    // Validation
+    if (!stationName) { showMsg('msg-save', 'err', 'Station name is required.'); return; }
+    if (!city || !region) { showMsg('msg-save', 'err', 'City and region are required.'); return; }
+    if (!curatorName) { showMsg('msg-save', 'err', 'Your name is required.'); return; }
+    if (!linkedin) { showMsg('msg-save', 'err', 'LinkedIn profile URL is required to save your station profile.'); return; }
+    if (!linkedin.includes('linkedin.com')) { showMsg('msg-save', 'err', 'Enter a valid LinkedIn profile URL (linkedin.com/in/...).'); return; }
+
+    const payload = {
+      phone:          authedPhone,
+      magic_auth_token: authToken,
+      station_name:   stationName,
+      city,
+      region,
+      description,
+      curator_name:   curatorName,
+      linkedin_url:   linkedin,
+      photo_url:      photo,
+      skin,
+      badge_icon:     icon,
+    };
+
+    dbg('POST /nile/station/profile → ' + JSON.stringify(payload, null, 2));
+
+    try {
+      const r = await fetch(NILE_API + '/nile/station/profile', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      const data = await r.json();
+      if (!r.ok) throw new Error(data.message || JSON.stringify(data));
+      showMsg('msg-save', 'ok', '✓ Station profile saved. Your station is updated on ONDA Nile.');
+      dbg('Response: ' + JSON.stringify(data, null, 2));
+    } catch (e) {
+      showMsg('msg-save', 'err', 'Save failed: ' + e.message);
+      dbg('Error: ' + e.message);
+    }
+  });
+</script>
+</body>
+</html>
