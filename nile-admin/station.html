@@ -511,6 +511,7 @@
 
   let authToken   = '';
   let authedPhone = '';
+  let currentOrg  = { l1: '', l2: '', l3: '' };
 
   // Skin palette map for badge preview
   const SKINS = {
@@ -565,6 +566,7 @@
       authToken   = token;
       authedPhone = phone;
       if (p.get('org_l1')) {
+        currentOrg = { l1: p.get('org_l1'), l2: p.get('org_l2') || '', l3: p.get('org_l3') || '' };
         // Pre-fill station name from org if available
         const l1 = p.get('org_l1');
         const l2 = p.get('org_l2') || '';
@@ -678,9 +680,12 @@
     if (!linkedin.includes('linkedin.com')) { showMsg('msg-save', 'err', 'Enter a valid LinkedIn profile URL (linkedin.com/in/...).'); return; }
 
     const payload = {
-      phone:          authedPhone,
+      phone:            authedPhone,
       magic_auth_token: authToken,
-      station_name:   stationName,
+      org_l1:           currentOrg.l1,
+      org_l2:           currentOrg.l2,
+      org_l3:           currentOrg.l3,
+      station_name:     stationName,
       city,
       region,
       description,
