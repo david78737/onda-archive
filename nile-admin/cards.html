@@ -233,6 +233,20 @@
     border-top-color: transparent; border-radius: 50%; animation: spin .6s linear infinite;
     vertical-align: middle; margin-right: 4px; }
   @keyframes spin { to { transform: rotate(360deg); } }
+
+  .completeness-bar {
+    display: flex; gap: 6px; align-items: center;
+    padding: 10px 20px; background: #FFFBF0; border-bottom: 1px solid #f0f0f0;
+    font-size: 12px; color: var(--warn);
+  }
+  .completeness-bar.complete {
+    background: var(--success-bg); color: var(--success);
+  }
+  .missing-fields { display: flex; flex-wrap: wrap; gap: 4px; margin-left: 4px; }
+  .missing-tag {
+    font-size: 11px; font-weight: 700; padding: 1px 7px;
+    background: rgba(180,90,0,0.1); border-radius: 4px; color: var(--warn);
+  }
 </style>
 </head>
 <body>
@@ -339,6 +353,27 @@ let currentOrg  = {};
 let currentEventCode = '';
 let currentFilter = 'submitted';
 
+// Bootstrap from register.html picker — skip OTP if token+phone in URL
+(function bootstrap() {
+  const p = new URLSearchParams(window.location.search);
+  const token = p.get('token');
+  const phone = p.get('phone');
+  if (token && phone) {
+    authToken   = token;
+    authedPhone = phone;
+    if (p.get('org_l1')) {
+      document.getElementById('s-org-l1').value = p.get('org_l1');
+      document.getElementById('s-org-l2').value = p.get('org_l2') || '';
+      document.getElementById('s-org-l3').value = p.get('org_l3') || '';
+    }
+    if (p.get('event_code')) {
+      document.getElementById('s-event-code').value = p.get('event_code').toUpperCase();
+    }
+    document.getElementById('screen-auth').style.display = 'none';
+    document.getElementById('screen-event').style.display = 'block';
+  }
+})();
+
 function normalizePhone(raw) {
   const digits = raw.replace(/\D/g, '');
   if (digits.length === 10) return '+1' + digits;
@@ -364,7 +399,7 @@ async function sendOtp() {
   try {
     const r = await fetch(`${NILE_AUTH}/presenter/magic/send`, {
       method: 'POST', headers: {'Content-Type':'application/json'},
-      body: JSON.stringify({ contact: phone })
+      body: JSON.stringify({ phone })
     });
     if (!r.ok) { const e = await r.json(); throw new Error(e.message || 'Failed to send code'); }
     document.getElementById('step-phone').style.display = 'none';
@@ -382,7 +417,7 @@ async function verifyOtp() {
   try {
     const r = await fetch(`${NILE_AUTH}/presenter/magic/verify`, {
       method: 'POST', headers: {'Content-Type':'application/json'},
-      body: JSON.stringify({ contact: phone, code: otp })
+      body: JSON.stringify({ phone, token: otp })
     });
     if (!r.ok) { const e = await r.json(); throw new Error(e.message || 'Invalid code'); }
     const data = await r.json();
@@ -440,7 +475,7 @@ async function loadCards(statusFilter) {
     let url = `${NILE_API}/nile/cards/event?org_l1=${org_l1}&org_l2=${org_l2}&org_l3=${org_l3}&event_code=${event_code}`;
     if (statusFilter) url += `&status=${statusFilter}`;
 
-    const r = await fetch(url, { headers: { 'Authorization': `Bearer ${authToken}` } });
+    const r = await fetch(url + `&magic_auth_token=${encodeURIComponent(authToken)}`);
     if (!r.ok) { const e = await r.json(); throw new Error(e.message || 'Failed to load cards'); }
     const cards = await r.json();
 
@@ -471,6 +506,19 @@ function renderCard(c) {
                     : c.status === 'public'    ? 'Approved'
                     : c.status.charAt(0).toUpperCase() + c.status.slice(1);
 
+  // Completeness check
+  const required = [
+    { key: 'title',    label: 'title' },
+    { key: 'synopsis', label: 'synopsis' },
+    { key: 'bio',      label: 'bio' },
+  ];
+  const missing = required.filter(f => !c[f.key] || !c[f.key].toString().trim());
+  const completenessBar = missing.length === 0
+    ? `<div class="completeness-bar complete">✓ All required fields present</div>`
+    : `<div class="completeness-bar">⚠ Missing:
+        <div class="missing-fields">${missing.map(f => `<span class="missing-tag">${f.label}</span>`).join('')}</div>
+      </div>`;
+
   const actions = c.status === 'public'
     ? `<div class="action-result success" style="display:block">✓ Approved — visible on ONDA Nile</div>`
     : `
@@ -492,12 +540,13 @@ function renderCard(c) {
 
   return `
     <div class="candidate-card status-${c.status}" id="card-${c.presenter_phone.replace(/\+/g,'')}">
+      ${completenessBar}
       <div class="cc-header">
         <div class="cc-title-row">
           <div class="cc-title">${c.title || '<em style="color:var(--muted);font-weight:400">No title yet</em>'}</div>
           <span class="status-pill ${c.status}">${statusLabel}</span>
         </div>
-        <div class="cc-presenter">${c.presenter_phone}</div>
+        <div class="cc-presenter">${c.presenter_name ? `<strong>${c.presenter_name}</strong> · ` : ''}${c.presenter_phone}</div>
       </div>
       <div class="cc-body">
         <div class="cc-field">
@@ -535,9 +584,10 @@ async function approveCard(presenterPhone, btn) {
   try {
     const r = await fetch(`${NILE_API}/nile/card/review`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${authToken}` },
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         phone: authedPhone,
+        magic_auth_token: authToken,
         org_l1: currentOrg.l1, org_l2: currentOrg.l2, org_l3: currentOrg.l3,
         event_code: currentEventCode,
         presenter_phone: presenterPhone,
@@ -574,9 +624,10 @@ async function returnCard(presenterPhone, btn) {
   try {
     const r = await fetch(`${NILE_API}/nile/card/review`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${authToken}` },
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         phone: authedPhone,
+        magic_auth_token: authToken,
         org_l1: currentOrg.l1, org_l2: currentOrg.l2, org_l3: currentOrg.l3,
         event_code: currentEventCode,
         presenter_phone: presenterPhone,
