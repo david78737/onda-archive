@@ -360,11 +360,11 @@ async function submitNewEvent() {
   btn.innerHTML = '<span class="spinner"></span>Creating…';
 
   try {
-    const payload = { phone: authedPhone, org_l1, org_l2, org_l3, event_label, event_code, event_date };
+    const payload = { phone: authedPhone, magic_auth_token: authToken, org_l1, org_l2, org_l3, event_label, event_code, event_date };
     dbg('POST /nile/event/create payload: ' + JSON.stringify(payload));
     const r = await fetch(`${NILE_API}/nile/event/create`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${authToken}` },
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload)
     });
     const data = await r.json();
