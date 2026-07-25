@@ -134,6 +134,13 @@
     border-top-color: transparent; border-radius: 50%; animation: spin .6s linear infinite;
     vertical-align: middle; margin-right: 6px; }
   @keyframes spin { to { transform: rotate(360deg); } }
+
+  #debug-panel {
+    margin-top: 16px; background: #1a1a1a; color: #00ff88;
+    font-family: monospace; font-size: 12px; border-radius: 8px;
+    padding: 14px 16px; white-space: pre-wrap; word-break: break-all;
+    max-height: 300px; overflow-y: auto; display: none;
+  }
 </style>
 </head>
 <body>
@@ -240,6 +247,8 @@
     </div>
   </div>
 
+  <div id="debug-panel"></div>
+
 </div><!-- /wrap -->
 
 <script>
@@ -248,6 +257,13 @@ const NILE_API  = 'https://xrxm-29on-xlyt.n7e.xano.io/api:onda-nile';
 
 let authToken = null;
 let authedPhone = null;
+
+function dbg(msg) {
+  const el = document.getElementById('debug-panel');
+  el.style.display = 'block';
+  el.textContent += '[' + new Date().toLocaleTimeString() + '] ' + msg + '\n';
+  el.scrollTop = el.scrollHeight;
+}
 
 function normalizePhone(raw) {
   const digits = raw.replace(/\D/g, '');
@@ -273,16 +289,19 @@ async function sendOtp() {
   const raw = document.getElementById('phone-input').value.trim();
   if (!raw) { showBanner('auth-banner', 'error', 'Enter your phone number.'); return; }
   const phone = normalizePhone(raw);
+  dbg('Sending OTP to ' + phone);
   try {
     const r = await fetch(`${NILE_AUTH}/presenter/magic/send`, {
       method: 'POST', headers: {'Content-Type':'application/json'},
       body: JSON.stringify({ contact: phone })
     });
-    if (!r.ok) { const e = await r.json(); throw new Error(e.message || 'Failed to send code'); }
+    const data = await r.json();
+    dbg('OTP send response ' + r.status + ': ' + JSON.stringify(data));
+    if (!r.ok) throw new Error(data.message || 'Failed to send code');
     document.getElementById('step-phone').style.display = 'none';
     document.getElementById('step-otp').style.display = 'block';
     setTimeout(() => document.getElementById('otp-input').focus(), 50);
-  } catch(e) { showBanner('auth-banner', 'error', e.message); }
+  } catch(e) { dbg('OTP send error: ' + e.message); showBanner('auth-banner', 'error', e.message); }
 }
 
 async function verifyOtp() {
@@ -291,19 +310,22 @@ async function verifyOtp() {
   const otp = document.getElementById('otp-input').value.trim();
   const phone = normalizePhone(raw);
   if (!otp) { showBanner('auth-banner', 'error', 'Enter the code from your text.'); return; }
+  dbg('Verifying OTP for ' + phone);
   try {
     const r = await fetch(`${NILE_AUTH}/presenter/magic/verify`, {
       method: 'POST', headers: {'Content-Type':'application/json'},
       body: JSON.stringify({ contact: phone, code: otp })
     });
-    if (!r.ok) { const e = await r.json(); throw new Error(e.message || 'Invalid code'); }
     const data = await r.json();
+    dbg('OTP verify response ' + r.status + ': ' + JSON.stringify(data));
+    if (!r.ok) throw new Error(data.message || 'Invalid code');
     authToken = (data.profile_url || '').split('?token=')[1]?.split('&')[0] || null;
-    if (!authToken) throw new Error('Auth failed — check that your phone is registered as a Curator');
+    dbg('authToken: ' + (authToken ? authToken.substring(0,20) + '...' : 'NULL — token not found in response'));
+    if (!authToken) throw new Error('Auth failed — token not returned');
     authedPhone = phone;
     document.getElementById('screen-auth').style.display = 'none';
     document.getElementById('screen-main').style.display = 'block';
-  } catch(e) { showBanner('auth-banner', 'error', e.message); }
+  } catch(e) { dbg('OTP verify error: ' + e.message); showBanner('auth-banner', 'error', e.message); }
 }
 
 function resetAuth() {
@@ -323,22 +345,30 @@ async function createEvent() {
   const event_code   = document.getElementById('event-code').value.trim().toUpperCase();
   const event_date   = document.getElementById('event-date').value;
 
-  if (!org_l1 || !org_l2 || !org_l3) { showBanner('create-banner', 'error', 'Fill in all three org fields.'); return; }
-  if (!event_label) { showBanner('create-banner', 'error', 'Enter an event name.'); return; }
-  if (!event_code)  { showBanner('create-banner', 'error', 'Enter an event code.'); return; }
-  if (!event_date)  { showBanner('create-banner', 'error', 'Select an event date.'); return; }
+  dbg('Create Event clicked');
+  dbg('org_l1=' + org_l1 + ' org_l2=' + org_l2 + ' org_l3=' + org_l3);
+  dbg('event_label=' + event_label + ' event_code=' + event_code + ' event_date=' + event_date);
+  dbg('authToken=' + (authToken ? 'present' : 'MISSING') + ' authedPhone=' + authedPhone);
+
+  if (!org_l1 || !org_l2 || !org_l3) { showBanner('create-banner', 'error', 'Fill in all three org fields.'); dbg('BLOCKED: missing org fields'); return; }
+  if (!event_label) { showBanner('create-banner', 'error', 'Enter an event name.'); dbg('BLOCKED: missing event_label'); return; }
+  if (!event_code)  { showBanner('create-banner', 'error', 'Enter an event code.'); dbg('BLOCKED: missing event_code'); return; }
+  if (!event_date)  { showBanner('create-banner', 'error', 'Select an event date.'); dbg('BLOCKED: missing event_date'); return; }
 
   const btn = document.getElementById('create-btn');
   btn.disabled = true;
   btn.innerHTML = '<span class="spinner"></span>Creating…';
 
   try {
+    const payload = { phone: authedPhone, org_l1, org_l2, org_l3, event_label, event_code, event_date };
+    dbg('POST /nile/event/create payload: ' + JSON.stringify(payload));
     const r = await fetch(`${NILE_API}/nile/event/create`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${authToken}` },
-      body: JSON.stringify({ phone: authedPhone, org_l1, org_l2, org_l3, event_label, event_code, event_date })
+      body: JSON.stringify(payload)
     });
     const data = await r.json();
+    dbg('Response ' + r.status + ': ' + JSON.stringify(data));
 
     if (!r.ok) {
       // Duplicate event code — treat as informational, not a failure
