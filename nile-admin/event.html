@@ -336,14 +336,22 @@ async function createEvent() {
       body: JSON.stringify({ phone: authedPhone, org_l1, org_l2, org_l3, event_label, event_code, event_date })
     });
     const data = await r.json();
-    if (!r.ok) throw new Error(data.message || 'Create failed');
 
-    document.getElementById('result-code').textContent  = data.event_code;
-    document.getElementById('result-label').textContent = data.event_label;
-    document.getElementById('result-date').textContent  = new Date(data.event_date + 'T12:00:00').toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
-
-    document.getElementById('screen-main').style.display = 'none';
-    document.getElementById('screen-success').style.display = 'block';
+    if (!r.ok) {
+      // Duplicate event code — treat as informational, not a failure
+      const msg = (data.message || '').toLowerCase();
+      if (msg.includes('unique') || msg.includes('duplicate') || msg.includes('already')) {
+        showBanner('create-banner', 'success', `Event code ${event_code} already exists in the system — no action needed.`);
+      } else {
+        throw new Error(data.message || 'Create failed');
+      }
+    } else {
+      document.getElementById('result-code').textContent  = data.event_code;
+      document.getElementById('result-label').textContent = data.event_label;
+      document.getElementById('result-date').textContent  = new Date(data.event_date + 'T12:00:00').toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+      document.getElementById('screen-main').style.display = 'none';
+      document.getElementById('screen-success').style.display = 'block';
+    }
   } catch(e) {
     showBanner('create-banner', 'error', e.message);
   } finally {
