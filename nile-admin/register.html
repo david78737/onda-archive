@@ -316,7 +316,6 @@
     </div>
   </div>
 
-  <div id="debug-panel"></div>
 
 </div>
 
@@ -350,12 +349,7 @@ let selectedOrg = null;
   }
 })();
 
-function dbg(msg) {
-  const el = document.getElementById('debug-panel');
-  el.style.display = 'block';
-  el.textContent += '[' + new Date().toLocaleTimeString() + '] ' + msg + '\n';
-  el.scrollTop = el.scrollHeight;
-}
+function dbg(msg) { console.log('[register]', msg); }
 
 function show(id) {
   ['screen-phone','screen-picker','screen-org','screen-coordinator','screen-success']
