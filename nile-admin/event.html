@@ -65,7 +65,10 @@
     transition: border-color .15s; font-family: inherit;
   }
   input:focus { border-color: var(--teal); outline: none; }
+  input.prefilled { background: var(--teal-light); border-color: var(--teal); color: var(--teal-dark); font-weight: 600; }
+  input.prefilled:focus { background: var(--surface); color: var(--ink); font-weight: 400; }
   .hint { font-size: 12px; color: var(--muted); margin-top: 4px; }
+  .prefilled-note { font-size: 12px; color: var(--teal); margin-top: 4px; font-weight: 600; }
 
   .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
 
@@ -183,35 +186,35 @@
       <div class="row2">
         <div class="field">
           <label for="org-l1">Organization</label>
-          <input type="text" id="org-l1" value="productcamp">
-          <div class="hint">Lowercase, no spaces</div>
+          <input type="text" id="org-l1" value="productcamp" class="prefilled">
+          <div class="prefilled-note">✓ Pre-filled for ProductCamp Austin</div>
         </div>
         <div class="field">
           <label for="org-l2">Region</label>
-          <input type="text" id="org-l2" value="austin">
-          <div class="hint">Lowercase, no spaces</div>
+          <input type="text" id="org-l2" value="austin" class="prefilled">
+          <div class="prefilled-note">✓ Pre-filled</div>
         </div>
       </div>
 
       <div class="field">
         <label for="org-l3">Station ID</label>
-        <input type="text" id="org-l3" value="pca">
-        <div class="hint">Short identifier for your station (e.g. pca, ch47)</div>
+        <input type="text" id="org-l3" value="pca" class="prefilled">
+        <div class="prefilled-note">✓ Pre-filled</div>
       </div>
 
       <div class="field">
-        <label for="event-label">Event name</label>
-        <input type="text" id="event-label" placeholder="ProductCamp Austin 35">
+        <label for="event-label">Event name <span style="color:var(--error)">*</span></label>
+        <input type="text" id="event-label" placeholder="e.g. ProductCamp Austin 36">
       </div>
 
       <div class="row2">
         <div class="field">
-          <label for="event-code">Event code</label>
-          <input type="text" id="event-code" placeholder="PCA35" style="text-transform:uppercase">
+          <label for="event-code">Event code <span style="color:var(--error)">*</span></label>
+          <input type="text" id="event-code" placeholder="e.g. PCA36" style="text-transform:uppercase">
           <div class="hint">Short, memorable — presenters use this to apply</div>
         </div>
         <div class="field">
-          <label for="event-date">Event date</label>
+          <label for="event-date">Event date <span style="color:var(--error)">*</span></label>
           <input type="date" id="event-date">
         </div>
       </div>
