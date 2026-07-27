@@ -9,15 +9,31 @@
   --muted:   #5C7876;
   --border:  #C5DEDD;
   --tint:    #E4F2F1;
+  --internal-bg: #F7F5F0;
+  --internal-border: #D8D0C4;
+  --internal-label: #7A6F62;
+  --public-bg: #F0F8F0;
+  --public-border: #B8D8B8;
+  --public-label: #2E7040;
 }
 @media (prefers-color-scheme: dark) {
   :root {
     --ground: #111C1B; --surface: #182322; --ink: #DFF0EE;
     --body: #9BBFBD; --muted: #6A8E8C; --border: #25403E; --tint: #0D2220;
+    --internal-bg: #1A1814; --internal-border: #3A3228; --internal-label: #9A8F80;
+    --public-bg: #0D1F0D; --public-border: #1E4020; --public-label: #5DAF70;
   }
 }
-:root[data-theme="light"] { --ground:#F1F6F6;--surface:#FFF;--ink:#1C2B2A;--body:#3A5250;--muted:#5C7876;--border:#C5DEDD;--tint:#E4F2F1; }
-:root[data-theme="dark"]  { --ground:#111C1B;--surface:#182322;--ink:#DFF0EE;--body:#9BBFBD;--muted:#6A8E8C;--border:#25403E;--tint:#0D2220; }
+:root[data-theme="light"] {
+  --ground:#F1F6F6;--surface:#FFF;--ink:#1C2B2A;--body:#3A5250;--muted:#5C7876;--border:#C5DEDD;--tint:#E4F2F1;
+  --internal-bg:#F7F5F0;--internal-border:#D8D0C4;--internal-label:#7A6F62;
+  --public-bg:#F0F8F0;--public-border:#B8D8B8;--public-label:#2E7040;
+}
+:root[data-theme="dark"] {
+  --ground:#111C1B;--surface:#182322;--ink:#DFF0EE;--body:#9BBFBD;--muted:#6A8E8C;--border:#25403E;--tint:#0D2220;
+  --internal-bg:#1A1814;--internal-border:#3A3228;--internal-label:#9A8F80;
+  --public-bg:#0D1F0D;--public-border:#1E4020;--public-label:#5DAF70;
+}
 
 *,*::before,*::after { box-sizing: border-box; margin: 0; padding: 0; }
 body {
@@ -31,69 +47,90 @@ body {
   margin: 0 auto;
 }
 
-.home-link {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 12px;
-  font-weight: 600;
-  color: var(--teal);
-  text-decoration: none;
-  margin-bottom: 24px;
-  letter-spacing: 0.02em;
-}
-.home-link:hover { opacity: 0.75; }
-
 .wordmark { font-size: 11px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: var(--teal); margin-bottom: 6px; }
 .page-title { font-size: 26px; font-weight: 600; color: var(--ink); letter-spacing: -.02em; margin-bottom: 4px; }
 .page-meta { font-size: 12px; color: var(--muted); margin-bottom: 40px; }
 
-.section-label {
+/* Group blocks */
+.group {
+  border-radius: 10px;
+  border: 1px solid var(--internal-border);
+  background: var(--internal-bg);
+  margin-bottom: 28px;
+  overflow: hidden;
+}
+.group.public {
+  border-color: var(--public-border);
+  background: var(--public-bg);
+}
+
+.group-header {
+  padding: 12px 16px 10px;
+  border-bottom: 1px solid var(--internal-border);
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+}
+.group.public .group-header {
+  border-bottom-color: var(--public-border);
+}
+.group-label {
   font-size: 10px;
   font-weight: 700;
-  letter-spacing: .12em;
+  letter-spacing: .14em;
   text-transform: uppercase;
+  color: var(--internal-label);
+}
+.group.public .group-label {
+  color: var(--public-label);
+}
+.group-note {
+  font-size: 11px;
   color: var(--muted);
-  margin-bottom: 12px;
-  padding-bottom: 8px;
-  border-bottom: 1px solid var(--border);
 }
 
 .doc-list {
   list-style: none;
   display: flex;
   flex-direction: column;
-  gap: 2px;
-  margin-bottom: 40px;
+  gap: 0;
+  padding: 6px 8px 8px;
 }
 
 .doc-item a {
   display: flex;
   align-items: center;
-  gap: 16px;
-  padding: 14px 16px;
+  gap: 14px;
+  padding: 11px 12px;
   background: var(--surface);
   border: 1px solid var(--border);
-  border-radius: 7px;
+  border-radius: 6px;
   text-decoration: none;
   color: inherit;
+  margin-top: 4px;
   transition: background .12s, border-color .12s;
 }
 .doc-item a:hover { background: var(--tint); border-color: var(--teal); }
 .doc-item a:focus-visible { outline: 2px solid var(--teal); outline-offset: 2px; }
-.doc-item.featured a { border-color: var(--teal); background: var(--tint); }
+.doc-item.featured a { border-color: var(--teal); }
 
-.doc-icon { font-size: 22px; flex-shrink: 0; line-height: 1; }
-
+.doc-icon { font-size: 20px; flex-shrink: 0; line-height: 1; }
 .doc-text { flex: 1; min-width: 0; }
 .doc-name { font-size: 14px; font-weight: 600; color: var(--ink); }
 .doc-desc { font-size: 12px; color: var(--muted); margin-top: 1px; }
+.doc-arrow { color: var(--teal); font-size: 14px; flex-shrink: 0; }
 
-.doc-arrow { color: var(--teal); font-size: 16px; flex-shrink: 0; }
+.badge {
+  font-size: 10px; font-weight: 700; letter-spacing: .06em;
+  text-transform: uppercase; padding: 2px 6px;
+  border-radius: 4px; margin-left: 6px; vertical-align: middle;
+}
+.badge-public { background: #E8F5E9; color: #2E7D32; }
+.badge-live   { background: #E3F2FD; color: #1565C0; }
 
 .footer {
-  margin-top: 48px;
-  padding-top: 20px;
+  margin-top: 40px;
+  padding-top: 18px;
   border-top: 1px solid var(--border);
   font-size: 11px;
   color: var(--muted);
@@ -102,242 +139,290 @@ body {
 .footer a:hover { text-decoration: underline; }
 </style>
 
-<a class="home-link" href="https://claude.ai/code/artifact/b40580ee-94bc-4f2a-8061-e067694c8b00" target="_blank" rel="noopener">← User Journey Map</a>
-
 <div class="wordmark">ONDA Replay</div>
 <div class="page-title">Working Documents</div>
-<div class="page-meta">Bookmark this page to reach all active documents in one tap.</div>
+<div class="page-meta">Last updated July 2026 · Internal docs are private links (you only). Live tools and shareable docs are public GitHub Pages.</div>
 
-<div class="section-label">Start Here</div>
-<ul class="doc-list">
-  <li class="doc-item featured">
-    <a href="https://claude.ai/code/artifact/b40580ee-94bc-4f2a-8061-e067694c8b00" target="_blank" rel="noopener">
-      <span class="doc-icon">🌊</span>
-      <span class="doc-text">
-        <span class="doc-name">ONDA Replay — User Journey Map</span>
-        <span class="doc-desc">Listener → Contributor → Curator — all roles, all docs, all gaps in one place</span>
-      </span>
-      <span class="doc-arrow">↗</span>
-    </a>
-  </li>
-</ul>
+<!-- ── INTERNAL: PLANNING ── -->
+<div class="group">
+  <div class="group-header">
+    <span class="group-label">Internal — Planning</span>
+    <span class="group-note">Private · your eyes only</span>
+  </div>
+  <ul class="doc-list">
+    <li class="doc-item">
+      <a href="https://claude.ai/code/artifact/b40580ee-94bc-4f2a-8061-e067694c8b00" target="_blank" rel="noopener">
+        <span class="doc-icon">🗺️</span>
+        <span class="doc-text">
+          <span class="doc-name">User Journey Map</span>
+          <span class="doc-desc">Listener → Contributor → Curator — steps, gaps, and built status across all roles</span>
+        </span>
+        <span class="doc-arrow">↗</span>
+      </a>
+    </li>
+    <li class="doc-item featured">
+      <a href="https://claude.ai/code/artifact/7788bd6e-13bd-49da-94b7-1e3929853d3a" target="_blank" rel="noopener">
+        <span class="doc-icon">🎤</span>
+        <span class="doc-text">
+          <span class="doc-name">PCA35 Conference Workflow</span>
+          <span class="doc-desc">12-step end-to-end plan for ProductCamp Austin — built, to-build, and board decisions marked</span>
+        </span>
+        <span class="doc-arrow">↗</span>
+      </a>
+    </li>
+    <li class="doc-item">
+      <a href="https://claude.ai/code/artifact/c6d78ae1-e7bc-4c3c-8a9c-b73e3a42ca94" target="_blank" rel="noopener">
+        <span class="doc-icon">🔍</span>
+        <span class="doc-text">
+          <span class="doc-name">Curator Flow — Systems Analysis</span>
+          <span class="doc-desc">Entity model, actor permissions, state machines, integration gaps</span>
+        </span>
+        <span class="doc-arrow">↗</span>
+      </a>
+    </li>
+    <li class="doc-item">
+      <a href="https://claude.ai/code/artifact/b173d8e9-3a5e-46ad-8d43-5726bae2f1e7" target="_blank" rel="noopener">
+        <span class="doc-icon">🔧</span>
+        <span class="doc-text">
+          <span class="doc-name">Curator Event Flow — Build Scope</span>
+          <span class="doc-desc">13 items across Xano, Web, Flutter — sized S/M/L and sequenced with dependencies</span>
+        </span>
+        <span class="doc-arrow">↗</span>
+      </a>
+    </li>
+    <li class="doc-item">
+      <a href="https://claude.ai/code/artifact/bd6ab514-1ab4-496c-8a1a-2085b2369a5a" target="_blank" rel="noopener">
+        <span class="doc-icon">📊</span>
+        <span class="doc-text">
+          <span class="doc-name">Product Capability Matrix</span>
+          <span class="doc-desc">6 products × capabilities — completion status, open questions, fuel model</span>
+        </span>
+        <span class="doc-arrow">↗</span>
+      </a>
+    </li>
+  </ul>
+</div>
 
-<div class="section-label">Strategy &amp; Planning</div>
-<ul class="doc-list">
-  <li class="doc-item featured">
-    <a href="https://claude.ai/code/artifact/7788bd6e-13bd-49da-94b7-1e3929853d3a" target="_blank" rel="noopener">
-      <span class="doc-icon">🎤</span>
-      <span class="doc-text">
-        <span class="doc-name">PCA35 Conference Workflow</span>
-        <span class="doc-desc">12-step end-to-end plan for ProductCamp Austin — built, to-build, and board decisions marked</span>
-      </span>
-      <span class="doc-arrow">↗</span>
-    </a>
-  </li>
-  <li class="doc-item">
-    <a href="https://claude.ai/code/artifact/c6d78ae1-e7bc-4c3c-8a9c-b73e3a42ca94" target="_blank" rel="noopener">
-      <span class="doc-icon">🔍</span>
-      <span class="doc-text">
-        <span class="doc-name">Curator Flow — Systems Analysis</span>
-        <span class="doc-desc">Entity model, actor permissions, state machines, integration gaps, open design questions</span>
-      </span>
-      <span class="doc-arrow">↗</span>
-    </a>
-  </li>
-  <li class="doc-item">
-    <a href="https://claude.ai/code/artifact/b173d8e9-3a5e-46ad-8d43-5726bae2f1e7" target="_blank" rel="noopener">
-      <span class="doc-icon">🔧</span>
-      <span class="doc-text">
-        <span class="doc-name">Curator Event Flow — Build Scope</span>
-        <span class="doc-desc">13 items across Xano, Web, Flutter — sized S/M/L and sequenced with dependencies</span>
-      </span>
-      <span class="doc-arrow">↗</span>
-    </a>
-  </li>
-  <li class="doc-item">
-    <a href="https://claude.ai/code/artifact/bd6ab514-1ab4-496c-8a1a-2085b2369a5a" target="_blank" rel="noopener">
-      <span class="doc-icon">📊</span>
-      <span class="doc-text">
-        <span class="doc-name">Product Capability Matrix</span>
-        <span class="doc-desc">6 products × capabilities — completion status, open questions, fuel model</span>
-      </span>
-      <span class="doc-arrow">↗</span>
-    </a>
-  </li>
-</ul>
+<!-- ── INTERNAL: SPECS ── -->
+<div class="group">
+  <div class="group-header">
+    <span class="group-label">Internal — Specs</span>
+    <span class="group-note">Private · reference for build decisions</span>
+  </div>
+  <ul class="doc-list">
+    <li class="doc-item">
+      <a href="https://claude.ai/code/artifact/143ee9c6-9288-463f-aeab-8470ff75cde9" target="_blank" rel="noopener">
+        <span class="doc-icon">📋</span>
+        <span class="doc-text">
+          <span class="doc-name">Presenter Onboarding Spec</span>
+          <span class="doc-desc">Club setup, SMS opt-in, proxy code flow, post-stop delivery, ONDA Nile tile states</span>
+        </span>
+        <span class="doc-arrow">↗</span>
+      </a>
+    </li>
+    <li class="doc-item">
+      <a href="https://claude.ai/code/artifact/9902f215-d915-4207-9986-95ad8b547db6" target="_blank" rel="noopener">
+        <span class="doc-icon">🗂️</span>
+        <span class="doc-text">
+          <span class="doc-name">ONDA Nile Taxonomy Spec</span>
+          <span class="doc-desc">Three-tier org hierarchy, topic filtering, URL model, data schema</span>
+        </span>
+        <span class="doc-arrow">↗</span>
+      </a>
+    </li>
+    <li class="doc-item">
+      <a href="https://claude.ai/code/artifact/09694b4e-ab3e-4b3b-b012-46b1767ecee5" target="_blank" rel="noopener">
+        <span class="doc-icon">🔌</span>
+        <span class="doc-text">
+          <span class="doc-name">ONDA Nile API Spec</span>
+          <span class="doc-desc">Three Xano endpoints, session schema, browse page wiring, migration plan</span>
+        </span>
+        <span class="doc-arrow">↗</span>
+      </a>
+    </li>
+    <li class="doc-item">
+      <a href="https://claude.ai/code/artifact/517b46e6-1666-4240-993d-b36539d46539" target="_blank" rel="noopener">
+        <span class="doc-icon">🏛️</span>
+        <span class="doc-text">
+          <span class="doc-name">Org Authority Model</span>
+          <span class="doc-desc">Two-step login, role hierarchy (ONDA → Organizer → Secretary → Presenter), audit log</span>
+        </span>
+        <span class="doc-arrow">↗</span>
+      </a>
+    </li>
+  </ul>
+</div>
 
-<div class="section-label">Specs &amp; Architecture</div>
-<ul class="doc-list">
-  <li class="doc-item">
-    <a href="https://claude.ai/code/artifact/143ee9c6-9288-463f-aeab-8470ff75cde9" target="_blank" rel="noopener">
-      <span class="doc-icon">📋</span>
-      <span class="doc-text">
-        <span class="doc-name">Presenter Onboarding Spec</span>
-        <span class="doc-desc">Club setup, SMS opt-in, proxy code flow, post-stop delivery, ONDA Nile tile states</span>
-      </span>
-      <span class="doc-arrow">↗</span>
-    </a>
-  </li>
-  <li class="doc-item">
-    <a href="https://claude.ai/code/artifact/9902f215-d915-4207-9986-95ad8b547db6" target="_blank" rel="noopener">
-      <span class="doc-icon">🗂️</span>
-      <span class="doc-text">
-        <span class="doc-name">ONDA Nile Taxonomy Spec</span>
-        <span class="doc-desc">Three-tier org hierarchy, topic filtering, URL model, data schema</span>
-      </span>
-      <span class="doc-arrow">↗</span>
-    </a>
-  </li>
-  <li class="doc-item">
-    <a href="https://claude.ai/code/artifact/09694b4e-ab3e-4b3b-b012-46b1767ecee5" target="_blank" rel="noopener">
-      <span class="doc-icon">🔌</span>
-      <span class="doc-text">
-        <span class="doc-name">ONDA Nile API Spec</span>
-        <span class="doc-desc">Three Xano endpoints, session schema, browse page wiring, migration plan</span>
-      </span>
-      <span class="doc-arrow">↗</span>
-    </a>
-  </li>
-  <li class="doc-item">
-    <a href="https://claude.ai/code/artifact/517b46e6-1666-4240-993d-b36539d46539" target="_blank" rel="noopener">
-      <span class="doc-icon">🏛️</span>
-      <span class="doc-text">
-        <span class="doc-name">Org Authority Model</span>
-        <span class="doc-desc">Two-step login, role hierarchy (ONDA → Organizer → Secretary → Presenter), audit log</span>
-      </span>
-      <span class="doc-arrow">↗</span>
-    </a>
-  </li>
-</ul>
+<!-- ── LIVE TOOLS ── -->
+<div class="group public">
+  <div class="group-header">
+    <span class="group-label">Live Tools</span>
+    <span class="group-note">Public GitHub Pages · functional now</span>
+  </div>
+  <ul class="doc-list">
+    <li class="doc-item">
+      <a href="https://david78737.github.io/onda-archive/ondanile/" target="_blank" rel="noopener">
+        <span class="doc-icon">🌊</span>
+        <span class="doc-text">
+          <span class="doc-name">ONDA Nile Browse <span class="badge badge-live">Live</span></span>
+          <span class="doc-desc">Browse all sessions live from Xano + sessions.json</span>
+        </span>
+        <span class="doc-arrow">↗</span>
+      </a>
+    </li>
+    <li class="doc-item">
+      <a href="https://david78737.github.io/onda-archive/chapter/?org_l1=Toastmasters&org_l2=Austin&org_l3=Chapter+47" target="_blank" rel="noopener">
+        <span class="doc-icon">🎤</span>
+        <span class="doc-text">
+          <span class="doc-name">Toastmasters Austin · Chapter 47 <span class="badge badge-live">Live</span></span>
+          <span class="doc-desc">Chapter archive template — skinnable per org</span>
+        </span>
+        <span class="doc-arrow">↗</span>
+      </a>
+    </li>
+    <li class="doc-item featured">
+      <a href="https://david78737.github.io/onda-archive/nile-admin/register.html" target="_blank" rel="noopener">
+        <span class="doc-icon">🏷️</span>
+        <span class="doc-text">
+          <span class="doc-name">Curator Registration (W0) <span class="badge badge-live">Live</span></span>
+          <span class="doc-desc">OTP → org identity → add coordinator → station ready</span>
+        </span>
+        <span class="doc-arrow">↗</span>
+      </a>
+    </li>
+    <li class="doc-item">
+      <a href="https://david78737.github.io/onda-archive/nile-admin/event.html" target="_blank" rel="noopener">
+        <span class="doc-icon">📅</span>
+        <span class="doc-text">
+          <span class="doc-name">Event Creation (W1) <span class="badge badge-live">Live</span></span>
+          <span class="doc-desc">Curator-gated — OTP → create event code → shareable code</span>
+        </span>
+        <span class="doc-arrow">↗</span>
+      </a>
+    </li>
+    <li class="doc-item">
+      <a href="https://david78737.github.io/onda-archive/nile-admin/cards.html" target="_blank" rel="noopener">
+        <span class="doc-icon">🗳️</span>
+        <span class="doc-text">
+          <span class="doc-name">Card Review (W2) <span class="badge badge-live">Live</span></span>
+          <span class="doc-desc">Coordinator-gated — OTP → event selector → approve or return cards</span>
+        </span>
+        <span class="doc-arrow">↗</span>
+      </a>
+    </li>
+    <li class="doc-item">
+      <a href="https://david78737.github.io/onda-archive/nile-session/" target="_blank" rel="noopener">
+        <span class="doc-icon">✏️</span>
+        <span class="doc-text">
+          <span class="doc-name">Session Card Editor <span class="badge badge-live">Live</span></span>
+          <span class="doc-desc">Phone auth → edit tile fields → export AI prompts → save to Xano</span>
+        </span>
+        <span class="doc-arrow">↗</span>
+      </a>
+    </li>
+    <li class="doc-item">
+      <a href="https://david78737.github.io/onda-archive/nile-admin/" target="_blank" rel="noopener">
+        <span class="doc-icon">🗂️</span>
+        <span class="doc-text">
+          <span class="doc-name">Event Admin — Create Slots <span class="badge badge-live">Live</span></span>
+          <span class="doc-desc">Phone auth → create session slots → generate proxy codes</span>
+        </span>
+        <span class="doc-arrow">↗</span>
+      </a>
+    </li>
+    <li class="doc-item">
+      <a href="https://david78737.github.io/onda-archive/nile-admin/chapter.html?org_l1=Toastmasters&org_l2=Austin&org_l3=Chapter+47" target="_blank" rel="noopener">
+        <span class="doc-icon">📋</span>
+        <span class="doc-text">
+          <span class="doc-name">Chapter Admin — Manage Slots <span class="badge badge-live">Live</span></span>
+          <span class="doc-desc">Phone → OTP → view, edit, and deactivate slots</span>
+        </span>
+        <span class="doc-arrow">↗</span>
+      </a>
+    </li>
+    <li class="doc-item">
+      <a href="https://david78737.github.io/onda-archive/nile-brand/" target="_blank" rel="noopener">
+        <span class="doc-icon">🎨</span>
+        <span class="doc-text">
+          <span class="doc-name">Archive Identity <span class="badge badge-live">Live</span></span>
+          <span class="doc-desc">Describe yourself → AI generates visual theme → five presets + fine-tune</span>
+        </span>
+        <span class="doc-arrow">↗</span>
+      </a>
+    </li>
+    <li class="doc-item">
+      <a href="https://david78737.github.io/onda-archive/nile-admin/enroll.html" target="_blank" rel="noopener">
+        <span class="doc-icon">➕</span>
+        <span class="doc-text">
+          <span class="doc-name">Presenter Enrollment <span class="badge badge-live">Live</span></span>
+          <span class="doc-desc">ONDA admin only — add presenters, assign org roles</span>
+        </span>
+        <span class="doc-arrow">↗</span>
+      </a>
+    </li>
+  </ul>
+</div>
 
-<div class="section-label">Live Pages</div>
-<ul class="doc-list">
-  <li class="doc-item">
-    <a href="https://david78737.github.io/onda-archive/ondanile/" target="_blank" rel="noopener">
-      <span class="doc-icon">🌊</span>
-      <span class="doc-text">
-        <span class="doc-name">ONDA Nile Browse</span>
-        <span class="doc-desc">Live archive — all sessions, live from Xano + sessions.json</span>
-      </span>
-      <span class="doc-arrow">↗</span>
-    </a>
-  </li>
-  <li class="doc-item">
-    <a href="https://david78737.github.io/onda-archive/chapter/?org_l1=Toastmasters&org_l2=Austin&org_l3=Chapter+47" target="_blank" rel="noopener">
-      <span class="doc-icon">🎤</span>
-      <span class="doc-text">
-        <span class="doc-name">Toastmasters Austin · Chapter 47</span>
-        <span class="doc-desc">Chapter archive template — live from Xano, skinnable per org</span>
-      </span>
-      <span class="doc-arrow">↗</span>
-    </a>
-  </li>
-  <li class="doc-item">
-    <a href="https://david78737.github.io/onda-archive/nile-session/" target="_blank" rel="noopener">
-      <span class="doc-icon">✏️</span>
-      <span class="doc-text">
-        <span class="doc-name">Session Card Editor</span>
-        <span class="doc-desc">Phone auth → edit tile fields → export AI prompts as .md → save to Xano</span>
-      </span>
-      <span class="doc-arrow">↗</span>
-    </a>
-  </li>
-  <li class="doc-item">
-    <a href="https://david78737.github.io/onda-archive/nile-admin/" target="_blank" rel="noopener">
-      <span class="doc-icon">🗂️</span>
-      <span class="doc-text">
-        <span class="doc-name">Event Admin — Create Slots</span>
-        <span class="doc-desc">Phone auth → create session slots → generate proxy codes → copy/share with presenters</span>
-      </span>
-      <span class="doc-arrow">↗</span>
-    </a>
-  </li>
-  <li class="doc-item">
-    <a href="https://david78737.github.io/onda-archive/nile-admin/chapter.html?org_l1=Toastmasters&org_l2=Austin&org_l3=Chapter+47" target="_blank" rel="noopener">
-      <span class="doc-icon">📋</span>
-      <span class="doc-text">
-        <span class="doc-name">Chapter Admin — Manage Slots</span>
-        <span class="doc-desc">Phone → OTP → view all slots including pending → edit presenter/title/date → deactivate</span>
-      </span>
-      <span class="doc-arrow">↗</span>
-    </a>
-  </li>
-  <li class="doc-item">
-    <a href="https://david78737.github.io/onda-archive/nile-brand/" target="_blank" rel="noopener">
-      <span class="doc-icon">🎨</span>
-      <span class="doc-text">
-        <span class="doc-name">Archive Identity</span>
-        <span class="doc-desc">Describe yourself → AI generates a visual theme → five presets + fine-tune</span>
-      </span>
-      <span class="doc-arrow">↗</span>
-    </a>
-  </li>
-  <li class="doc-item featured">
-    <a href="https://david78737.github.io/onda-archive/nile-admin/register.html" target="_blank" rel="noopener">
-      <span class="doc-icon">🏷️</span>
-      <span class="doc-text">
-        <span class="doc-name">Curator Registration (W0)</span>
-        <span class="doc-desc">New curator self-service — OTP → org identity → add coordinator → station ready</span>
-      </span>
-      <span class="doc-arrow">↗</span>
-    </a>
-  </li>
-  <li class="doc-item">
-    <a href="https://david78737.github.io/onda-archive/nile-admin/event.html" target="_blank" rel="noopener">
-      <span class="doc-icon">📅</span>
-      <span class="doc-text">
-        <span class="doc-name">Event Creation (W1)</span>
-        <span class="doc-desc">Curator-gated — OTP → create event code → success screen with shareable code</span>
-      </span>
-      <span class="doc-arrow">↗</span>
-    </a>
-  </li>
-  <li class="doc-item">
-    <a href="https://david78737.github.io/onda-archive/nile-admin/cards.html" target="_blank" rel="noopener">
-      <span class="doc-icon">🗳️</span>
-      <span class="doc-text">
-        <span class="doc-name">Card Review (W2)</span>
-        <span class="doc-desc">Coordinator-gated — OTP → event selector → approve or return presenter cards</span>
-      </span>
-      <span class="doc-arrow">↗</span>
-    </a>
-  </li>
-  <li class="doc-item">
-    <a href="https://david78737.github.io/onda-archive/nile-admin/enroll.html" target="_blank" rel="noopener">
-      <span class="doc-icon">➕</span>
-      <span class="doc-text">
-        <span class="doc-name">Presenter Enrollment</span>
-        <span class="doc-desc">ONDA admin only — add presenters, assign org roles, create new organizations</span>
-      </span>
-      <span class="doc-arrow">↗</span>
-    </a>
-  </li>
-</ul>
-
-<div class="section-label">Concepts &amp; Marketing</div>
-<ul class="doc-list">
-  <li class="doc-item featured">
-    <a href="https://david78737.github.io/onda-archive/docs/curator-stories.html" target="_blank" rel="noopener">
-      <span class="doc-icon">📖</span>
-      <span class="doc-text">
-        <span class="doc-name">Three Ways a Curator Station Works</span>
-        <span class="doc-desc">Arturo (conference), Robin (magazine), Samar (network) — step-by-step with live forms</span>
-      </span>
-      <span class="doc-arrow">↗</span>
-    </a>
-  </li>
-  <li class="doc-item">
-    <a href="https://claude.ai/code/artifact/633582d9-e8ac-47ba-91a1-c2e607cc5e3b" target="_blank" rel="noopener">
-      <span class="doc-icon">🎓</span>
-      <span class="doc-text">
-        <span class="doc-name">The Curator Model</span>
-        <span class="doc-desc">Youth curator concept — CORE mission, revenue share, grant-ready categories</span>
-      </span>
-      <span class="doc-arrow">↗</span>
-    </a>
-  </li>
-</ul>
+<!-- ── SHAREABLE DOCS ── -->
+<div class="group public">
+  <div class="group-header">
+    <span class="group-label">Shareable Docs</span>
+    <span class="group-note">Public · safe to send to clients and partners</span>
+  </div>
+  <ul class="doc-list">
+    <li class="doc-item featured">
+      <a href="https://david78737.github.io/onda-archive/docs/curator-stories.html" target="_blank" rel="noopener">
+        <span class="doc-icon">📖</span>
+        <span class="doc-text">
+          <span class="doc-name">Three Ways a Curator Station Works <span class="badge badge-public">Public</span></span>
+          <span class="doc-desc">Arturo (conference), Robin (magazine), Samar (network) — step-by-step with live forms</span>
+        </span>
+        <span class="doc-arrow">↗</span>
+      </a>
+    </li>
+    <li class="doc-item">
+      <a href="https://david78737.github.io/onda-archive/docs/membership-tiers.html" target="_blank" rel="noopener">
+        <span class="doc-icon">💳</span>
+        <span class="doc-text">
+          <span class="doc-name">Membership Tiers <span class="badge badge-public">Public</span></span>
+          <span class="doc-desc">Listener / Contributor / Curator — what each unlocks, pricing, bulk upload</span>
+        </span>
+        <span class="doc-arrow">↗</span>
+      </a>
+    </li>
+    <li class="doc-item">
+      <a href="https://david78737.github.io/onda-archive/docs/channel-partner-it.html" target="_blank" rel="noopener">
+        <span class="doc-icon">🤝</span>
+        <span class="doc-text">
+          <span class="doc-name">IT Channel Partner Model <span class="badge badge-public">Public</span></span>
+          <span class="doc-desc">Ketan / FourFold IT — workflow, economics, Listener flywheel</span>
+        </span>
+        <span class="doc-arrow">↗</span>
+      </a>
+    </li>
+    <li class="doc-item">
+      <a href="https://david78737.github.io/onda-archive/docs/onda-doc-demo.html" target="_blank" rel="noopener">
+        <span class="doc-icon">📄</span>
+        <span class="doc-text">
+          <span class="doc-name">ONDA Doc — Demo for IT Professionals <span class="badge badge-public">Public</span></span>
+          <span class="doc-desc">Living help documentation — numbered callouts, always current, accessible</span>
+        </span>
+        <span class="doc-arrow">↗</span>
+      </a>
+    </li>
+    <li class="doc-item">
+      <a href="https://claude.ai/code/artifact/633582d9-e8ac-47ba-91a1-c2e607cc5e3b" target="_blank" rel="noopener">
+        <span class="doc-icon">🎓</span>
+        <span class="doc-text">
+          <span class="doc-name">The Curator Model</span>
+          <span class="doc-desc">Youth curator concept — CORE mission, revenue share, grant-ready categories</span>
+        </span>
+        <span class="doc-arrow">↗</span>
+      </a>
+    </li>
+  </ul>
+</div>
 
 <div class="footer">
-  <a href="https://claude.ai/code/artifact/b40580ee-94bc-4f2a-8061-e067694c8b00" target="_blank" rel="noopener">← User Journey Map</a> &nbsp;·&nbsp; Specs also in the repo: <code>docs/</code> folder in onda_replay
+  Internal docs = private claude.ai links (only you can open them) &nbsp;·&nbsp; Live Tools + Shareable Docs = public GitHub Pages
 </div>
