@@ -1,0 +1,399 @@
+<title>ONDA Replay — Membership Tiers</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg:       #0C1A19;
+    --card:     #111F1E;
+    --border:   #1C2E2C;
+    --text:     #EDE9E3;
+    --sub:      #8A857D;
+    --accent:   #009688;
+    --gold:     #C9A457;
+    --gold-bg:  #1A1608;
+    --gold-border: #3A2E0E;
+    --check:    #26A69A;
+    --dash:     #2A3A38;
+  }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    font-size: 16px;
+    line-height: 1.6;
+    padding: 0 16px 80px;
+    min-height: 100vh;
+  }
+
+  .site-header {
+    border-bottom: 1px solid var(--border);
+    padding: 18px 0;
+    text-align: center;
+    margin-bottom: 0;
+  }
+  .wordmark {
+    font-size: 12px; font-weight: 700; letter-spacing: .18em;
+    text-transform: uppercase; color: var(--accent); text-decoration: none;
+  }
+
+  .wrap { max-width: 900px; margin: 0 auto; }
+
+  .hero {
+    padding: 56px 0 48px;
+    text-align: center;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 52px;
+  }
+  .eyebrow {
+    font-size: 11px; font-weight: 700; letter-spacing: .16em;
+    text-transform: uppercase; color: var(--accent); margin-bottom: 18px;
+  }
+  .hero h1 {
+    font-family: Georgia, 'Times New Roman', serif;
+    font-size: clamp(26px, 4vw, 40px);
+    font-weight: normal; line-height: 1.2;
+    color: var(--text); margin-bottom: 16px;
+  }
+  .hero p {
+    font-size: 17px; color: var(--sub); max-width: 520px;
+    margin: 0 auto; line-height: 1.7;
+  }
+
+  .tiers {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    overflow: hidden;
+    margin-bottom: 52px;
+  }
+
+  .tier {
+    padding: 28px 20px 32px;
+    border-right: 1px solid var(--border);
+    background: var(--card);
+    position: relative;
+  }
+  .tier:last-child { border-right: none; }
+
+  .tier.curator {
+    background: var(--gold-bg);
+    border-right-color: var(--gold-border);
+    border-left: 1px solid var(--gold-border);
+  }
+
+  .tier-badge {
+    display: inline-block;
+    font-size: 10px; font-weight: 700; letter-spacing: .14em;
+    text-transform: uppercase; padding: 3px 9px;
+    border-radius: 20px; margin-bottom: 16px;
+  }
+  .tier-badge.free        { background: #1A2E2C; color: var(--accent); }
+  .tier-badge.contributor { background: #1E2228; color: #7986CB; }
+  .tier-badge.curator     { background: #2A2010; color: var(--gold); }
+
+  .tier-name {
+    font-family: Georgia, serif;
+    font-size: 22px; font-weight: normal;
+    color: var(--text); margin-bottom: 4px;
+    line-height: 1.2;
+  }
+  .tier.curator .tier-name { color: var(--gold); }
+
+  .tier-price {
+    font-size: 28px; font-weight: 700;
+    color: var(--text); line-height: 1;
+    margin-bottom: 4px;
+  }
+  .tier.curator .tier-price { color: var(--gold); }
+
+  .tier-price span {
+    font-size: 13px; font-weight: 400;
+    color: var(--sub);
+  }
+
+  .tier-note {
+    font-size: 12px; color: var(--sub);
+    margin-bottom: 20px; min-height: 18px;
+  }
+
+  .tier-divider {
+    border: none; border-top: 1px solid var(--border);
+    margin: 20px 0;
+  }
+  .tier.curator .tier-divider { border-color: var(--gold-border); }
+
+  .tier-features { list-style: none; }
+  .tier-features li {
+    font-size: 13px; color: var(--sub);
+    padding: 5px 0;
+    display: flex; align-items: flex-start; gap: 8px;
+    line-height: 1.4;
+  }
+  .tier-features li .icon {
+    flex-shrink: 0; margin-top: 2px;
+    font-size: 13px; font-style: normal;
+  }
+  .tier-features li.on  { color: var(--text); }
+  .tier-features li.on .icon  { color: var(--check); }
+  .tier-features li.off .icon { color: var(--dash); }
+  .tier.curator .tier-features li.on { color: #E8D5A0; }
+  .tier.curator .tier-features li.on .icon { color: var(--gold); }
+
+  .tier-arrow {
+    position: absolute; right: -13px; top: 50%;
+    transform: translateY(-50%);
+    width: 26px; height: 26px;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 11px; color: var(--sub);
+    z-index: 2;
+  }
+
+  .leap {
+    background: var(--gold-bg);
+    border: 1px solid var(--gold-border);
+    border-radius: 8px;
+    padding: 20px 24px;
+    margin-bottom: 52px;
+    display: flex; gap: 16px; align-items: flex-start;
+  }
+  .leap-icon { font-size: 22px; flex-shrink: 0; margin-top: 2px; }
+  .leap-text h3 {
+    font-family: Georgia, serif;
+    font-size: 17px; font-weight: normal;
+    color: var(--gold); margin-bottom: 6px;
+  }
+  .leap-text p { font-size: 14px; color: #A89060; line-height: 1.6; }
+
+  .compare-section h2 {
+    font-family: Georgia, serif;
+    font-size: 22px; font-weight: normal;
+    color: var(--text); margin-bottom: 24px;
+  }
+
+  .compare { width: 100%; border-collapse: collapse; font-size: 14px; }
+
+  .compare thead th {
+    text-align: center;
+    font-size: 10px; font-weight: 700; letter-spacing: .14em;
+    text-transform: uppercase; color: var(--sub);
+    padding: 8px 12px 14px;
+    border-bottom: 1px solid var(--border);
+  }
+  .compare thead th:first-child { text-align: left; }
+  .compare thead th.curator-col { color: var(--gold); }
+
+  .compare tbody tr { border-bottom: 1px solid var(--border); }
+  .compare tbody tr:last-child { border-bottom: none; }
+
+  .compare tbody td {
+    padding: 12px;
+    vertical-align: middle;
+    color: var(--sub);
+    text-align: center;
+  }
+  .compare tbody td:first-child {
+    text-align: left; color: var(--text);
+    font-size: 14px; padding-left: 0;
+  }
+  .compare .category-row td {
+    font-size: 10px; font-weight: 700; letter-spacing: .12em;
+    text-transform: uppercase; color: var(--accent);
+    padding-top: 24px; padding-bottom: 6px;
+    border-bottom: none;
+  }
+
+  .ck { color: var(--check); font-size: 15px; }
+  .gk { color: var(--gold); font-size: 15px; }
+  .no { color: var(--border); font-size: 15px; }
+
+  .cta {
+    margin-top: 56px;
+    padding: 36px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    text-align: center;
+    background: var(--card);
+  }
+  .cta h3 {
+    font-family: Georgia, serif;
+    font-size: 24px; font-weight: normal;
+    color: var(--text); margin-bottom: 10px;
+  }
+  .cta p { color: var(--sub); font-size: 15px; margin-bottom: 24px; }
+  .cta-btn {
+    display: inline-block; background: var(--accent); color: #fff;
+    padding: 12px 32px; border-radius: 6px; font-size: 14px;
+    font-weight: 600; text-decoration: none; letter-spacing: .03em;
+    margin: 0 6px;
+  }
+  .cta-btn.gold {
+    background: var(--gold); color: #0C0A04;
+  }
+  .cta-btn:hover { opacity: .85; }
+
+  .fuel-callout {
+    border-color: #1C3530;
+    margin-top: 24px;
+  }
+  .fuel-callout .leap-icon { color: var(--accent); }
+  .fuel-callout .leap-text h3 { color: var(--accent); }
+  .fuel-callout .leap-text p { color: #5A8A84; }
+  .fuel-callout strong { color: var(--text); }
+
+  @media (max-width: 600px) {
+    .tiers { grid-template-columns: 1fr !important; }
+    .tier { border-right: none !important; border-top: 1px solid var(--border); }
+    .tier:first-child { border-top: none; }
+    .tier-arrow { display: none; }
+  }
+</style>
+
+<header class="site-header">
+  <a class="wordmark" href="#">ONDA Replay</a>
+</header>
+
+<div class="wrap">
+
+  <div class="hero">
+    <div class="eyebrow">Membership Tiers</div>
+    <h1>Start free. Record when you need to.<br>Publish when you're ready.</h1>
+    <p>Three roles. One add-on. The roles are about what you can do. The add-on is about how much.</p>
+  </div>
+
+  <div class="tiers">
+
+    <!-- Listener -->
+    <div class="tier">
+      <div class="tier-badge free">Free</div>
+      <div class="tier-name">Listener</div>
+      <div class="tier-price">$0</div>
+      <div class="tier-note">1 hour of transcription / month</div>
+      <hr class="tier-divider">
+      <ul class="tier-features">
+        <li class="on"><i class="icon">✓</i> Record &amp; play back</li>
+        <li class="on"><i class="icon">✓</i> Store your recordings</li>
+        <li class="on"><i class="icon">✓</i> View transcripts</li>
+        <li class="on"><i class="icon">✓</i> Search your recordings</li>
+        <li class="on"><i class="icon">✓</i> Share .onda files privately</li>
+        <li class="on"><i class="icon">✓</i> Receive shared .onda files</li>
+      </ul>
+      <div class="tier-arrow">›</div>
+    </div>
+
+    <!-- Contributor -->
+    <div class="tier">
+      <div class="tier-badge contributor">$8.99 / mo</div>
+      <div class="tier-name">Contributor</div>
+      <div class="tier-price">$8.99 <span>/ mo</span></div>
+      <div class="tier-note">6 hours of transcription — refills monthly</div>
+      <hr class="tier-divider">
+      <ul class="tier-features">
+        <li class="on"><i class="icon">✓</i> Everything in Listener</li>
+        <li class="on"><i class="icon">✓</i> Share .onda files publicly</li>
+        <li class="on"><i class="icon">✓</i> 6 hrs transcription / month</li>
+        <li class="on"><i class="icon">✓</i> Refills at the start of each month</li>
+        <li class="on"><i class="icon">✓</i> Priority transcription</li>
+        <li class="on"><i class="icon">✓</i> Appear on a curator station as a presenter</li>
+      </ul>
+      <div class="tier-arrow">›</div>
+    </div>
+
+    <!-- Curator -->
+    <div class="tier curator">
+      <div class="tier-badge curator">$19.99 / mo</div>
+      <div class="tier-name">Curator</div>
+      <div class="tier-price">$19.99 <span>/ mo</span></div>
+      <div class="tier-note">Your public presence on ONDA Nile</div>
+      <hr class="tier-divider">
+      <ul class="tier-features">
+        <li class="on"><i class="icon">✓</i> Everything in Contributor</li>
+        <li class="on"><i class="icon">✓</i> Curator station on ONDA Nile</li>
+        <li class="on"><i class="icon">✓</i> Bulk upload MP4/WAV → .onda pipeline</li>
+        <li class="on"><i class="icon">✓</i> Publish presenter talks</li>
+        <li class="on"><i class="icon">✓</i> Curate your archive</li>
+        <li class="on"><i class="icon">✓</i> Permanent public portfolio</li>
+        <li class="on"><i class="icon">✓</i> Audience SMS delivery</li>
+      </ul>
+    </div>
+
+  </div>
+
+  <!-- Fuel callout -->
+  <div class="leap fuel-callout">
+    <div class="leap-icon">⛽</div>
+    <div class="leap-text">
+      <h3>ONDA Fuel — available at every tier</h3>
+      <p>Need more transcription hours than your role includes? Buy Fuel at any time. <strong>$5.99 for 5 hours</strong> — hours never expire and stack with your monthly allowance. Listeners, Contributors, and Curators can all add Fuel whenever they need it.</p>
+    </div>
+  </div>
+
+  <div class="leap">
+    <div class="leap-icon">★</div>
+    <div class="leap-text">
+      <h3>The Curator role is a different category entirely.</h3>
+      <p>Listener and Contributor are personal tools — your recordings, on your device, for your use. A Curator station is a public presence. It's how a Toastmasters chapter, a ProductCamp, or an individual expert builds a permanent, searchable archive that anyone can discover on ONDA Nile. One station can serve an entire organization.</p>
+    </div>
+  </div>
+
+  <div class="compare-section">
+    <h2>What's included at each role</h2>
+    <div style="overflow-x:auto">
+    <table class="compare">
+      <thead>
+        <tr>
+          <th>Feature</th>
+          <th>Listener</th>
+          <th>Contributor</th>
+          <th class="curator-col">Curator</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr class="category-row"><td colspan="4">Recording &amp; Playback</td></tr>
+        <tr><td>Record audio sessions</td><td><span class="ck">✓</span></td><td><span class="ck">✓</span></td><td><span class="gk">✓</span></td></tr>
+        <tr><td>Full transcript with karaoke playback</td><td><span class="ck">✓</span></td><td><span class="ck">✓</span></td><td><span class="gk">✓</span></td></tr>
+        <tr><td>Search your recordings</td><td><span class="ck">✓</span></td><td><span class="ck">✓</span></td><td><span class="gk">✓</span></td></tr>
+        <tr><td>Index &amp; moment markers</td><td><span class="ck">✓</span></td><td><span class="ck">✓</span></td><td><span class="gk">✓</span></td></tr>
+
+        <tr class="category-row"><td colspan="4">Transcription Hours</td></tr>
+        <tr><td>Included hours per month</td><td>1 hr</td><td>6 hrs</td><td><span class="gk">6 hrs</span></td></tr>
+        <tr><td>Buy additional hours (Fuel)</td><td><span class="ck">✓</span></td><td><span class="ck">✓</span></td><td><span class="gk">✓</span></td></tr>
+        <tr><td>Auto-refill monthly</td><td><span class="no">—</span></td><td><span class="ck">✓</span></td><td><span class="gk">✓</span></td></tr>
+
+        <tr class="category-row"><td colspan="4">Sharing</td></tr>
+        <tr><td>Share .onda files privately</td><td><span class="ck">✓</span></td><td><span class="ck">✓</span></td><td><span class="gk">✓</span></td></tr>
+        <tr><td>Share .onda files publicly</td><td><span class="no">—</span></td><td><span class="ck">✓</span></td><td><span class="gk">✓</span></td></tr>
+        <tr><td>Receive shared .onda files</td><td><span class="ck">✓</span></td><td><span class="ck">✓</span></td><td><span class="gk">✓</span></td></tr>
+        <tr><td>Audience SMS delivery</td><td><span class="no">—</span></td><td><span class="no">—</span></td><td><span class="gk">✓</span></td></tr>
+
+        <tr class="category-row"><td colspan="4">Content Pipeline</td></tr>
+        <tr><td>Bulk upload MP4/WAV files</td><td><span class="no">—</span></td><td><span class="no">—</span></td><td><span class="gk">✓</span></td></tr>
+        <tr><td>Whisper transcription pipeline</td><td><span class="no">—</span></td><td><span class="no">—</span></td><td><span class="gk">✓</span></td></tr>
+        <tr><td>Up to 5 files per upload block ($4.99)</td><td><span class="no">—</span></td><td><span class="no">—</span></td><td><span class="gk">✓</span></td></tr>
+        <tr><td>Auto-packaged as searchable .onda files</td><td><span class="no">—</span></td><td><span class="no">—</span></td><td><span class="gk">✓</span></td></tr>
+
+        <tr class="category-row"><td colspan="4">ONDA Nile — Public Presence</td></tr>
+        <tr><td>Curator station on ONDA Nile</td><td><span class="no">—</span></td><td><span class="no">—</span></td><td><span class="gk">✓</span></td></tr>
+        <tr><td>Publish presenter talks publicly</td><td><span class="no">—</span></td><td><span class="no">—</span></td><td><span class="gk">✓</span></td></tr>
+        <tr><td>Curate your archive</td><td><span class="no">—</span></td><td><span class="no">—</span></td><td><span class="gk">✓</span></td></tr>
+        <tr><td>Permanent searchable portfolio</td><td><span class="no">—</span></td><td><span class="no">—</span></td><td><span class="gk">✓</span></td></tr>
+        <tr><td>Appear on a station as a presenter</td><td><span class="no">—</span></td><td><span class="ck">✓</span></td><td><span class="gk">✓</span></td></tr>
+        <tr><td>Invite &amp; curate presenters</td><td><span class="no">—</span></td><td><span class="no">—</span></td><td><span class="gk">✓</span></td></tr>
+      </tbody>
+    </table>
+    </div>
+  </div>
+
+  <div class="cta">
+    <h3>Start with what you need.</h3>
+    <p>Download free. Buy Fuel when you need more. Become a Curator when you're ready to be heard.</p>
+    <a class="cta-btn" href="#">Download Free</a>
+    <a class="cta-btn gold" href="#">Become a Curator</a>
+  </div>
+
+</div>

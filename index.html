@@ -113,6 +113,15 @@
     color: #b09050;
   }
 
+  .card.doc { border-color: #2a2010; }
+  .card.doc:hover { border-color: #C9A457; }
+  .card-doc-type {
+    font-size: 11px; text-transform: uppercase;
+    letter-spacing: .1em; color: #C9A457; font-weight: 600;
+  }
+  .browse-btn.doc-btn { background: #2a2010; color: #C9A457; }
+  .browse-btn.doc-btn:hover { background: #3a3010; }
+
   .browse-btn {
     display: inline-block;
     margin-top: auto;
@@ -152,6 +161,33 @@
 </header>
 
 <main>
+
+  <div class="section-label">Working Documents</div>
+  <div class="grid">
+
+    <div class="card doc">
+      <div class="card-doc-type">Membership</div>
+      <div class="card-title">Membership Tiers</div>
+      <div class="card-meta">Listener · Contributor · Curator · ONDA Fuel</div>
+      <div class="card-pills">
+        <span class="pill">Roles &amp; pricing</span>
+        <span class="pill">Feature comparison</span>
+      </div>
+      <a class="browse-btn doc-btn" href="docs/membership-tiers.html">View Document →</a>
+    </div>
+
+    <div class="card doc">
+      <div class="card-doc-type">Channel Partner</div>
+      <div class="card-title">The IT Channel Partner Model</div>
+      <div class="card-meta">Ketan Suru · FourFold IT · Bulk Upload Pipeline</div>
+      <div class="card-pills">
+        <span class="pill">Business model</span>
+        <span class="pill">Listener flywheel</span>
+      </div>
+      <a class="browse-btn doc-btn" href="docs/channel-partner-it.html">View Document →</a>
+    </div>
+
+  </div>
 
   <div class="section-label">2026</div>
   <div class="grid">
