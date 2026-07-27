@@ -1,0 +1,579 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bulk Upload — ONDA Nile</title>
+<style>
+  :root {
+    --teal: #009688;
+    --teal-dark: #007a70;
+    --teal-light: #E8F8F6;
+    --ink: #1a1a1a;
+    --body: #333;
+    --muted: #666;
+    --border: #CCC;
+    --bg: #F7F9F9;
+    --surface: #FFF;
+    --error: #c0392b;
+    --error-bg: #fdf0ee;
+    --success: #1a7f4b;
+    --success-bg: #eafaf1;
+    --amber: #b45309;
+    --amber-bg: #fffbeb;
+    --amber-border: #fcd34d;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--body);
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    font-size: 16px;
+    line-height: 1.6;
+    padding: 0 0 80px;
+  }
+
+  header {
+    background: var(--teal);
+    padding: 16px 24px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .wordmark { font-size: 18px; font-weight: 700; color: #fff; letter-spacing: .03em; }
+  .header-sub { font-size: 12px; color: rgba(255,255,255,.75); margin-top: 1px; }
+
+  .wrap { max-width: 560px; margin: 0 auto; padding: 32px 20px 0; }
+
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 24px;
+    margin-bottom: 20px;
+  }
+  .card-title {
+    font-size: 13px; font-weight: 700; text-transform: uppercase;
+    letter-spacing: .1em; color: var(--teal); margin-bottom: 16px;
+  }
+
+  .field { margin-bottom: 16px; }
+  .field:last-child { margin-bottom: 0; }
+  label { display: block; font-size: 14px; font-weight: 600; color: var(--ink); margin-bottom: 5px; }
+  input[type="text"], input[type="tel"], input[type="number"], select {
+    width: 100%; padding: 10px 12px; border: 1px solid var(--border);
+    border-radius: 7px; font-size: 15px; background: #fff; color: var(--ink);
+  }
+  input:focus, select:focus { outline: 2px solid var(--teal); border-color: var(--teal); }
+
+  .hint { font-size: 13px; color: var(--muted); margin-top: 4px; }
+
+  .btn {
+    display: block; width: 100%; padding: 13px;
+    background: var(--teal); color: #fff;
+    border: none; border-radius: 8px;
+    font-size: 16px; font-weight: 600; cursor: pointer;
+    margin-top: 8px;
+  }
+  .btn:hover { background: var(--teal-dark); }
+  .btn:disabled { opacity: .5; cursor: default; }
+  .btn-ghost {
+    background: transparent; color: var(--teal);
+    border: 1.5px solid var(--teal);
+    display: block; width: 100%; padding: 12px;
+    border-radius: 8px; font-size: 15px; font-weight: 600;
+    cursor: pointer; margin-top: 12px; text-align: center;
+  }
+
+  .banner {
+    border-radius: 8px; padding: 12px 14px;
+    font-size: 14px; margin-bottom: 16px; display: none;
+  }
+  .banner.error   { background: var(--error-bg); color: var(--error); border: 1px solid #f5c6c2; }
+  .banner.success { background: var(--success-bg); color: var(--success); border: 1px solid #b7e4c7; }
+  .banner.info    { background: var(--amber-bg); color: var(--amber); border: 1px solid var(--amber-border); }
+
+  /* OTP inputs */
+  .otp-row { display: flex; gap: 10px; }
+  .otp-row input[type="tel"] { flex: 1; }
+  .otp-row .btn-send {
+    flex-shrink: 0; width: auto; padding: 10px 16px;
+    font-size: 14px; margin-top: 0;
+  }
+
+  /* Drop zone */
+  .drop-zone {
+    border: 2px dashed var(--border);
+    border-radius: 10px;
+    padding: 32px 20px;
+    text-align: center;
+    cursor: pointer;
+    transition: border-color .2s, background .2s;
+    background: var(--bg);
+    margin-bottom: 16px;
+  }
+  .drop-zone.dragover {
+    border-color: var(--teal);
+    background: var(--teal-light);
+  }
+  .drop-zone input[type="file"] { display: none; }
+  .drop-zone-icon { font-size: 32px; margin-bottom: 8px; }
+  .drop-zone-label { font-size: 15px; font-weight: 600; color: var(--ink); }
+  .drop-zone-hint { font-size: 13px; color: var(--muted); margin-top: 4px; }
+
+  /* File list */
+  .file-list { list-style: none; margin-bottom: 16px; }
+  .file-item {
+    display: flex; align-items: center; gap: 10px;
+    padding: 10px 12px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 7px;
+    margin-bottom: 8px;
+    font-size: 14px;
+  }
+  .file-item-name { flex: 1; color: var(--ink); font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .file-item-size { color: var(--muted); font-size: 12px; flex-shrink: 0; }
+  .file-item-status { font-size: 12px; font-weight: 600; flex-shrink: 0; min-width: 70px; text-align: right; }
+  .file-item-status.pending  { color: var(--muted); }
+  .file-item-status.uploading { color: var(--teal); }
+  .file-item-status.done     { color: var(--success); }
+  .file-item-status.error    { color: var(--error); }
+  .file-remove {
+    background: none; border: none; color: var(--muted);
+    cursor: pointer; font-size: 16px; padding: 0 4px; flex-shrink: 0;
+  }
+  .file-remove:hover { color: var(--error); }
+
+  /* Block counter */
+  .block-counter {
+    background: var(--teal-light);
+    border: 1px solid #b2dfdb;
+    border-radius: 8px;
+    padding: 12px 14px;
+    font-size: 14px;
+    color: var(--teal-dark);
+    margin-bottom: 16px;
+  }
+  .block-counter strong { font-size: 18px; }
+
+  /* Results */
+  .result-list { list-style: none; }
+  .result-item {
+    padding: 12px 14px;
+    border-radius: 8px;
+    margin-bottom: 8px;
+    font-size: 14px;
+    border: 1px solid var(--border);
+  }
+  .result-item.success { background: var(--success-bg); border-color: #b7e4c7; }
+  .result-item.error   { background: var(--error-bg); border-color: #f5c6c2; }
+  .result-item-name { font-weight: 600; color: var(--ink); }
+  .result-item-msg  { color: var(--muted); font-size: 13px; margin-top: 2px; }
+
+  /* Screens */
+  .screen { display: none; }
+  .screen.active { display: block; }
+
+  /* Publishing choice */
+  .radio-group { display: flex; flex-direction: column; gap: 8px; margin-top: 8px; }
+  .radio-option {
+    display: flex; align-items: flex-start; gap: 10px;
+    padding: 10px 12px;
+    border: 1.5px solid var(--border);
+    border-radius: 7px; cursor: pointer;
+  }
+  .radio-option input { margin-top: 3px; flex-shrink: 0; }
+  .radio-option-label { font-size: 14px; font-weight: 600; color: var(--ink); }
+  .radio-option-desc  { font-size: 12px; color: var(--muted); }
+  .radio-option:has(input:checked) { border-color: var(--teal); background: var(--teal-light); }
+</style>
+</head>
+<body>
+
+<header>
+  <div>
+    <div class="wordmark">ONDA Nile · Bulk Upload</div>
+    <div class="header-sub">Upload up to 5 files per block · Curator-only</div>
+  </div>
+</header>
+
+<div class="wrap">
+
+  <!-- SCREEN: Auth -->
+  <div id="screen-auth" class="screen active">
+    <div class="card">
+      <div class="card-title">Curator Sign In</div>
+      <div id="banner-auth" class="banner error"></div>
+      <div class="field">
+        <label for="phone">Phone number</label>
+        <div class="otp-row">
+          <input type="tel" id="phone" placeholder="+1 512 555 0100" autocomplete="tel">
+          <button class="btn btn-send" onclick="sendOtp()">Send code</button>
+        </div>
+      </div>
+      <div id="otp-field" class="field" style="display:none">
+        <label for="otp">Verification code</label>
+        <input type="tel" id="otp" placeholder="6-digit code" maxlength="6" inputmode="numeric">
+        <button class="btn" onclick="verifyOtp()" style="margin-top:10px">Verify</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- SCREEN: Org + Event -->
+  <div id="screen-org" class="screen">
+    <div class="card">
+      <div class="card-title">Station &amp; Event</div>
+      <div id="banner-org" class="banner error"></div>
+      <div class="field">
+        <label for="org-l1">Station ID (org_l1)</label>
+        <input type="text" id="org-l1" placeholder="e.g. productcamp">
+      </div>
+      <div class="field">
+        <label for="org-l2">Region (org_l2)</label>
+        <input type="text" id="org-l2" placeholder="e.g. austin">
+      </div>
+      <div class="field">
+        <label for="org-l3">Sub-station (org_l3)</label>
+        <input type="text" id="org-l3" placeholder="e.g. pca">
+      </div>
+      <div class="field">
+        <label for="event-code">Event code <span style="font-weight:400;color:var(--muted)">(optional)</span></label>
+        <input type="text" id="event-code" placeholder="e.g. PCA35" style="text-transform:uppercase">
+        <div class="hint">Leave blank if uploading to the station archive directly.</div>
+      </div>
+      <div class="field">
+        <label>Publishing destination</label>
+        <div class="radio-group">
+          <label class="radio-option">
+            <input type="radio" name="publish" value="private" checked>
+            <div>
+              <div class="radio-option-label">Private archive only</div>
+              <div class="radio-option-desc">Files go to your station archive. Not visible on ONDA Nile.</div>
+            </div>
+          </label>
+          <label class="radio-option">
+            <input type="radio" name="publish" value="nile">
+            <div>
+              <div class="radio-option-label">Publish to ONDA Nile</div>
+              <div class="radio-option-desc">Files appear publicly on ONDA Nile once processed.</div>
+            </div>
+          </label>
+        </div>
+      </div>
+      <button class="btn" onclick="confirmOrg()">Continue to upload</button>
+    </div>
+  </div>
+
+  <!-- SCREEN: Upload -->
+  <div id="screen-upload" class="screen">
+
+    <div class="block-counter" id="block-counter">
+      <strong id="file-count">0</strong> of 5 files selected &nbsp;·&nbsp; 1 upload block = $4.99
+    </div>
+
+    <div class="card">
+      <div class="card-title">Select Files</div>
+      <div id="banner-upload" class="banner error"></div>
+
+      <div class="drop-zone" id="drop-zone" onclick="document.getElementById('file-input').click()"
+           ondragover="onDragOver(event)" ondragleave="onDragLeave(event)" ondrop="onDrop(event)">
+        <input type="file" id="file-input" accept=".mp4,.wav,.m4a,.mov" multiple onchange="onFileSelect(event)">
+        <div class="drop-zone-icon">📁</div>
+        <div class="drop-zone-label">Drop files here or tap to browse</div>
+        <div class="drop-zone-hint">MP4, WAV, M4A, MOV · Max 5 files · Max 2 GB per file</div>
+      </div>
+
+      <ul class="file-list" id="file-list"></ul>
+
+      <div class="banner info" id="banner-limit" style="display:none">
+        Maximum 5 files per upload block. Remove a file to add another.
+      </div>
+
+      <button class="btn" id="btn-upload" onclick="startUpload()" disabled>
+        Upload &amp; Process
+      </button>
+      <div class="hint" style="text-align:center;margin-top:8px">
+        Processing takes 2–10 minutes per file. You'll receive a confirmation when complete.
+      </div>
+    </div>
+  </div>
+
+  <!-- SCREEN: Done -->
+  <div id="screen-done" class="screen">
+    <div class="card">
+      <div class="card-title">Upload Complete</div>
+      <div class="banner success" id="banner-done" style="display:block"></div>
+      <ul class="result-list" id="result-list"></ul>
+      <button class="btn" onclick="uploadAnother()" style="margin-top:16px">Upload another block</button>
+      <a class="btn-ghost" id="link-cards" href="cards.html">Review cards</a>
+    </div>
+  </div>
+
+</div><!-- /wrap -->
+
+<script>
+const NILE_AUTH = 'https://xrxm-29on-xlyt.n7e.xano.io/api:nile';
+const NILE_API  = 'https://xrxm-29on-xlyt.n7e.xano.io/api:onda-nile';
+
+let authToken   = null;
+let authedPhone = null;
+let currentOrg  = { l1: '', l2: '', l3: '' };
+let currentEvent = '';
+let publishDest  = 'private';
+let selectedFiles = [];
+
+// Bootstrap: token passthrough from register.html
+(function bootstrap() {
+  const p = new URLSearchParams(window.location.search);
+  const token = p.get('token');
+  const phone = p.get('phone');
+  if (token && phone) {
+    authToken   = token;
+    authedPhone = phone;
+    if (p.get('org_l1')) {
+      document.getElementById('org-l1').value = p.get('org_l1');
+      document.getElementById('org-l2').value = p.get('org_l2') || '';
+      document.getElementById('org-l3').value = p.get('org_l3') || '';
+    }
+    if (p.get('event_code')) {
+      document.getElementById('event-code').value = p.get('event_code').toUpperCase();
+    }
+    showScreen('screen-org');
+  }
+})();
+
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+
+function showBanner(id, type, msg) {
+  const el = document.getElementById(id);
+  el.className = 'banner ' + type;
+  el.textContent = msg;
+  el.style.display = 'block';
+}
+
+function hideBanner(id) {
+  const el = document.getElementById(id);
+  el.style.display = 'none';
+}
+
+// ── Auth ─────────────────────────────────────────────────────────────
+
+function normalizePhone(raw) {
+  const digits = raw.replace(/\D/g, '');
+  if (digits.length === 10) return '+1' + digits;
+  if (digits.length === 11 && digits[0] === '1') return '+' + digits;
+  return '+' + digits;
+}
+
+async function sendOtp() {
+  hideBanner('banner-auth');
+  const phone = normalizePhone(document.getElementById('phone').value);
+  if (phone.length < 10) { showBanner('banner-auth', 'error', 'Enter a valid phone number.'); return; }
+  try {
+    const r = await fetch(NILE_AUTH + '/presenter/magic/send', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ phone })
+    });
+    if (!r.ok) throw new Error(await r.text());
+    document.getElementById('otp-field').style.display = 'block';
+    showBanner('banner-auth', 'success', 'Code sent to ' + phone);
+  } catch(e) {
+    showBanner('banner-auth', 'error', 'Could not send code: ' + e.message);
+  }
+}
+
+async function verifyOtp() {
+  hideBanner('banner-auth');
+  const phone = normalizePhone(document.getElementById('phone').value);
+  const otp   = document.getElementById('otp').value.trim();
+  try {
+    const r = await fetch(NILE_AUTH + '/presenter/magic/verify', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ phone, token: otp })
+    });
+    if (!r.ok) throw new Error(await r.text());
+    const data = await r.json();
+    authToken   = data.token || data.auth_token || otp;
+    authedPhone = phone;
+    showScreen('screen-org');
+  } catch(e) {
+    showBanner('banner-auth', 'error', 'Invalid code. Try again.');
+  }
+}
+
+// ── Org / Event ───────────────────────────────────────────────────────
+
+function confirmOrg() {
+  hideBanner('banner-org');
+  const l1 = document.getElementById('org-l1').value.trim().toLowerCase();
+  const l2 = document.getElementById('org-l2').value.trim().toLowerCase();
+  const l3 = document.getElementById('org-l3').value.trim().toLowerCase();
+  if (!l1) { showBanner('banner-org', 'error', 'Station ID is required.'); return; }
+  currentOrg   = { l1, l2, l3 };
+  currentEvent = document.getElementById('event-code').value.trim().toUpperCase();
+  publishDest  = document.querySelector('input[name="publish"]:checked').value;
+  showScreen('screen-upload');
+}
+
+// ── File selection ────────────────────────────────────────────────────
+
+const MAX_FILES = 5;
+const MAX_BYTES = 2 * 1024 * 1024 * 1024; // 2 GB
+
+function onDragOver(e) {
+  e.preventDefault();
+  document.getElementById('drop-zone').classList.add('dragover');
+}
+function onDragLeave(e) {
+  document.getElementById('drop-zone').classList.remove('dragover');
+}
+function onDrop(e) {
+  e.preventDefault();
+  document.getElementById('drop-zone').classList.remove('dragover');
+  addFiles(Array.from(e.dataTransfer.files));
+}
+function onFileSelect(e) {
+  addFiles(Array.from(e.target.files));
+  e.target.value = '';
+}
+
+function addFiles(files) {
+  hideBanner('banner-upload');
+  document.getElementById('banner-limit').style.display = 'none';
+  for (const f of files) {
+    if (selectedFiles.length >= MAX_FILES) {
+      document.getElementById('banner-limit').style.display = 'block';
+      break;
+    }
+    if (f.size > MAX_BYTES) {
+      showBanner('banner-upload', 'error', f.name + ' exceeds the 2 GB limit.');
+      continue;
+    }
+    if (selectedFiles.find(x => x.name === f.name && x.size === f.size)) continue;
+    selectedFiles.push(f);
+  }
+  renderFileList();
+}
+
+function removeFile(idx) {
+  selectedFiles.splice(idx, 1);
+  document.getElementById('banner-limit').style.display = 'none';
+  renderFileList();
+}
+
+function renderFileList() {
+  const ul = document.getElementById('file-list');
+  ul.innerHTML = '';
+  selectedFiles.forEach((f, i) => {
+    const li = document.createElement('li');
+    li.className = 'file-item';
+    li.innerHTML = `
+      <span class="file-item-name" title="${f.name}">${f.name}</span>
+      <span class="file-item-size">${formatBytes(f.size)}</span>
+      <span class="file-item-status pending" id="status-${i}">Queued</span>
+      <button class="file-remove" onclick="removeFile(${i})" title="Remove">✕</button>
+    `;
+    ul.appendChild(li);
+  });
+  document.getElementById('file-count').textContent = selectedFiles.length;
+  document.getElementById('btn-upload').disabled = selectedFiles.length === 0;
+}
+
+function formatBytes(b) {
+  if (b < 1024 * 1024) return (b / 1024).toFixed(0) + ' KB';
+  return (b / (1024 * 1024)).toFixed(1) + ' MB';
+}
+
+// ── Upload ────────────────────────────────────────────────────────────
+
+async function startUpload() {
+  if (selectedFiles.length === 0) return;
+  document.getElementById('btn-upload').disabled = true;
+  document.getElementById('drop-zone').style.pointerEvents = 'none';
+  hideBanner('banner-upload');
+
+  const results = [];
+
+  for (let i = 0; i < selectedFiles.length; i++) {
+    const f = selectedFiles[i];
+    const statusEl = document.getElementById('status-' + i);
+    if (statusEl) { statusEl.textContent = 'Uploading…'; statusEl.className = 'file-item-status uploading'; }
+
+    try {
+      const form = new FormData();
+      form.append('file', f, f.name);
+      form.append('phone', authedPhone);
+      form.append('magic_auth_token', authToken);
+      form.append('org_l1', currentOrg.l1);
+      form.append('org_l2', currentOrg.l2);
+      form.append('org_l3', currentOrg.l3);
+      if (currentEvent) form.append('event_code', currentEvent);
+      form.append('publish_to_nile', publishDest === 'nile' ? 'true' : 'false');
+
+      const r = await fetch(NILE_API + '/nile/bulk/upload', {
+        method: 'POST',
+        body: form
+      });
+
+      if (!r.ok) {
+        const msg = await r.text();
+        throw new Error(msg);
+      }
+
+      const data = await r.json();
+      if (statusEl) { statusEl.textContent = '✓ Done'; statusEl.className = 'file-item-status done'; }
+      results.push({ name: f.name, ok: true, job_id: data.job_id });
+
+    } catch(e) {
+      if (statusEl) { statusEl.textContent = 'Error'; statusEl.className = 'file-item-status error'; }
+      results.push({ name: f.name, ok: false, error: e.message });
+    }
+  }
+
+  showResults(results);
+}
+
+function showResults(results) {
+  const ok    = results.filter(r => r.ok).length;
+  const total = results.length;
+
+  const bannerEl = document.getElementById('banner-done');
+  bannerEl.textContent = ok === total
+    ? `✓ ${ok} file${ok > 1 ? 's' : ''} queued for processing. You'll be notified when complete.`
+    : `${ok} of ${total} files queued. See details below.`;
+
+  const ul = document.getElementById('result-list');
+  ul.innerHTML = '';
+  results.forEach(r => {
+    const li = document.createElement('li');
+    li.className = 'result-item ' + (r.ok ? 'success' : 'error');
+    li.innerHTML = `
+      <div class="result-item-name">${r.name}</div>
+      <div class="result-item-msg">${r.ok ? 'Processing — job ' + (r.job_id || '—') : 'Failed: ' + r.error}</div>
+    `;
+    ul.appendChild(li);
+  });
+
+  const params = `?org_l1=${currentOrg.l1}&org_l2=${currentOrg.l2}&org_l3=${currentOrg.l3}&phone=${encodeURIComponent(authedPhone)}&token=${encodeURIComponent(authToken)}`;
+  document.getElementById('link-cards').href = 'cards.html' + params;
+
+  showScreen('screen-done');
+}
+
+function uploadAnother() {
+  selectedFiles = [];
+  renderFileList();
+  document.getElementById('drop-zone').style.pointerEvents = '';
+  hideBanner('banner-upload');
+  showScreen('screen-upload');
+}
+</script>
+
+</body>
+</html>
