@@ -1,0 +1,207 @@
+<title>Users Deserve Better Than This</title>
+<style>
+:root {
+  --teal: #008B82;
+  --gold: #B87333;
+  --ink: #1C2B2A;
+  --body: #3A5250;
+  --muted: #5C7876;
+  --rule: #C5DEDD;
+  --bg: #F1F6F6;
+  --surface: #FFFFFF;
+  --tint: #E4F2F1;
+  --gold-bg: #FDF6EE;
+  --gold-border: #D4A46A;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --ink:#DFF0EE;--body:#9BBFBD;--muted:#6A8E8C;--rule:#25403E;
+    --bg:#111C1B;--surface:#182322;--tint:#0D2220;
+    --gold-bg:#1A1208;--gold-border:#7A5020;
+  }
+}
+:root[data-theme="light"] {
+  --ink:#1C2B2A;--body:#3A5250;--muted:#5C7876;--rule:#C5DEDD;--bg:#F1F6F6;--surface:#FFF;--tint:#E4F2F1;--gold-bg:#FDF6EE;--gold-border:#D4A46A;
+}
+:root[data-theme="dark"] {
+  --ink:#DFF0EE;--body:#9BBFBD;--muted:#6A8E8C;--rule:#25403E;--bg:#111C1B;--surface:#182322;--tint:#0D2220;--gold-bg:#1A1208;--gold-border:#7A5020;
+}
+
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+body{
+  background:var(--bg);color:var(--body);
+  font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+  font-size:16px;line-height:1.6;
+  padding:48px 28px 80px;max-width:680px;margin:0 auto;
+}
+
+.eyebrow{font-size:11px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:var(--teal);margin-bottom:10px;}
+h1{font-family:Georgia,serif;font-size:clamp(24px,4vw,34px);font-weight:700;color:var(--ink);line-height:1.25;margin-bottom:8px;}
+.tagline{font-size:15px;color:var(--muted);margin-bottom:40px;}
+
+hr{border:none;border-top:1px solid var(--rule);margin:36px 0;}
+h2{font-size:11px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--teal);margin-bottom:18px;}
+
+/* Problem list */
+.problems{list-style:none;padding:0;margin-bottom:0;}
+.problems li{
+  display:grid;
+  grid-template-columns:24px 1fr;
+  gap:14px;
+  padding:14px 0;
+  border-bottom:1px solid var(--rule);
+  align-items:start;
+}
+.problems li:last-child{border-bottom:none;}
+.prob-num{
+  font-size:12px;font-weight:700;color:var(--teal);
+  background:var(--tint);border-radius:50%;
+  width:24px;height:24px;display:flex;align-items:center;justify-content:center;
+  flex-shrink:0;margin-top:1px;
+}
+.prob-body{}
+.prob-label{font-size:15px;font-weight:600;color:var(--ink);margin-bottom:4px;}
+.prob-sub{font-size:13px;color:var(--muted);line-height:1.55;}
+
+/* Insight */
+.insight{
+  background:var(--gold-bg);border:1px solid var(--gold-border);
+  border-radius:8px;padding:22px 24px;
+}
+.insight-label{font-size:11px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--gold);margin-bottom:10px;}
+.insight-body{font-size:16px;color:var(--ink);line-height:1.65;}
+
+/* Capture row */
+.capture{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:18px 0;}
+.cap{background:var(--surface);border:1px solid var(--rule);border-radius:20px;padding:6px 16px;font-size:13px;font-weight:500;}
+.cap.img{border-color:#A0C8C6;color:#2A7870;}
+.cap.coord{border-color:var(--gold-border);color:#8A5010;}
+.cap.voice{border-color:#C4A8E0;color:#6A3090;}
+.cap.text{border-color:#A0B8A0;color:#2A5A2A;}
+.cap-plus{color:var(--rule);font-size:16px;}
+
+/* Nile bullets */
+.nile-list{list-style:none;padding:0;}
+.nile-list li{display:flex;gap:12px;padding:10px 0;border-bottom:1px solid var(--rule);font-size:14px;color:var(--body);line-height:1.6;}
+.nile-list li:last-child{border-bottom:none;}
+.nile-list li::before{content:"—";color:var(--teal);font-weight:700;flex-shrink:0;}
+.nile-list strong{color:var(--ink);}
+
+/* Question */
+.question-box{background:var(--ink);border-radius:10px;padding:26px 28px;}
+.question-label{font-size:11px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--teal);margin-bottom:12px;}
+.question-text{font-family:Georgia,serif;font-size:19px;line-height:1.6;color:#DFF0EE;}
+</style>
+
+<div class="eyebrow">ONDA Guide · Concept Brief · July 2026</div>
+<h1>Users Deserve Better Than This</h1>
+<p class="tagline">A conversation with Prakash Chandran · Friday</p>
+
+<hr>
+
+<h2>The Problems</h2>
+
+<ul class="problems">
+  <li>
+    <div class="prob-num">1</div>
+    <div class="prob-body">
+      <div class="prob-label">Photos in manuals go stale</div>
+      <div class="prob-sub">Visual references go out of date. Easy to print, impossible to maintain.</div>
+    </div>
+  </li>
+  <li>
+    <div class="prob-num">2</div>
+    <div class="prob-body">
+      <div class="prob-label">Video moves too fast</div>
+      <div class="prob-sub">People need a static image they can study to orient themselves. Video is hard to update and impossible to pause at the right moment.</div>
+    </div>
+  </li>
+  <li>
+    <div class="prob-num">3</div>
+    <div class="prob-body">
+      <div class="prob-label">Text has limits</div>
+      <div class="prob-sub">Not everyone reads well. Language barriers are real. Voice + text together transcend both.</div>
+    </div>
+  </li>
+  <li>
+    <div class="prob-num">4</div>
+    <div class="prob-body">
+      <div class="prob-label">ONDA voice transcription is painless</div>
+      <div class="prob-sub">Speak and the text exists. Accurate, immediate, no extra step. Voice and text arrive together.</div>
+    </div>
+  </li>
+  <li>
+    <div class="prob-num">5</div>
+    <div class="prob-body">
+      <div class="prob-label">Controls come and go — and move around</div>
+      <div class="prob-sub">Software updates constantly in the field. A control that was here is now there, or gone entirely. Any guide that can't be updated as fast as the software changes becomes a liability, not a resource.</div>
+    </div>
+  </li>
+  <li>
+    <div class="prob-num">6</div>
+    <div class="prob-body">
+      <div class="prob-label">People change jobs — knowledge walks out with them</div>
+      <div class="prob-sub">Institutional knowledge lives in individuals, not systems. When they leave, the organization starts over.</div>
+    </div>
+  </li>
+  <li>
+    <div class="prob-num">7</div>
+    <div class="prob-body">
+      <div class="prob-label">Corporate budgets make good documentation unlikely</div>
+      <div class="prob-sub">Documentation is always the last thing funded. The solution can't require a budget line. It has to be crowdsourced from the people who actually have the knowledge.</div>
+    </div>
+  </li>
+  <li>
+    <div class="prob-num">8</div>
+    <div class="prob-body">
+      <div class="prob-label">Video platforms optimize for revenue, not comprehension</div>
+      <div class="prob-sub">YouTube's economic model puts the learner at a disadvantage. Ads, algorithm, distraction — all working against understanding. When you want to go deeper, the platform sends you somewhere else.</div>
+    </div>
+  </li>
+</ul>
+
+<hr>
+
+<h2>The Insight</h2>
+
+<div class="insight">
+  <div class="insight-label">A tool accessible to anyone</div>
+  <div class="insight-body">Imagine a tool that allows anyone to document and monetize what they know. Not a free-for-all like YouTube — curated for accuracy and relevance. Words, pictures, voice. Financial incentives to supplement and maintain corporate value.<br><br>The person who understands a tool deeply — whether they're on the payroll or not — can publish what they know, earn from it, and keep it current. The business benefits without funding a documentation department. The knowledge stays alive because the incentive to maintain it stays alive.</div>
+</div>
+
+<hr>
+
+<h2>What One Step Captures</h2>
+
+<div class="capture">
+  <span class="cap img">Screenshot</span>
+  <span class="cap-plus">+</span>
+  <span class="cap coord">Where to look</span>
+  <span class="cap-plus">+</span>
+  <span class="cap voice">Voice</span>
+  <span class="cap-plus">+</span>
+  <span class="cap text">Transcript</span>
+</div>
+
+<p style="font-size:14px;color:var(--muted);line-height:1.6;">The learner sees the exact image, hears the explanation, reads the words — at their own pace, in their own context. All three at once. Nothing built today does that.</p>
+
+<hr>
+
+<h2>Where It Lives — ONDA Nile</h2>
+
+<ul class="nile-list">
+  <li><strong>No budget required.</strong> Any expert can author a guide. Knowledge is crowdsourced from the people who have it.</li>
+  <li><strong>Curators surface the best.</strong> Human judgment — not an algorithm — decides what's worth following.</li>
+  <li><strong>Tags navigate across platforms.</strong> One tag surfaces guides across Xano, Excel, IRS forms — whatever tools a task requires.</li>
+  <li><strong>No ads. No algorithm.</strong> The learner follows the thread as deep as they need to go.</li>
+  <li><strong>This is not Stack Overflow.</strong> Curators build a guild — a network of contributors whose collective knowledge is worth more than any individual piece. No anonymous voting. No stale answers. Human accountability at every level.</li>
+</ul>
+
+<hr>
+
+<div class="question-box">
+  <div class="question-label">The questions</div>
+  <div class="question-text">Can a lightweight plugin record where an expert's attention goes — across any interface — and turn that path into something anyone else can follow?<br><br>And when a learner follows that path — where does the guide live? A second screen? A browser side by side? An overlay on the interface itself? How does the learner make their screen match what the expert is showing them?</div>
+</div>
+
+<p style="margin-top:24px;font-size:13px;color:var(--muted);font-style:italic;">One idea: a side drawer — step by step, hear it, read it, expand the screenshot, move to the next step. Never leave the interface you're working in.</p>
