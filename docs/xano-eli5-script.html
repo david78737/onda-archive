@@ -1,0 +1,267 @@
+<title>Xano + Codex — Plain Language Script</title>
+<style>
+:root {
+  --teal: #008B82;
+  --gold: #B87333;
+  --ink: #1C2B2A;
+  --body: #3A5250;
+  --muted: #5C7876;
+  --rule: #C5DEDD;
+  --bg: #F1F6F6;
+  --surface: #FFFFFF;
+  --tint: #E4F2F1;
+  --gold-bg: #FDF6EE;
+  --gold-border: #D4A46A;
+  --num-bg: #E4F2F1;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --ink:#DFF0EE;--body:#9BBFBD;--muted:#6A8E8C;--rule:#25403E;
+    --bg:#111C1B;--surface:#182322;--tint:#0D2220;
+    --gold-bg:#1A1208;--gold-border:#7A5020;--num-bg:#0D2220;
+  }
+}
+:root[data-theme="light"] {
+  --ink:#1C2B2A;--body:#3A5250;--muted:#5C7876;--rule:#C5DEDD;--bg:#F1F6F6;--surface:#FFF;--tint:#E4F2F1;--gold-bg:#FDF6EE;--gold-border:#D4A46A;--num-bg:#E4F2F1;
+}
+:root[data-theme="dark"] {
+  --ink:#DFF0EE;--body:#9BBFBD;--muted:#6A8E8C;--rule:#25403E;--bg:#111C1B;--surface:#182322;--tint:#0D2220;--gold-bg:#1A1208;--gold-border:#7A5020;--num-bg:#0D2220;
+}
+
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+body{
+  background:var(--bg);color:var(--body);
+  font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+  font-size:16px;line-height:1.7;
+  padding:52px 28px 88px;max-width:720px;margin:0 auto;
+}
+
+.eyebrow{font-size:11px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:var(--teal);margin-bottom:10px;}
+h1{font-family:Georgia,serif;font-size:clamp(24px,4vw,34px);font-weight:700;color:var(--ink);line-height:1.25;margin-bottom:8px;}
+.tagline{font-size:15px;color:var(--muted);margin-bottom:16px;line-height:1.6;}
+
+.meta{
+  background:var(--gold-bg);border:1px solid var(--gold-border);
+  border-radius:8px;padding:16px 20px;margin-bottom:40px;
+  font-size:13px;color:var(--body);line-height:1.7;
+}
+.meta strong{color:var(--ink);}
+
+hr{border:none;border-top:1px solid var(--rule);margin:40px 0;}
+
+/* Segment */
+.segment{margin-bottom:40px;}
+.segment-header{display:flex;gap:14px;align-items:flex-start;margin-bottom:16px;}
+.seg-num{
+  width:32px;height:32px;border-radius:50%;
+  background:var(--teal);color:white;
+  font-size:13px;font-weight:700;
+  display:flex;align-items:center;justify-content:center;
+  flex-shrink:0;
+}
+.seg-title{font-size:18px;font-weight:700;color:var(--ink);line-height:1.3;padding-top:4px;}
+
+.screenshot-cue{
+  background:var(--num-bg);border:1px solid var(--rule);
+  border-radius:6px;padding:10px 14px;
+  font-size:12px;color:var(--muted);
+  margin-bottom:14px;font-style:italic;
+}
+.screenshot-cue strong{color:var(--teal);font-style:normal;}
+
+.script-text{
+  font-size:16px;line-height:1.85;color:var(--body);
+  border-left:3px solid var(--rule);
+  padding-left:20px;
+}
+.script-text p{margin-bottom:12px;}
+.script-text p:last-child{margin-bottom:0;}
+
+.pause{
+  display:inline-block;
+  font-size:11px;font-weight:700;letter-spacing:.08em;
+  text-transform:uppercase;color:var(--gold);
+  background:var(--gold-bg);border:1px solid var(--gold-border);
+  border-radius:4px;padding:1px 7px;margin:0 4px;
+  vertical-align:middle;
+}
+
+/* Review box */
+.review-box{
+  background:var(--surface);border:2px solid var(--teal);
+  border-radius:10px;padding:24px 26px;margin-top:48px;
+}
+.review-label{font-size:11px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--teal);margin-bottom:12px;}
+.review-text{font-size:15px;color:var(--body);line-height:1.7;}
+.review-text strong{color:var(--ink);}
+</style>
+
+<div class="eyebrow">ONDA Nile · Plain Language Script · July 2026</div>
+<h1>Building a Backend with Xano and Codex</h1>
+<p class="tagline">A plain-language narration script — written for people who are not developers, based on the original Xano tutorial. Prepared for accuracy review.</p>
+
+<div class="meta">
+  <strong>For Xano team review:</strong> This script was generated from the original Xano + Codex tutorial transcript using AI. It is written for a non-developer audience — including people who are neurodivergent, new to technology, or unfamiliar with software development concepts. Please review each segment for factual accuracy. The goal is not to replace the original tutorial but to make this content accessible to a much wider audience. Your approval of the accuracy is the only thing we need from you.
+</div>
+
+<div class="segment">
+  <div class="segment-header">
+    <div class="seg-num">1</div>
+    <div class="seg-title">The House Analogy — Setting the Stage</div>
+  </div>
+  <div class="screenshot-cue"><strong>Screenshot cue:</strong> Xano dashboard, blank workspace — the starting point before anything is built</div>
+  <div class="script-text">
+    <p>Imagine you want to build a house.</p>
+    <p>Normally, you'd need to hire an architect to design it, a contractor to manage the build, a plumber, an electrician — each one speaking a different language, each one needing to be coordinated. It's expensive. It's slow. And if you don't speak their language, you spend most of your time confused.</p>
+    <p>What we're about to show you replaces all of that with one conversation. <span class="pause">pause</span> You describe what you want. The tools build it. Let's walk through how that works — step by step, in plain language.</p>
+  </div>
+</div>
+
+<div class="segment">
+  <div class="segment-header">
+    <div class="seg-num">2</div>
+    <div class="seg-title">What Xano Is</div>
+  </div>
+  <div class="screenshot-cue"><strong>Screenshot cue:</strong> Xano workspace overview — showing the main dashboard with tables, APIs, and functions visible</div>
+  <div class="script-text">
+    <p>Xano is the construction crew.</p>
+    <p>It handles everything your application needs to work behind the scenes — storing your information, running your logic, connecting all the pieces together. You never see it working. You just see the result.</p>
+    <p>If your app were a restaurant, Xano is the kitchen. <span class="pause">pause</span> The customer never goes back there. But nothing arrives at the table without it.</p>
+  </div>
+</div>
+
+<div class="segment">
+  <div class="segment-header">
+    <div class="seg-num">3</div>
+    <div class="seg-title">What Codex Is</div>
+  </div>
+  <div class="screenshot-cue"><strong>Screenshot cue:</strong> VS Code editor with XanoScript extension active — showing code being generated</div>
+  <div class="script-text">
+    <p>Codex is the architect.</p>
+    <p>You tell it what you want in plain English. It writes the instructions for the construction crew. You don't need to speak the crew's language — Codex does that for you.</p>
+    <p>Together, Xano and Codex form a team. <span class="pause">pause</span> You're the client. You describe the house. They build it.</p>
+  </div>
+</div>
+
+<div class="segment">
+  <div class="segment-header">
+    <div class="seg-num">4</div>
+    <div class="seg-title">Setting Up the Toolchain — You Only Do This Once</div>
+  </div>
+  <div class="screenshot-cue"><strong>Screenshot cue:</strong> Terminal window showing NPM install command running</div>
+  <div class="script-text">
+    <p>Before Xano and Codex can work together, you set up three things. Think of this as introducing them to each other.</p>
+    <p>First — install the Xano CLI. That's the phone line between your computer and Xano. <span class="pause">pause</span></p>
+    <p>Second — install the XanoScript extension in VS Code. That's so you can read what's being built as it happens. <span class="pause">pause</span></p>
+    <p>Third — install the developer MCP. That's what teaches Codex how to speak Xano's language. Without this, they can't communicate.</p>
+    <p>You do this setup once. After that, it's just there — ready whenever you need it.</p>
+  </div>
+</div>
+
+<div class="segment">
+  <div class="segment-header">
+    <div class="seg-num">5</div>
+    <div class="seg-title">Connecting to Your Account</div>
+  </div>
+  <div class="screenshot-cue"><strong>Screenshot cue:</strong> Authentication screen — showing login prompt and instance selection</div>
+  <div class="script-text">
+    <p>Now you log in. You tell the tools which Xano account they're working with.</p>
+    <p>If you're starting a brand new project, you don't even need to pick a workspace yet. You're just introducing the tools to your account — like giving a new contractor a key to the building.</p>
+    <p>If you're continuing an existing project, you select your workspace here and everything picks up where you left off.</p>
+  </div>
+</div>
+
+<div class="segment">
+  <div class="segment-header">
+    <div class="seg-num">6</div>
+    <div class="seg-title">Creating Your Project Folder</div>
+  </div>
+  <div class="screenshot-cue"><strong>Screenshot cue:</strong> Local folder creation in file explorer or terminal</div>
+  <div class="script-text">
+    <p>Create a folder on your computer for your project.</p>
+    <p>Think of this as the job site. Everything gets built here first — on your machine, under your control — before anything goes anywhere else. If you plan to work with a team, this is also a good time to set up version control, which keeps a history of every change ever made.</p>
+    <p>Now create a new workspace in Xano and link it to this folder. <span class="pause">pause</span> Your job site is open. The crew is ready.</p>
+  </div>
+</div>
+
+<div class="segment">
+  <div class="segment-header">
+    <div class="seg-num">7</div>
+    <div class="seg-title">The Sandbox — The Most Important Idea in This Whole Workflow</div>
+  </div>
+  <div class="screenshot-cue"><strong>Screenshot cue:</strong> Xano sandbox environment — showing the sandbox indicator and test controls</div>
+  <div class="script-text">
+    <p>Before we build anything, let's talk about the sandbox. This is the most important concept in the whole workflow.</p>
+    <p>The sandbox is a safe copy of your project where nothing is real yet. <span class="pause">pause</span> You build here. You test here. You break things here — and it doesn't matter, because none of it touches your real users.</p>
+    <p>Think of it as a dress rehearsal. Everything runs exactly as it will in the real show. But if something goes wrong, you fix it backstage. The audience never sees it.</p>
+    <p>Nothing moves to production — to your real, live application — until you decide it's ready.</p>
+  </div>
+</div>
+
+<div class="segment">
+  <div class="segment-header">
+    <div class="seg-num">8</div>
+    <div class="seg-title">Building the Backend</div>
+  </div>
+  <div class="screenshot-cue"><strong>Screenshot cue:</strong> Codex generating XanoScript — showing the AI writing code in real time</div>
+  <div class="script-text">
+    <p>Now the build begins.</p>
+    <p>You describe what you want — in plain English. Codex writes the instructions. Xano executes them. You watch it happen in real time.</p>
+    <p>You are not writing code. <span class="pause">pause</span> You are having a conversation. The result is a fully working backend — all the invisible infrastructure your application needs to run.</p>
+    <p>If something doesn't look right, you say so. Codex adjusts. The crew rebuilds that section. The conversation continues until it's right.</p>
+  </div>
+</div>
+
+<div class="segment">
+  <div class="segment-header">
+    <div class="seg-num">9</div>
+    <div class="seg-title">Reviewing Changes Before They Go Live</div>
+  </div>
+  <div class="screenshot-cue"><strong>Screenshot cue:</strong> Git-style diff view — showing before and after comparison of changes</div>
+  <div class="script-text">
+    <p>Before anything moves from the sandbox to your live application, you see exactly what changed.</p>
+    <p>This view shows you a before and after — every addition highlighted, every removal marked. Nothing is a surprise. Nothing goes live without your eyes on it first.</p>
+    <p>You review it. You approve it. <span class="pause">pause</span> Then it goes live.</p>
+    <p>This is how professional software teams work. Now you're working the same way — without needing to understand every line of what was built.</p>
+  </div>
+</div>
+
+<div class="segment">
+  <div class="segment-header">
+    <div class="seg-num">10</div>
+    <div class="seg-title">The Frontend — Where It Gets Remarkable</div>
+  </div>
+  <div class="screenshot-cue"><strong>Screenshot cue:</strong> Generated frontend appearing — showing the user-facing interface Codex built</div>
+  <div class="script-text">
+    <p>Here is where something genuinely surprising happens.</p>
+    <p>Because Codex built your backend, it already knows everything about your project — every piece of data, every rule, every connection. So when you ask it to build the frontend — the part your users actually see and touch — it doesn't start from scratch. <span class="pause">pause</span> It already has the full picture.</p>
+    <p>It builds the frontend too.</p>
+    <p>In the time it used to take a team of developers to write a single feature, you now have a complete, working application. Backend and frontend. Built together. Ready to use.</p>
+  </div>
+</div>
+
+<div class="segment">
+  <div class="segment-header">
+    <div class="seg-num">11</div>
+    <div class="seg-title">What This Means for You</div>
+  </div>
+  <div class="screenshot-cue"><strong>Screenshot cue:</strong> Finished home origination platform — the completed application running in a browser</div>
+  <div class="script-text">
+    <p>You don't need to be a developer to understand what just happened.</p>
+    <p>Someone described a house. <span class="pause">pause</span> The tools built it.</p>
+    <p>The reason this matters — the reason we made this version of the tutorial — is that most people who could benefit from Xano never get past the first five minutes of the original documentation. Not because they aren't capable. Because the language wasn't written for them.</p>
+    <p>You now know what Xano is. You know what Codex does. You know what a sandbox is and why it protects you. You know how to review changes before they go live. And you know that building a complete application no longer requires a room full of specialists.</p>
+    <p>That's what this is for. <span class="pause">pause</span> You can do this.</p>
+  </div>
+</div>
+
+<hr>
+
+<div class="review-box">
+  <div class="review-label">For Xano — Accuracy Review Request</div>
+  <div class="review-text">
+    <p>This script was generated by AI from the original Xano + Codex tutorial. It is written for a non-developer audience and is intended to run alongside screenshots from the original video.</p>
+    <p style="margin-top:12px;"><strong>We are asking one thing:</strong> read through each segment and confirm the technical description is accurate. If anything misrepresents how Xano or Codex actually works, mark it and we will correct it before production.</p>
+    <p style="margin-top:12px;">Once approved, a voice narrator will record this script. The finished audio file — with transcript and screenshot cues — will be published on ONDA Nile, credited to Xano, at no cost to your team.</p>
+  </div>
+</div>
