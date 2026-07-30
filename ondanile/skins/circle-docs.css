@@ -4,43 +4,42 @@
    Add logo swap, palette, and font overrides here.
 ──────────────────────────────────────────────────────────────────────────── */
 
-/* Palette: aqua background, dark palm ink, teal accent */
+/* Palette: light aqua background, dark ink, teal accent */
 body {
-  background: #C8ECE8;
-  color: #1A1A2E;
+  background: #EAF7F5;
+  color: #1A1A1A;
 }
 
 header {
-  background: #1A4A4A;
+  background: #008787;
 }
 
 .search-bar {
-  background: #B0E0DC;
-  border-bottom-color: #1A4A4A;
+  background: #D4F0ED;
+  border-bottom-color: #008787;
 }
 
 .filter-btn.active,
 .tag-btn.active {
-  background: #1A4A4A;
-  border-color: #1A4A4A;
+  background: #008787;
+  border-color: #008787;
 }
 
 .filter-btn:hover,
 .tag-btn:hover {
-  border-color: #1A4A4A;
-  color: #1A4A4A;
+  border-color: #008787;
+  color: #008787;
 }
 
 .search-bar input:focus {
-  border-color: #1A4A4A;
+  border-color: #008787;
 }
 
-/* Wordmark override */
 .header-wordmark::before {
   content: "Circle Docs";
 }
 .header-wordmark {
-  font-size: 0;        /* hide "ONDA Nile" text */
+  font-size: 0;
 }
 .header-wordmark::before {
   font-size: 20px;
@@ -48,5 +47,5 @@ header {
 }
 
 .header-tagline {
-  display: none;       /* hide "Stop googling. Start navigating." */
+  display: none;
 }
