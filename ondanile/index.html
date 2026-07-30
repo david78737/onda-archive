@@ -374,11 +374,14 @@
 <script>
 // ── Query-string params ───────────────────────────────────────────────────────
 const _params = new URLSearchParams(location.search);
-const LOCKED_TAG     = _params.get('tag')      || null;  // e.g. ?tag=circle-docs
-const LOCKED_SKIN    = _params.get('skin')     || null;  // e.g. ?skin=circle-docs
-const LOCKED_LANG    = _params.get('lang')     || null;  // e.g. ?lang=es
-const LOCKED_COUNTRY = _params.get('country')  || null;  // e.g. ?country=mx
-const LOCKED_CURATOR = _params.get('curator')  || null;  // e.g. ?curator=david-richardson
+const LOCKED_TAG     = _params.get('tag')      || null;
+const LOCKED_SKIN    = _params.get('skin')     || null;
+const LOCKED_LANG    = _params.get('lang')     || null;
+const LOCKED_COUNTRY = _params.get('country')  || null;
+const LOCKED_CURATOR = _params.get('curator')  || null;
+const LOCKED_L1      = _params.get('org_l1')   || null;
+const LOCKED_L2      = _params.get('org_l2')   || null;
+const LOCKED_L3      = _params.get('org_l3')   || null;
 
 // Inject skin stylesheet before any render
 if (LOCKED_SKIN) {
@@ -386,8 +389,10 @@ if (LOCKED_SKIN) {
   link.rel = 'stylesheet';
   link.href = `skins/${LOCKED_SKIN}.css`;
   document.head.appendChild(link);
+}
 
-  // Add Sign in link to header when running as a curator station
+// Add Sign in link when running as a curator station
+if (LOCKED_SKIN) {
   const signinParams = new URLSearchParams();
   signinParams.set('skin', LOCKED_SKIN);
   if (LOCKED_L1) signinParams.set('org_l1', LOCKED_L1);
