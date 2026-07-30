@@ -73,10 +73,10 @@
       <div class="msg err" id="auth-msg"></div>
       <button class="btn" onclick="authSend()">Send Code</button>
     </div>
-    <div id="auth-step-otp" style="display:none">
+    <div id="auth-step-otp" style="visibility:hidden;position:absolute;pointer-events:none">
       <div class="field">
         <label>One-time code</label>
-        <input type="text" id="auth-otp" placeholder="tap here and type your code" inputmode="numeric" maxlength="6" autocomplete="one-time-code">
+        <input type="text" id="auth-otp" placeholder="Type your 6-digit code" inputmode="numeric" maxlength="6" autocomplete="one-time-code">
       </div>
       <div class="msg err" id="auth-msg2"></div>
       <button class="btn" onclick="authVerify()">Verify</button>
@@ -187,15 +187,23 @@ async function authSend(){
   try{
     const r=await fetch(`${NILE_AUTH}/presenter/magic/send`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({contact:normalizePhone(raw)})});
     if(!r.ok){const e=await r.json();throw new Error(e.message||'Failed to send code');}
-    document.getElementById('auth-step-phone').style.display='none';
-    document.getElementById('auth-step-otp').style.display='block';
-    setTimeout(()=>{ const f=document.getElementById('auth-otp'); f.removeAttribute('disabled'); f.focus(); },300);
+    document.getElementById('auth-step-phone').style.visibility='hidden';
+    document.getElementById('auth-step-phone').style.position='absolute';
+    const otpStep=document.getElementById('auth-step-otp');
+    otpStep.style.visibility='visible';
+    otpStep.style.position='relative';
+    otpStep.style.pointerEvents='auto';
+    document.getElementById('auth-otp').focus();
   }catch(e){msg.textContent=e.message;}
 }
 
 function authBack(){
-  document.getElementById('auth-step-otp').style.display='none';
-  document.getElementById('auth-step-phone').style.display='block';
+  const otpBack=document.getElementById('auth-step-otp');
+  otpBack.style.visibility='hidden';
+  otpBack.style.position='absolute';
+  otpBack.style.pointerEvents='none';
+  document.getElementById('auth-step-phone').style.visibility='visible';
+  document.getElementById('auth-step-phone').style.position='relative';
   document.getElementById('auth-msg2').textContent='';
 }
 
