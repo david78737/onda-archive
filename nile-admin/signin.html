@@ -258,7 +258,6 @@ async function loadStations() {
 }
 
 function goToStation(station) {
-  // Route to the card editor for this station
   const params = new URLSearchParams({
     org_l1: station.org_l1,
     org_l2: station.org_l2,
@@ -267,7 +266,10 @@ function goToStation(station) {
     token:  authToken,
   });
   if (SKIN) params.set('skin', SKIN);
-  window.location.href = `../nile-session-update/?${params.toString()}`;
+  const dest = station.role === 'presenter'
+    ? `../nile-tile-create/?${params}`
+    : `../nile-session-update/?${params}`;
+  window.location.href = dest;
 }
 </script>
 </body>

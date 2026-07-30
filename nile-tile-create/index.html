@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Add a Tile — ONDA Nile</title>
+<style>
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+  body{background:#F0F4F4;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:16px;color:#222;min-height:100vh;}
+  header{background:#008787;padding:14px 24px;display:flex;align-items:center;gap:10px;}
+  .wordmark{font-size:18px;font-weight:700;color:#fff;letter-spacing:.04em;}
+  header a{color:rgba(255,255,255,.8);font-size:13px;text-decoration:none;margin-left:auto;}
+  header a:hover{color:#fff;}
+  .wrap{max-width:560px;margin:40px auto;padding:0 16px 80px;}
+  h2{color:#008787;font-size:24px;margin-bottom:6px;}
+  .sub{color:#666;font-size:15px;margin-bottom:28px;line-height:1.5;}
+  .org-badge{display:inline-block;background:#E0F4F2;border:1px solid #008787;border-radius:4px;padding:3px 10px;font-size:13px;color:#008787;font-weight:600;margin-bottom:24px;}
+  .field{margin-bottom:20px;}
+  .field label{display:block;font-size:14px;font-weight:600;color:#555;margin-bottom:4px;}
+  .field input,.field textarea{width:100%;padding:11px 14px;font-size:16px;border:1px solid #CCC;border-radius:6px;color:#222;background:#FFF;transition:border-color .15s;}
+  .field input:focus,.field textarea:focus{border-color:#008787;outline:none;}
+  .field textarea{min-height:90px;resize:vertical;}
+  .field .hint{font-size:12px;color:#999;margin-top:3px;}
+  /* Tags */
+  .tags-wrap{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px;}
+  .tag-pill{display:inline-flex;align-items:center;gap:4px;background:#E0F4F2;border:1px solid #008787;border-radius:4px;padding:3px 8px;font-size:13px;color:#008787;}
+  .tag-pill.locked{opacity:.6;cursor:default;}
+  .tag-pill button{background:none;border:none;color:#008787;cursor:pointer;font-size:15px;line-height:1;padding:0 0 1px 0;}
+  .tag-input-row{display:flex;gap:8px;}
+  .tag-input-row input{flex:1;}
+  .tag-add{padding:8px 14px;background:#008787;color:#fff;border:none;border-radius:6px;font-size:14px;cursor:pointer;}
+  /* Buttons */
+  .btn{width:100%;padding:13px;background:#008787;color:#fff;font-size:16px;font-weight:600;border:none;border-radius:6px;cursor:pointer;margin-top:8px;transition:background .15s;}
+  .btn:hover{background:#006f6f;}
+  .btn:disabled{background:#AAA;cursor:default;}
+  .msg{margin-top:14px;font-size:14px;}
+  .msg.ok{color:#008787;}
+  .msg.err{color:#c0392b;}
+  /* Success screen */
+  #step-success{display:none;text-align:center;padding:40px 0;}
+  #step-success .check{font-size:48px;margin-bottom:16px;}
+  #step-success h2{margin-bottom:8px;}
+  #step-success p{color:#666;font-size:15px;margin-bottom:24px;}
+  #step-success a{color:#008787;text-decoration:none;font-weight:600;}
+</style>
+</head>
+<body>
+
+<header>
+  <span class="wordmark" id="page-wordmark">ONDA Nile</span>
+  <a id="back-link" href="../ondanile/">← Back to Nile</a>
+</header>
+
+<div class="wrap">
+
+  <!-- Auth error -->
+  <div id="step-error" style="display:none;padding:40px 0;text-align:center;">
+    <p style="color:#c0392b;font-size:15px;margin-bottom:16px;">Session expired or invalid link. Please sign in again.</p>
+    <a id="signin-link" href="../nile-admin/signin.html" style="color:#008787;font-weight:600;text-decoration:none;">← Sign in</a>
+  </div>
+
+  <!-- Create form -->
+  <div id="step-form" style="display:none;">
+    <h2>Add a Tile</h2>
+    <p class="sub">Fill in your talk details. It will appear on the browse page immediately after you submit.</p>
+    <div class="org-badge" id="org-badge"></div>
+
+    <div class="field">
+      <label>Title <span style="font-weight:400;color:#999">*</span></label>
+      <input id="f-title" type="text" placeholder="The title of your talk or resource" />
+    </div>
+
+    <div class="field">
+      <label>Presenter name <span style="font-weight:400;color:#999">*</span></label>
+      <input id="f-presenter" type="text" placeholder="Your name as it should appear on the tile" />
+    </div>
+
+    <div class="field">
+      <label>Synopsis <span style="font-weight:400;color:#999">(1–3 sentences)</span></label>
+      <textarea id="f-synopsis" placeholder="What this talk is about"></textarea>
+    </div>
+
+    <div class="field">
+      <label>Best for</label>
+      <input id="f-bestfor" type="text" placeholder="Who gets the most from this talk" />
+    </div>
+
+    <div class="field">
+      <label>Tags</label>
+      <div class="tags-wrap" id="tags-wrap"></div>
+      <div class="tag-input-row">
+        <input id="tag-input" type="text" placeholder="Add a topic tag" />
+        <button class="tag-add" type="button" onclick="addTag()">+</button>
+      </div>
+      <div class="hint">The station tag is added automatically.</div>
+    </div>
+
+    <div class="field">
+      <label>Photo URL <span style="font-weight:400;color:#999">(optional)</span></label>
+      <input id="f-photo" type="url" placeholder="https://..." />
+      <div class="hint">A headshot or talk image. Leave blank to skip.</div>
+    </div>
+
+    <div class="field">
+      <label>Recording URL <span style="font-weight:400;color:#999">(optional)</span></label>
+      <input id="f-onda-url" type="url" placeholder="https://..." />
+      <div class="hint">Link to a .onda file if the recording is ready.</div>
+    </div>
+
+    <button class="btn" id="btn-submit" onclick="submitTile()">Add Tile</button>
+    <div class="msg" id="msg-submit"></div>
+  </div>
+
+  <!-- Success -->
+  <div id="step-success">
+    <div class="check">✓</div>
+    <h2>Tile added!</h2>
+    <p>Your talk is now visible on the browse page.</p>
+    <a id="browse-link" href="#">View the station →</a>
+  </div>
+
+</div>
+
+<script>
+const NILE_API  = 'https://xrxm-29on-xlyt.n7e.xano.io/api:onda-nile';
+const NILE_AUTH = 'https://xrxm-29on-xlyt.n7e.xano.io/api:nile';
+
+const _p = new URLSearchParams(location.search);
+const SKIN    = _p.get('skin')    || null;
+const L1      = _p.get('org_l1') || null;
+const L2      = _p.get('org_l2') || null;
+const L3      = _p.get('org_l3') || null;
+const TOKEN   = _p.get('token')  || null;
+const ROLE    = _p.get('role')   || null;
+
+// Locked tag = org_l3 (e.g. "Food") + org_l1 as station identifier
+const LOCKED_TAG = L3 || L1 || null;
+
+let userTags = [];
+
+// ── Skin wordmark ─────────────────────────────────────────────────────────────
+const SKINS = {
+  'circle-docs': { wordmark: 'Circle Docs' },
+};
+(function applySkin() {
+  const skin = SKIN && SKINS[SKIN];
+  if (!skin) return;
+  if (skin.wordmark) document.getElementById('page-wordmark').textContent = skin.wordmark;
+})();
+
+// ── Back link ─────────────────────────────────────────────────────────────────
+(function setBackLink() {
+  const params = new URLSearchParams();
+  if (SKIN) params.set('skin', SKIN);
+  if (L1)   params.set('org_l1', L1);
+  if (L2)   params.set('org_l2', L2);
+  if (L3)   params.set('org_l3', L3);
+  document.getElementById('back-link').href = `../ondanile/?${params}`;
+  document.getElementById('browse-link').href = `../ondanile/?${params}`;
+  const signinParams = new URLSearchParams();
+  if (SKIN) signinParams.set('skin', SKIN);
+  if (L1)   signinParams.set('org_l1', L1);
+  if (L2)   signinParams.set('org_l2', L2);
+  if (L3)   signinParams.set('org_l3', L3);
+  document.getElementById('signin-link').href = `../nile-admin/signin.html?${signinParams}`;
+})();
+
+// ── Init ──────────────────────────────────────────────────────────────────────
+(async function init() {
+  if (!TOKEN || !L1) {
+    document.getElementById('step-error').style.display = 'block';
+    return;
+  }
+
+  // Show org badge
+  const badge = [L1, L2, L3].filter(Boolean).join(' · ');
+  document.getElementById('org-badge').textContent = badge;
+
+  // Pre-populate locked tag
+  if (LOCKED_TAG) addTagValue(LOCKED_TAG, true);
+
+  document.getElementById('step-form').style.display = 'block';
+})();
+
+// ── Tags ──────────────────────────────────────────────────────────────────────
+function renderTags() {
+  const wrap = document.getElementById('tags-wrap');
+  wrap.innerHTML = '';
+  userTags.forEach((t, i) => {
+    const pill = document.createElement('span');
+    pill.className = 'tag-pill' + (t.locked ? ' locked' : '');
+    pill.innerHTML = t.locked
+      ? `${t.value}`
+      : `${t.value}<button onclick="removeTag(${i})" title="Remove">×</button>`;
+    wrap.appendChild(pill);
+  });
+}
+
+function addTagValue(value, locked) {
+  const v = value.trim().toLowerCase();
+  if (!v || userTags.find(t => t.value === v)) return;
+  userTags.push({ value: v, locked: !!locked });
+  renderTags();
+}
+
+function addTag() {
+  const inp = document.getElementById('tag-input');
+  addTagValue(inp.value, false);
+  inp.value = '';
+  inp.focus();
+}
+
+function removeTag(i) {
+  if (userTags[i]?.locked) return;
+  userTags.splice(i, 1);
+  renderTags();
+}
+
+document.getElementById('tag-input').addEventListener('keydown', e => {
+  if (e.key === 'Enter') { e.preventDefault(); addTag(); }
+});
+
+// ── Submit ────────────────────────────────────────────────────────────────────
+async function submitTile() {
+  const title     = document.getElementById('f-title').value.trim();
+  const presenter = document.getElementById('f-presenter').value.trim();
+  const synopsis  = document.getElementById('f-synopsis').value.trim();
+  const bestfor   = document.getElementById('f-bestfor').value.trim();
+  const photo     = document.getElementById('f-photo').value.trim() || null;
+  const ondaUrl   = document.getElementById('f-onda-url').value.trim() || null;
+  const msg       = document.getElementById('msg-submit');
+  const btn       = document.getElementById('btn-submit');
+
+  msg.className = 'msg';
+  msg.textContent = '';
+
+  if (!title)     { msg.className = 'msg err'; msg.textContent = 'Title is required.'; return; }
+  if (!presenter) { msg.className = 'msg err'; msg.textContent = 'Presenter name is required.'; return; }
+
+  btn.disabled = true;
+  btn.textContent = 'Saving…';
+
+  try {
+    const r = await fetch(`${NILE_API}/nile/tile/create`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        magic_auth_token: TOKEN,
+        org_l1: L1,
+        org_l2: L2,
+        org_l3: L3,
+        title,
+        presenter,
+        synopsis,
+        who: bestfor,
+        tags: userTags.map(t => t.value),
+        photo,
+        onda_url: ondaUrl,
+      }),
+    });
+    if (!r.ok) { const e = await r.json(); throw new Error(e.message || 'Submit failed'); }
+    document.getElementById('step-form').style.display = 'none';
+    document.getElementById('step-success').style.display = 'block';
+  } catch(e) {
+    msg.className = 'msg err';
+    msg.textContent = e.message;
+    btn.disabled = false;
+    btn.textContent = 'Add Tile';
+  }
+}
+</script>
+</body>
+</html>
