@@ -480,6 +480,12 @@ function buildSourceFilters() {
 
 // ── Tag panel ─────────────────────────────────────────────────────────────────
 function renderTags(rows) {
+  // If locked tag filter produces no results, hide both panels entirely
+  if (LOCKED_TAG && rows.length === 0) {
+    document.getElementById('tag-list').innerHTML = '';
+    document.getElementById('source-filters').innerHTML = '';
+    return;
+  }
   const visibleSet = new Set(rows.flatMap(s => s.tags));
   const listEl = document.getElementById('tag-list');
   listEl.innerHTML = '';
