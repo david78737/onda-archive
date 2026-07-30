@@ -90,6 +90,12 @@
     </div>
 
     <div class="field">
+      <label>One-liner <span style="font-weight:400;color:#999">(optional)</span></label>
+      <input id="f-brief" type="text" placeholder="A punchy one-sentence takeaway or call to action" />
+      <div class="hint">Appears below the synopsis on the card. e.g. "Stop optimizing for output — start designing for thinking."</div>
+    </div>
+
+    <div class="field">
       <label>Best for</label>
       <input id="f-bestfor" type="text" placeholder="Who gets the most from this talk" />
     </div>
@@ -114,6 +120,12 @@
       <label>Deck / Slides <span style="font-weight:400;color:#999">(optional)</span></label>
       <input id="f-deck" type="url" placeholder="Google Slides, Canva, or PDF link" />
       <div class="hint">A link to your slide deck if you have one.</div>
+    </div>
+
+    <div class="field">
+      <label>YouTube URL <span style="font-weight:400;color:#999">(optional)</span></label>
+      <input id="f-youtube" type="url" placeholder="https://youtube.com/watch?v=..." />
+      <div class="hint">Link to the recorded session on YouTube, if available.</div>
     </div>
 
     <div class="field">
@@ -261,9 +273,11 @@ async function submitTile() {
   const presenter = document.getElementById('f-presenter').value.trim();
   const synopsis  = document.getElementById('f-synopsis').value.trim();
   const bestfor   = document.getElementById('f-bestfor').value.trim();
+  const brief     = document.getElementById('f-brief').value.trim() || null;
   const photo     = document.getElementById('f-photo').value.trim() || null;
   const ondaUrl   = document.getElementById('f-onda-url').value.trim() || null;
   const deck      = document.getElementById('f-deck').value.trim() || null;
+  const youtube   = document.getElementById('f-youtube').value.trim() || null;
   const takeaways = getTakeaways();
   const msg       = document.getElementById('msg-submit');
   const btn       = document.getElementById('btn-submit');
@@ -291,8 +305,10 @@ async function submitTile() {
         synopsis,
         who: bestfor,
         tags: userTags.map(t => t.value),
+        brief,
         takeaways,
         deck_url: deck,
+        youtube,
         photo,
         onda_url: ondaUrl,
       }),
