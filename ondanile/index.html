@@ -371,10 +371,27 @@
 </footer>
 
 <script>
+// ── Query-string params ───────────────────────────────────────────────────────
+const _params = new URLSearchParams(location.search);
+const LOCKED_TAG     = _params.get('tag')      || null;  // e.g. ?tag=circle-docs
+const LOCKED_SKIN    = _params.get('skin')     || null;  // e.g. ?skin=circle-docs
+const LOCKED_LANG    = _params.get('lang')     || null;  // e.g. ?lang=es
+const LOCKED_COUNTRY = _params.get('country')  || null;  // e.g. ?country=mx
+const LOCKED_CURATOR = _params.get('curator')  || null;  // e.g. ?curator=david-richardson
+
+// Inject skin stylesheet before any render
+if (LOCKED_SKIN) {
+  const link = document.createElement('link');
+  link.rel = 'stylesheet';
+  link.href = `skins/${LOCKED_SKIN}.css`;
+  document.head.appendChild(link);
+}
+
 // ── Data + state ──────────────────────────────────────────────────────────────
 let allSessions = [];
 let allTags = [];
 const state = { org: 'all', tags: new Set(), query: '' };
+if (LOCKED_TAG) state.tags.add(LOCKED_TAG);
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 const _palette = ['#3a5a8a','#5a3a8a','#3a7a5a','#7a4a3a','#6a3a6a','#3a6a7a','#8a5a3a','#2a6a4a'];
@@ -408,6 +425,9 @@ function filtered() {
   return allSessions.filter(s => {
     if (state.org !== 'all' && s.org !== state.org) return false;
     if (state.tags.size > 0 && ![...state.tags].every(t => s.tags.includes(t))) return false;
+    if (LOCKED_LANG    && s.language && s.language !== LOCKED_LANG)    return false;
+    if (LOCKED_COUNTRY && s.country  && s.country  !== LOCKED_COUNTRY) return false;
+    if (LOCKED_CURATOR && s.curator  && s.curator  !== LOCKED_CURATOR) return false;
     if (state.query) {
       const q = state.query.toLowerCase();
       const hay = [s.title, s.presenter, s.org, s.source, s.synopsis, ...s.tags, s.linkedin||''].join(' ').toLowerCase();
@@ -449,10 +469,10 @@ function renderTags(rows) {
 
   const isEvent = t => /^PCA\d+$/.test(t) || /elevate summit/i.test(t);
 
-  const active = [...state.tags];
+  const active = [...state.tags].filter(t => t !== LOCKED_TAG);
   active.forEach(t => listEl.appendChild(makeTagBtn(t, 'active', null)));
 
-  const related = allTags.filter(({tag}) => !state.tags.has(tag) && visibleSet.has(tag));
+  const related = allTags.filter(({tag}) => tag !== LOCKED_TAG && !state.tags.has(tag) && visibleSet.has(tag));
   if (active.length && related.length) listEl.appendChild(divider());
 
   const relatedEvents = related.filter(({tag}) => isEvent(tag));
@@ -461,7 +481,7 @@ function renderTags(rows) {
   if (relatedEvents.length && relatedTopics.length) listEl.appendChild(miniLabel('TOPICS'));
   relatedTopics.forEach(({tag, n}) => listEl.appendChild(makeTagBtn(tag, 'related', n)));
 
-  const remaining = allTags.filter(({tag}) => !state.tags.has(tag) && !visibleSet.has(tag));
+  const remaining = allTags.filter(({tag}) => tag !== LOCKED_TAG && !state.tags.has(tag) && !visibleSet.has(tag));
   if ((active.length || related.length) && remaining.length) listEl.appendChild(divider());
   remaining.forEach(({tag, n}) => listEl.appendChild(makeTagBtn(tag, 'remaining', n)));
 }
@@ -638,6 +658,9 @@ function normalizeNileSession(s) {
     onda_url: s.file_url || s.session_url || null,
     status: s.status,
     visibility: s.visibility,
+    language: s.language || null,
+    country: s.country   || null,
+    curator: s.curator   || null,
   };
 }
 

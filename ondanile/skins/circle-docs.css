@@ -1,0 +1,52 @@
+/* ── Circle Docs skin ────────────────────────────────────────────────────────
+   Loaded when ?skin=circle-docs is in the URL.
+   Overrides ONDA Nile defaults with Circle Docs branding.
+   Add logo swap, palette, and font overrides here.
+──────────────────────────────────────────────────────────────────────────── */
+
+/* Palette: aqua background, dark palm ink, teal accent */
+body {
+  background: #C8ECE8;
+  color: #1A1A2E;
+}
+
+header {
+  background: #1A4A4A;
+}
+
+.search-bar {
+  background: #B0E0DC;
+  border-bottom-color: #1A4A4A;
+}
+
+.filter-btn.active,
+.tag-btn.active {
+  background: #1A4A4A;
+  border-color: #1A4A4A;
+}
+
+.filter-btn:hover,
+.tag-btn:hover {
+  border-color: #1A4A4A;
+  color: #1A4A4A;
+}
+
+.search-bar input:focus {
+  border-color: #1A4A4A;
+}
+
+/* Wordmark override */
+.header-wordmark::before {
+  content: "Circle Docs";
+}
+.header-wordmark {
+  font-size: 0;        /* hide "ONDA Nile" text */
+}
+.header-wordmark::before {
+  font-size: 20px;
+  letter-spacing: .04em;
+}
+
+.header-tagline {
+  display: none;       /* hide "Stop googling. Start navigating." */
+}

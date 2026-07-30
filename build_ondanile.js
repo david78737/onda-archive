@@ -41,6 +41,9 @@ function fromElevate(s) {
     youtube: s.youtube || null,
     photo: s.photo ? `../${s.photo}` : null,
     onda_url: s.onda_url || null,
+    language: s.language || null,
+    country: s.country   || null,
+    curator: s.curator   || null,
   };
 }
 

@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>ONDA · Presenter Enrollment</title>
+<title>Contributor Enrollment</title>
 <style>
   :root {
     --accent:    #00C9BC;
@@ -54,12 +54,13 @@
   #auth-section{width:100%;max-width:480px;}
   #enroll-section{display:none;width:100%;max-width:480px;}
 </style>
+<style id="skin-overrides"></style>
 </head>
 <body>
 
-<div class="wordmark">ONDA Nile</div>
-<h1>Presenter Enrollment</h1>
-<div class="subtitle">Add presenters and assign their org roles. ONDA admin only.</div>
+<div class="wordmark" id="page-wordmark">ONDA Nile</div>
+<h1 id="page-title">Contributor Enrollment</h1>
+<div class="subtitle" id="page-subtitle">Add contributors and assign their station. Curator access only.</div>
 
 <!-- ── Auth ── -->
 <div id="auth-section">
@@ -75,7 +76,7 @@
     <div id="auth-step-otp" style="display:none">
       <div class="field">
         <label>One-time code</label>
-        <input type="text" id="auth-otp" placeholder="6-digit code" inputmode="numeric" maxlength="6" autocomplete="one-time-code">
+        <input type="text" id="auth-otp" placeholder="tap here and type your code" inputmode="numeric" maxlength="6" autocomplete="one-time-code">
       </div>
       <div class="msg err" id="auth-msg2"></div>
       <button class="btn" onclick="authVerify()">Verify</button>
@@ -131,6 +132,44 @@
 const NILE_API  = 'https://xrxm-29on-xlyt.n7e.xano.io/api:onda-nile';
 const NILE_AUTH = 'https://xrxm-29on-xlyt.n7e.xano.io/api:nile';
 
+// ── Query-string config ───────────────────────────────────────────────────────
+const _p = new URLSearchParams(location.search);
+const SKIN       = _p.get('skin')    || null;
+const LOCKED_L1  = _p.get('org_l1') || null;
+const LOCKED_L2  = _p.get('org_l2') || null;
+const LOCKED_L3  = _p.get('org_l3') || null;
+const LOCKED_ORG = (LOCKED_L1 && LOCKED_L2 && LOCKED_L3)
+  ? `${LOCKED_L1}|${LOCKED_L2}|${LOCKED_L3}` : null;
+
+// ── Skin definitions ──────────────────────────────────────────────────────────
+const SKINS = {
+  'circle-docs': {
+    wordmark: 'Circle Docs',
+    title:    'Contributor Enrollment',
+    subtitle: 'People I Know and Trust — add someone to Circle Docs.',
+    css: `
+      :root {
+        --accent: #1A4A4A;
+        --accent-dim: rgba(26,74,74,.15);
+        --bg: #0d1f1f;
+        --surface: #162828;
+        --border: #1e3838;
+      }
+    `,
+  },
+};
+
+// Apply skin on load
+(function applySkin() {
+  const skin = SKIN && SKINS[SKIN];
+  if (!skin) return;
+  if (skin.wordmark) document.getElementById('page-wordmark').textContent = skin.wordmark;
+  if (skin.title)    document.getElementById('page-title').textContent    = skin.title;
+  if (skin.subtitle) document.getElementById('page-subtitle').textContent = skin.subtitle;
+  if (skin.css)      document.getElementById('skin-overrides').textContent = skin.css;
+  document.title = skin.title || document.title;
+})();
+
 let authToken = null;
 
 function normalizePhone(raw){
@@ -150,7 +189,7 @@ async function authSend(){
     if(!r.ok){const e=await r.json();throw new Error(e.message||'Failed to send code');}
     document.getElementById('auth-step-phone').style.display='none';
     document.getElementById('auth-step-otp').style.display='block';
-    setTimeout(()=>document.getElementById('auth-otp').focus(),50);
+    setTimeout(()=>{ const f=document.getElementById('auth-otp'); f.removeAttribute('disabled'); f.focus(); },300);
   }catch(e){msg.textContent=e.message;}
 }
 
@@ -173,7 +212,17 @@ async function authVerify(){
     if(!authToken) throw new Error('Auth failed — token not returned');
     document.getElementById('auth-section').style.display='none';
     document.getElementById('enroll-section').style.display='block';
-    await loadOrgs();
+    if (LOCKED_ORG) {
+      // Org is pre-determined by URL — hide the dropdown, show a read-only label
+      const orgField = document.getElementById('enroll-org').closest('.field');
+      orgField.innerHTML = `<label>Station</label>
+        <div style="padding:10px 13px;border:1px solid var(--border);border-radius:7px;font-size:14px;color:var(--ink-mid)">
+          ${LOCKED_L1} · ${LOCKED_L2} · ${LOCKED_L3}
+        </div>`;
+      document.getElementById('new-org-form').style.display = 'none';
+    } else {
+      await loadOrgs();
+    }
     loadRoster();
   }catch(e){msg.textContent=e.message;}
 }
@@ -230,7 +279,7 @@ async function createOrg(){
 async function enroll(){
   const name=document.getElementById('enroll-name').value.trim();
   const phone=document.getElementById('enroll-phone').value.trim();
-  const org=document.getElementById('enroll-org').value;
+  const org=LOCKED_ORG || (document.getElementById('enroll-org')?.value || '');
   const role=document.getElementById('enroll-role').value;
   const msg=document.getElementById('enroll-msg');
   const btn=document.getElementById('enroll-btn');
