@@ -330,7 +330,7 @@
       <div class="header-wordmark">ONDA Nile</div>
       <div class="header-tagline">Stop googling. Start navigating.</div>
     </div>
-    <div class="header-right">Powered by <a href="https://ondareplay.com" target="_blank" rel="noopener" class="header-link">ONDA Replay</a></div>
+    <div class="header-right" id="header-right">Powered by <a href="https://ondareplay.com" target="_blank" rel="noopener" class="header-link">ONDA Replay</a></div>
   </div>
 </header>
 
@@ -385,6 +385,17 @@ if (LOCKED_SKIN) {
   link.rel = 'stylesheet';
   link.href = `skins/${LOCKED_SKIN}.css`;
   document.head.appendChild(link);
+
+  // Add Sign in link to header when running as a curator station
+  const signinParams = new URLSearchParams();
+  signinParams.set('skin', LOCKED_SKIN);
+  if (LOCKED_L1) signinParams.set('org_l1', LOCKED_L1);
+  if (LOCKED_L2) signinParams.set('org_l2', LOCKED_L2);
+  if (LOCKED_L3) signinParams.set('org_l3', LOCKED_L3);
+  const headerRight = document.getElementById('header-right');
+  if (headerRight) {
+    headerRight.innerHTML = `<a href="../nile-admin/signin.html?${signinParams}" class="header-link">Sign in</a>`;
+  }
 }
 
 // ── Data + state ──────────────────────────────────────────────────────────────
