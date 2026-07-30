@@ -29,6 +29,15 @@
   .tag-input-row{display:flex;gap:8px;}
   .tag-input-row input{flex:1;}
   .tag-add{padding:8px 14px;background:#008787;color:#fff;border:none;border-radius:6px;font-size:14px;cursor:pointer;}
+  /* Takeaways */
+  .takeaway-list{list-style:none;margin-bottom:8px;}
+  .takeaway-item{display:flex;align-items:flex-start;gap:8px;margin-bottom:6px;}
+  .takeaway-item textarea{flex:1;min-height:56px;resize:vertical;padding:8px 12px;font-size:15px;border:1px solid #CCC;border-radius:6px;}
+  .takeaway-item textarea:focus{border-color:#008787;outline:none;}
+  .takeaway-remove{background:none;border:none;color:#aaa;font-size:20px;cursor:pointer;line-height:1;padding-top:10px;}
+  .takeaway-remove:hover{color:#c0392b;}
+  .btn-add-item{background:none;border:1px dashed #008787;color:#008787;border-radius:6px;padding:8px 14px;font-size:14px;cursor:pointer;margin-top:4px;width:100%;}
+  .btn-add-item:hover{background:#E0F4F2;}
   /* Buttons */
   .btn{width:100%;padding:13px;background:#008787;color:#fff;font-size:16px;font-weight:600;border:none;border-radius:6px;cursor:pointer;margin-top:8px;transition:background .15s;}
   .btn:hover{background:#006f6f;}
@@ -93,6 +102,18 @@
         <button class="tag-add" type="button" onclick="addTag()">+</button>
       </div>
       <div class="hint">The station tag is added automatically.</div>
+    </div>
+
+    <div class="field">
+      <label>Key Takeaways <span style="font-weight:400;color:#999">(optional)</span></label>
+      <ul class="takeaway-list" id="takeaway-list"></ul>
+      <button class="btn-add-item" type="button" onclick="addTakeaway()">+ Add Takeaway</button>
+    </div>
+
+    <div class="field">
+      <label>Deck / Slides <span style="font-weight:400;color:#999">(optional)</span></label>
+      <input id="f-deck" type="url" placeholder="Google Slides, Canva, or PDF link" />
+      <div class="hint">A link to your slide deck if you have one.</div>
     </div>
 
     <div class="field">
@@ -220,6 +241,20 @@ document.getElementById('tag-input').addEventListener('keydown', e => {
   if (e.key === 'Enter') { e.preventDefault(); addTag(); }
 });
 
+// ── Takeaways ─────────────────────────────────────────────────────────────────
+function addTakeaway() {
+  const li = document.createElement('li');
+  li.className = 'takeaway-item';
+  li.innerHTML = `<textarea placeholder="One key takeaway…"></textarea><button class="takeaway-remove" type="button" onclick="this.closest('li').remove()">×</button>`;
+  document.getElementById('takeaway-list').appendChild(li);
+  li.querySelector('textarea').focus();
+}
+
+function getTakeaways() {
+  return [...document.querySelectorAll('#takeaway-list textarea')]
+    .map(t => t.value.trim()).filter(Boolean);
+}
+
 // ── Submit ────────────────────────────────────────────────────────────────────
 async function submitTile() {
   const title     = document.getElementById('f-title').value.trim();
@@ -228,6 +263,8 @@ async function submitTile() {
   const bestfor   = document.getElementById('f-bestfor').value.trim();
   const photo     = document.getElementById('f-photo').value.trim() || null;
   const ondaUrl   = document.getElementById('f-onda-url').value.trim() || null;
+  const deck      = document.getElementById('f-deck').value.trim() || null;
+  const takeaways = getTakeaways();
   const msg       = document.getElementById('msg-submit');
   const btn       = document.getElementById('btn-submit');
 
@@ -254,6 +291,8 @@ async function submitTile() {
         synopsis,
         who: bestfor,
         tags: userTags.map(t => t.value),
+        takeaways,
+        deck_url: deck,
         photo,
         onda_url: ondaUrl,
       }),
