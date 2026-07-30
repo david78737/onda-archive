@@ -657,7 +657,8 @@ document.getElementById('search-input').addEventListener('input', e => {
 });
 
 // ── Boot ──────────────────────────────────────────────────────────────────────
-const NILE_API = 'https://xrxm-29on-xlyt.n7e.xano.io/api:onda-nile/sessions?per_page=1000';
+const NILE_API       = 'https://xrxm-29on-xlyt.n7e.xano.io/api:onda-nile/sessions?per_page=1000';
+const NILE_TILES_API = 'https://xrxm-29on-xlyt.n7e.xano.io/api:onda-nile/nile/tiles';
 
 function normalizeNileSession(s) {
   const name = s.presenter_slug
@@ -687,16 +688,48 @@ function normalizeNileSession(s) {
   };
 }
 
+function normalizeTile(t) {
+  return {
+    id: 'tile-' + t.id,
+    title: t.title || '',
+    presenter: t.presenter || '',
+    org: t.org_l1 || '',
+    source: [t.org_l1, t.org_l2, t.org_l3].filter(Boolean).join(' · '),
+    tags: Array.isArray(t.tags) ? t.tags : [],
+    synopsis: t.synopsis || '',
+    takeaways: Array.isArray(t.takeaways) ? t.takeaways : [],
+    who: t.who || '',
+    brief: t.brief || '',
+    youtube: t.youtube || null,
+    photo: t.photo || null,
+    onda_url: t.onda_url || null,
+    deck_url: t.deck_url || null,
+    language: null,
+    country: null,
+    curator: null,
+  };
+}
+
 (async () => {
   try {
-    const [staticResp, liveResp] = await Promise.all([
+    // Build tiles URL with org filters if station is locked
+    let tilesUrl = NILE_TILES_API;
+    const tileParams = new URLSearchParams();
+    if (LOCKED_L1) tileParams.set('org_l1', LOCKED_L1);
+    if (LOCKED_L2) tileParams.set('org_l2', LOCKED_L2);
+    if (LOCKED_L3) tileParams.set('org_l3', LOCKED_L3);
+    if ([...tileParams].length) tilesUrl += '?' + tileParams;
+
+    const [staticResp, liveResp, tilesResp] = await Promise.all([
       fetch('sessions.json'),
       fetch(NILE_API).catch(() => null),
+      fetch(tilesUrl).catch(() => null),
     ]);
     if (!staticResp.ok) throw new Error(`sessions.json: ${staticResp.status}`);
     const staticSessions = await staticResp.json();
     const liveSessions = liveResp && liveResp.ok ? (await liveResp.json()).map(normalizeNileSession) : [];
-    allSessions = [...liveSessions.filter(s => s.status === 'claimed'), ...staticSessions];
+    const tileSessions = tilesResp && tilesResp.ok ? (await tilesResp.json()).map(normalizeTile) : [];
+    allSessions = [...tileSessions, ...liveSessions.filter(s => s.status === 'claimed'), ...staticSessions];
 
     // Build ranked tag list — event tags (PCA##, Elevate Summit *) pinned first
     const tagCount = {};
