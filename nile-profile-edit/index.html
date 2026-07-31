@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Edit Profile — ONDA Nile</title>
+<style>
+  :root{--accent:#008787;--bg:#EAF7F5;--surface:#fff;--border:#C8E8E5;--ink:#1A1A1A;--muted:#666;--ok:#008787;--err:#c0392b;}
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+  body{background:var(--bg);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:16px;color:var(--ink);min-height:100vh;}
+  header{background:var(--accent);padding:14px 24px;display:flex;align-items:center;gap:10px;}
+  .wordmark{font-size:18px;font-weight:700;color:#fff;letter-spacing:.04em;}
+  header a{color:rgba(255,255,255,.8);font-size:13px;text-decoration:none;margin-left:auto;}
+  header a:hover{color:#fff;}
+  .wrap{max-width:520px;margin:40px auto;padding:0 16px 80px;}
+  h2{color:var(--accent);font-size:22px;margin-bottom:6px;}
+  .sub{color:var(--muted);font-size:15px;margin-bottom:28px;}
+  .field{margin-bottom:20px;}
+  .field label{display:block;font-size:13px;font-weight:600;color:var(--muted);margin-bottom:5px;}
+  .field input{width:100%;padding:11px 14px;font-size:16px;border:1px solid #CCC;border-radius:6px;color:var(--ink);background:#fff;transition:border-color .15s;}
+  .field input:focus{border-color:var(--accent);outline:none;}
+  .field .hint{font-size:12px;color:#999;margin-top:3px;}
+  .photo-preview{width:72px;height:72px;border-radius:50%;object-fit:cover;border:2px solid var(--border);margin-bottom:10px;display:none;}
+  .btn{width:100%;padding:13px;background:var(--accent);color:#fff;font-size:16px;font-weight:600;border:none;border-radius:6px;cursor:pointer;transition:background .15s;}
+  .btn:hover{background:#006f6f;}
+  .btn:disabled{background:#aaa;cursor:default;}
+  .msg{margin-top:14px;font-size:14px;font-weight:600;}
+  .msg.ok{color:var(--ok);}
+  .msg.err{color:var(--err);}
+  #step-success{display:none;text-align:center;padding:40px 0;}
+  #step-success .check{font-size:48px;margin-bottom:16px;}
+</style>
+</head>
+<body>
+<header>
+  <span class="wordmark">ONDA Nile</span>
+  <a href="#" id="back-link">← Back to station</a>
+</header>
+
+<div class="wrap">
+  <div id="step-loading" style="color:var(--muted);padding:40px 0;text-align:center;">Loading your profile…</div>
+
+  <div id="step-form" style="display:none;">
+    <h2>Edit Profile</h2>
+    <p class="sub">Your name and LinkedIn URL are shown on your talk tiles.</p>
+
+    <img id="photo-preview" class="photo-preview" alt="Profile photo preview">
+
+    <div class="field">
+      <label>Full name</label>
+      <input type="text" id="f-name" placeholder="Your name as it appears on tiles">
+    </div>
+    <div class="field">
+      <label>Photo URL</label>
+      <input type="url" id="f-photo" placeholder="https://…" oninput="previewPhoto()">
+      <div class="hint">Paste a direct image URL. Square images work best.</div>
+    </div>
+    <div class="field">
+      <label>LinkedIn URL</label>
+      <input type="url" id="f-linkedin" placeholder="https://linkedin.com/in/yourname">
+      <div class="hint">Used as your public contact — no email or phone exposed.</div>
+    </div>
+
+    <button class="btn" id="btn-save" onclick="saveProfile()">Save Profile</button>
+    <div class="msg" id="msg-save"></div>
+  </div>
+
+  <div id="step-success">
+    <div class="check">✓</div>
+    <h2>Profile updated</h2>
+    <p style="color:var(--muted);margin-top:8px;margin-bottom:24px;">Your changes are live on your station.</p>
+    <a href="#" id="back-link-2" style="color:var(--accent);font-weight:600;">← Back to station</a>
+  </div>
+</div>
+
+<script>
+const NILE_API = 'https://xrxm-29on-xlyt.n7e.xano.io/api:onda-nile';
+const p        = new URLSearchParams(location.search);
+const TOKEN    = p.get('token') || '';
+const ORG_L1   = p.get('org_l1') || '';
+const ORG_L2   = p.get('org_l2') || '';
+const ORG_L3   = p.get('org_l3') || '';
+const SKIN     = p.get('skin') || '';
+
+const browseUrl = SKIN
+  ? `../ondanile/?skin=${SKIN}`
+  : `../ondanile/`;
+
+document.getElementById('back-link').href   = browseUrl;
+document.getElementById('back-link-2').href = browseUrl;
+
+async function loadProfile() {
+  try {
+    const r = await fetch(`${NILE_API}/nile/presenter/profile`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ magic_auth_token: TOKEN }),
+    });
+    if (!r.ok) throw new Error('Could not load profile');
+    const data = await r.json();
+    document.getElementById('f-name').value    = data.name    || '';
+    document.getElementById('f-photo').value   = data.photo   || '';
+    document.getElementById('f-linkedin').value= data.linkedin|| '';
+    previewPhoto();
+  } catch(e) {
+    document.getElementById('step-loading').textContent = e.message;
+    return;
+  }
+  document.getElementById('step-loading').style.display = 'none';
+  document.getElementById('step-form').style.display    = 'block';
+}
+
+function previewPhoto() {
+  const url = document.getElementById('f-photo').value.trim();
+  const img = document.getElementById('photo-preview');
+  if (url) { img.src = url; img.style.display = 'block'; }
+  else      { img.style.display = 'none'; }
+}
+
+async function saveProfile() {
+  const name     = document.getElementById('f-name').value.trim();
+  const photo    = document.getElementById('f-photo').value.trim() || null;
+  const linkedin = document.getElementById('f-linkedin').value.trim() || null;
+  const msg      = document.getElementById('msg-save');
+  const btn      = document.getElementById('btn-save');
+
+  msg.className = 'msg';
+  msg.textContent = '';
+
+  if (!name) { msg.className = 'msg err'; msg.textContent = 'Name is required.'; return; }
+
+  btn.disabled = true;
+  btn.textContent = 'Saving…';
+
+  try {
+    const r = await fetch(`${NILE_API}/nile/presenter/profile/update`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ magic_auth_token: TOKEN, name, photo, linkedin }),
+    });
+    if (!r.ok) { const e = await r.json(); throw new Error(e.message || 'Save failed'); }
+    document.getElementById('step-form').style.display    = 'none';
+    document.getElementById('step-success').style.display = 'block';
+  } catch(e) {
+    msg.className = 'msg err';
+    msg.textContent = e.message;
+    btn.disabled = false;
+    btn.textContent = 'Save Profile';
+  }
+}
+
+loadProfile();
+</script>
+</body>
+</html>

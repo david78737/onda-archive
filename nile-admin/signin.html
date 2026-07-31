@@ -47,10 +47,15 @@
     padding:16px 18px;cursor:pointer;transition:border-color .15s,background .15s;
     display:flex;align-items:center;justify-content:space-between;gap:12px;
   }
-  .station-card:hover{border-color:var(--accent);background:var(--accent-dim);}
+  .station-card{cursor:default;}
+  .station-card:hover{border-color:var(--border);background:var(--surface);}
   .station-name{font-size:15px;font-weight:600;color:var(--ink);}
   .station-role{font-size:11px;font-weight:700;color:var(--accent);background:var(--accent-dim);border-radius:4px;padding:2px 8px;white-space:nowrap;}
-  .station-arrow{color:var(--muted);font-size:18px;}
+  .station-actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px;}
+  .action-btn{padding:8px 14px;font-size:13px;font-weight:600;border:none;border-radius:6px;cursor:pointer;transition:opacity .15s;}
+  .action-btn:hover{opacity:.85;}
+  .action-btn.primary{background:var(--accent);color:#0f1117;}
+  .action-btn.secondary{background:transparent;color:var(--accent);border:1px solid var(--accent);}
 
   .empty{text-align:center;padding:2rem;color:var(--muted);font-size:14px;}
 
@@ -238,38 +243,40 @@ async function loadStations() {
 
     list.innerHTML = '';
     stations.forEach(s => {
+      const params = new URLSearchParams({
+        org_l1: s.org_l1,
+        org_l2: s.org_l2,
+        org_l3: s.org_l3,
+        role:   s.role,
+        token:  authToken,
+      });
+      if (SKIN) params.set('skin', SKIN);
+
+      const tileUrl    = `../nile-tile-create/?${params}`;
+      const profileUrl = `../nile-profile-edit/?${params}`;
+      const sessionUrl = `../nile-session-update/?${params}`;
+
+      const isPresenter  = s.role === 'presenter';
+      const isOrganizer  = s.role === 'organizer';
+
       const card = document.createElement('div');
       card.className = 'station-card';
       card.innerHTML = `
         <div>
-          <div class="station-name">${s.station_name || s.org}</div>
+          <div class="station-name">${s.station_name || s.org_l1}</div>
           <div style="font-size:12px;color:var(--muted);margin-top:2px">${s.org_l1} · ${s.org_l2} · ${s.org_l3}</div>
+          <span class="station-role" style="margin-top:8px;display:inline-block">${s.role}</span>
         </div>
-        <div style="display:flex;align-items:center;gap:8px">
-          <span class="station-role">${s.role}</span>
-          <span class="station-arrow">›</span>
+        <div class="station-actions">
+          ${isPresenter ? `<button class="action-btn primary" onclick="window.location.href='${tileUrl}'">Add Tile</button>` : ''}
+          ${isOrganizer ? `<button class="action-btn primary" onclick="window.location.href='${sessionUrl}'">Manage Sessions</button>` : ''}
+          <button class="action-btn secondary" onclick="window.location.href='${profileUrl}'">Edit Profile</button>
         </div>`;
-      card.addEventListener('click', () => goToStation(s));
       list.appendChild(card);
     });
   } catch(e) {
     list.innerHTML = `<div class="empty">${e.message}</div>`;
   }
-}
-
-function goToStation(station) {
-  const params = new URLSearchParams({
-    org_l1: station.org_l1,
-    org_l2: station.org_l2,
-    org_l3: station.org_l3,
-    role:   station.role,
-    token:  authToken,
-  });
-  if (SKIN) params.set('skin', SKIN);
-  const dest = station.role === 'presenter'
-    ? `../nile-tile-create/?${params}`
-    : `../nile-session-update/?${params}`;
-  window.location.href = dest;
 }
 </script>
 </body>
