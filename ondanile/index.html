@@ -577,12 +577,12 @@ function render() {
          </a>`
       : '';
 
-    const ondaBtn = s.onda_url
+    const ondaBtn = (s.onda_url && s.status === 'live')
       ? `<a class="onda-btn" href="${s.onda_url}" target="_blank" rel="noopener"
              onclick="return openOnda(event,'${s.onda_url}')" title="Download .onda">
            <img src="../img/onda-download.png" alt="Download ONDA">
          </a>`
-      : `<span class="buy-soon">$4.99 — Coming to ONDA Replay</span>`;
+      : (s.status === 'pending' ? `<span class="buy-soon">Recording coming soon</span>` : '');
 
     const STATION_MAP = {
       'Elevate Summit':     { initials: 'ES',  color: '#004EFF', url: '../chapter/?org_l1=elevate&org_l2=summit&org_l3=elevate-summit' },
