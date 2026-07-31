@@ -628,6 +628,7 @@ function render() {
         <div class="section-label">Best For</div>
         <div class="who">${s.who}</div>
         <div class="brief-row">${s.brief}</div>
+        ${s.proxy && s.status !== 'live' ? `<div style="margin-top:12px;font-size:12px;color:#888;">Recording code: <strong style="color:#008787;letter-spacing:.05em;">${s.proxy}</strong></div>` : ''}
         ${actionRow}
       </div>`;
 
@@ -704,6 +705,8 @@ function normalizeTile(t) {
     photo: t.photo || null,
     onda_url: t.onda_url || null,
     deck_url: t.deck_url || null,
+    proxy: t.proxy || null,
+    status: t.status || null,
     language: null,
     country: null,
     curator: null,
