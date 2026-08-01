@@ -1,0 +1,467 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>What's New — ONDA Replay</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #f7f8fa;
+    --surface: #ffffff;
+    --border: #e2e5ed;
+    --text: #1a1d27;
+    --muted: #6b7280;
+    --teal: #008B82;
+    --teal-light: #e6f4f3;
+    --purple: #5B4FCF;
+    --purple-light: #eeecfb;
+    --gold: #C9A457;
+    --gold-light: #faf5e8;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #0f1117;
+      --surface: #1a1d27;
+      --border: #2a2d3a;
+      --text: #e8eaf0;
+      --muted: #6870a0;
+      --teal-light: #0d2422;
+      --purple-light: #1a1630;
+      --gold-light: #1e1a0d;
+    }
+  }
+
+  :root[data-theme="light"] {
+    --bg: #f7f8fa; --surface: #ffffff; --border: #e2e5ed;
+    --text: #1a1d27; --muted: #6b7280;
+    --teal-light: #e6f4f3; --purple-light: #eeecfb; --gold-light: #faf5e8;
+  }
+  :root[data-theme="dark"] {
+    --bg: #0f1117; --surface: #1a1d27; --border: #2a2d3a;
+    --text: #e8eaf0; --muted: #6870a0;
+    --teal-light: #0d2422; --purple-light: #1a1630; --gold-light: #1e1a0d;
+  }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    font-size: 15px;
+    line-height: 1.65;
+  }
+
+  header {
+    background: var(--teal);
+    padding: 24px;
+  }
+  .header-inner {
+    max-width: 780px;
+    margin: 0 auto;
+  }
+  .eyebrow {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: .14em;
+    color: rgba(255,255,255,.65);
+    margin-bottom: 6px;
+  }
+  header h1 {
+    font-size: 26px;
+    font-weight: 700;
+    color: #fff;
+    line-height: 1.2;
+  }
+  header p {
+    font-size: 14px;
+    color: rgba(255,255,255,.8);
+    margin-top: 6px;
+  }
+
+  main {
+    max-width: 780px;
+    margin: 0 auto;
+    padding: 36px 20px 72px;
+  }
+
+  /* Section label */
+  .section-label {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: .13em;
+    color: var(--muted);
+    margin-bottom: 16px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  /* Level cards */
+  .level-stack {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-bottom: 48px;
+  }
+
+  .level-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 22px 24px;
+  }
+
+  .level-card.teal  { border-left: 4px solid var(--teal);   background: var(--teal-light); }
+  .level-card.purple { border-left: 4px solid var(--purple); background: var(--purple-light); }
+  .level-card.gold   { border-left: 4px solid var(--gold);   background: var(--gold-light); }
+
+  .level-header {
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+    margin-bottom: 8px;
+  }
+  .level-name {
+    font-size: 17px;
+    font-weight: 700;
+    color: var(--text);
+  }
+  .level-badge {
+    font-size: 11px;
+    font-weight: 600;
+    padding: 2px 9px;
+    border-radius: 20px;
+  }
+  .teal  .level-badge { background: var(--teal);   color: #fff; }
+  .purple .level-badge { background: var(--purple); color: #fff; }
+  .gold   .level-badge { background: var(--gold);   color: #fff; }
+
+  .level-desc {
+    font-size: 14px;
+    color: var(--muted);
+    margin-bottom: 12px;
+  }
+
+  .task-list {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .task-list li {
+    font-size: 14px;
+    color: var(--text);
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+  }
+  .task-list li::before {
+    content: '→';
+    font-weight: 700;
+    flex-shrink: 0;
+    margin-top: 1px;
+  }
+  .teal  .task-list li::before { color: var(--teal); }
+  .purple .task-list li::before { color: var(--purple); }
+  .gold   .task-list li::before { color: var(--gold); }
+
+  /* Feature highlight */
+  .feature-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+    gap: 14px;
+    margin-bottom: 48px;
+  }
+
+  .feature-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px;
+  }
+  .feature-icon {
+    font-size: 22px;
+    margin-bottom: 10px;
+    line-height: 1;
+  }
+  .feature-title {
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: 6px;
+  }
+  .feature-body {
+    font-size: 13px;
+    color: var(--muted);
+    line-height: 1.6;
+  }
+
+  /* Help callout */
+  .help-callout {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 24px;
+    margin-bottom: 48px;
+    display: flex;
+    gap: 20px;
+    align-items: flex-start;
+  }
+  .help-callout-icon {
+    font-size: 36px;
+    flex-shrink: 0;
+    line-height: 1;
+  }
+  .help-callout-body h3 {
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: 6px;
+  }
+  .help-callout-body p {
+    font-size: 13px;
+    color: var(--muted);
+    line-height: 1.6;
+    margin-bottom: 12px;
+  }
+  .help-link {
+    display: inline-block;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--teal);
+    text-decoration: none;
+    border-bottom: 1px solid var(--teal);
+    padding-bottom: 1px;
+  }
+  .help-link:hover { opacity: .75; }
+
+  /* CTA */
+  .cta-box {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 28px 24px;
+    text-align: center;
+    margin-bottom: 48px;
+  }
+  .cta-box h3 {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: 8px;
+  }
+  .cta-box p {
+    font-size: 13px;
+    color: var(--muted);
+    margin-bottom: 20px;
+    max-width: 480px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+  .cta-btn {
+    display: inline-block;
+    background: var(--teal);
+    color: #fff;
+    font-size: 15px;
+    font-weight: 600;
+    padding: 12px 28px;
+    border-radius: 10px;
+    text-decoration: none;
+    transition: opacity .15s;
+  }
+  .cta-btn:hover { opacity: .85; }
+  .cta-note {
+    font-size: 12px;
+    color: var(--muted);
+    margin-top: 10px;
+  }
+
+  /* Nile section */
+  .nile-items {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-bottom: 48px;
+  }
+  .nile-item {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 16px 18px;
+    display: flex;
+    gap: 14px;
+    align-items: flex-start;
+  }
+  .nile-item-icon { font-size: 20px; flex-shrink: 0; line-height: 1.2; }
+  .nile-item-title { font-size: 14px; font-weight: 600; color: var(--text); margin-bottom: 2px; }
+  .nile-item-desc { font-size: 13px; color: var(--muted); }
+
+  footer {
+    text-align: center;
+    padding: 24px;
+    font-size: 11px;
+    color: var(--muted);
+    border-top: 1px solid var(--border);
+  }
+  footer a { color: var(--teal); text-decoration: none; }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-inner">
+    <div class="eyebrow">ONDA Replay · August 2026</div>
+    <h1>A lot has changed.</h1>
+    <p>Here is what is new, what you can try, and how complex each path actually is.</p>
+  </div>
+</header>
+
+<main>
+
+  <div class="section-label">Three ways to use ONDA Replay</div>
+  <div class="level-stack">
+
+    <div class="level-card teal">
+      <div class="level-header">
+        <span class="level-name">Just try it</span>
+        <span class="level-badge">Free — no account needed</span>
+      </div>
+      <p class="level-desc">Download the app and open a session file. No sign-in, no subscription, no setup.</p>
+      <ul class="task-list">
+        <li>Download ONDA Replay from the Play Store</li>
+        <li>Open a .onda file from the archive below or from someone who shared one with you</li>
+        <li>Follow the transcript as the audio plays, tap any word to jump to that moment</li>
+        <li>Browse ONDA Nile to find published sessions</li>
+      </ul>
+    </div>
+
+    <div class="level-card purple">
+      <div class="level-header">
+        <span class="level-name">Record something</span>
+        <span class="level-badge">Contributor — $8.99/mo</span>
+      </div>
+      <p class="level-desc">Capture a meeting, talk, or idea. Get a searchable transcript back. Build a private catalog.</p>
+      <ul class="task-list">
+        <li>Tap record, speak, tap stop</li>
+        <li>Transcription runs automatically and returns word-level timestamps</li>
+        <li>Tap any word in the transcript to play from that exact moment</li>
+        <li>Tag your sessions, build an index, share .onda files with others</li>
+        <li>Apply to present at a Curator's event using an event code</li>
+      </ul>
+    </div>
+
+    <div class="level-card gold">
+      <div class="level-header">
+        <span class="level-name">Publish something</span>
+        <span class="level-badge">Curator — $19.99/mo or $99.99/6mo</span>
+      </div>
+      <p class="level-desc">Create a station on ONDA Nile. Manage events, approve speakers, publish a body of work.</p>
+      <ul class="task-list">
+        <li>Subscribe as a Curator from the Utilities tab</li>
+        <li>Register your station at the Curator portal</li>
+        <li>Create an event and share the event code with your speakers</li>
+        <li>Review speaker applications, approve or return them</li>
+        <li>Approved speakers record their talks and auto-upload to your station</li>
+        <li>Publish to ONDA Nile — your audience downloads and replays at their own pace</li>
+      </ul>
+    </div>
+
+  </div>
+
+  <div class="section-label">What is new in this build (1.7.15)</div>
+  <div class="feature-grid">
+
+    <div class="feature-card">
+      <div class="feature-icon">🎓</div>
+      <div class="feature-title">Become a Curator</div>
+      <div class="feature-body">A new button in Utilities opens a pricing sheet where you can subscribe monthly or every six months. As a license tester, this will complete at $0.00.</div>
+    </div>
+
+    <div class="feature-card">
+      <div class="feature-icon">🎤</div>
+      <div class="feature-title">Presenter proxy flow</div>
+      <div class="feature-body">Approved speakers enter a proxy code, record their talk, and tap Stop. The session auto-uploads to the Curator's station. No file transfer, no manual steps.</div>
+    </div>
+
+    <div class="feature-card">
+      <div class="feature-icon">🔍</div>
+      <div class="feature-title">Curator portal navigation</div>
+      <div class="feature-body">The archive home page now has a Curator Tools section with one-tap links to every admin page: register, station profile, event creation, speaker review, bulk upload.</div>
+    </div>
+
+    <div class="feature-card">
+      <div class="feature-icon">📺</div>
+      <div class="feature-title">YouTube to .onda</div>
+      <div class="feature-body">Paste a YouTube URL, pay $4.99, receive a .onda file by SMS. The pipeline transcribes the audio with Whisper and packages it as a fully navigable session file.</div>
+    </div>
+
+  </div>
+
+  <div class="section-label">The help system</div>
+  <div class="help-callout">
+    <div class="help-callout-icon">📖</div>
+    <div class="help-callout-body">
+      <h3>Every screen has a help page with a numbered map</h3>
+      <p>Tap the help icon on any screen in ONDA Replay and you land on a page showing an annotated screenshot of that exact screen, with numbered callouts for every control. No separate manual. Always current because it lives on the web, not inside the app.</p>
+      <p>This is also a proof of concept for something bigger: words, images, and audio working together so that content runs at the reader's pace, not the producer's. The help system is the first version of that idea.</p>
+      <a class="help-link" href="https://david78737.github.io/onda-help/help.html" target="_blank">Open the help system</a>
+    </div>
+  </div>
+
+  <div class="section-label">What is new on ONDA Nile</div>
+  <div class="nile-items">
+
+    <div class="nile-item">
+      <div class="nile-item-icon">🌊</div>
+      <div>
+        <div class="nile-item-title">Station model live</div>
+        <div class="nile-item-desc">Curators can register a station, set a color theme, and publish sessions under a branded banner. The station links back to every presenter who has appeared there.</div>
+      </div>
+    </div>
+
+    <div class="nile-item">
+      <div class="nile-item-icon">📅</div>
+      <div>
+        <div class="nile-item-title">Event and slot creation</div>
+        <div class="nile-item-desc">Curators generate event codes and assign session slots. Presenters enter the code in Replay, submit an application card, and wait for approval.</div>
+      </div>
+    </div>
+
+    <div class="nile-item">
+      <div class="nile-item-icon">🗳️</div>
+      <div>
+        <div class="nile-item-title">Speaker card review</div>
+        <div class="nile-item-desc">Curators or their coordinators review application cards and approve, return, or hold them. Approved speakers receive a proxy code automatically.</div>
+      </div>
+    </div>
+
+    <div class="nile-item">
+      <div class="nile-item-icon">📤</div>
+      <div>
+        <div class="nile-item-title">Bulk upload</div>
+        <div class="nile-item-desc">Upload multiple .onda files to a station at once. Useful for organizations that have an existing archive of recorded content and want to publish it all at once.</div>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="cta-box">
+    <h3>Ready to test?</h3>
+    <p>Open this link on your Android device to get the latest build. As a license tester, you can try every paid feature including the Curator subscription at no charge.</p>
+    <a class="cta-btn" href="https://play.google.com/apps/internaltest/4701681181515692221">Get ONDA Replay on Android</a>
+    <div class="cta-note">Requires a Google account on the tester list. Update from the Play Store after opening the link.</div>
+  </div>
+
+  <div class="section-label">Archive</div>
+  <p style="font-size:13px; color:var(--muted); margin-bottom: 16px;">Browse recorded sessions from past events, or explore the Curator tools.</p>
+  <p style="font-size:13px;"><a href="/" style="color:var(--teal); text-decoration:none; font-weight:600;">← Back to archive home</a></p>
+
+</main>
+
+<footer>
+  ONDA Replay · <a href="https://ondareplay.com">ondareplay.com</a> · August 2026
+</footer>
+
+</body>
+</html>
