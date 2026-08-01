@@ -1,3 +1,8 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Three Ways to Use ONDA Nile as a Curator</title>
 <style>
   :root {
@@ -45,12 +50,6 @@
 
   .wrap { max-width: 700px; margin: 0 auto; }
 
-  .back-link {
-    display: inline-block; margin-bottom: 24px;
-    font-size: 13px; color: var(--teal); text-decoration: none; font-weight: 600;
-  }
-  .back-link:hover { opacity: .75; }
-
   .doc-header {
     margin-bottom: 48px;
     padding-bottom: 32px;
@@ -63,14 +62,29 @@
   .doc-title {
     font-family: Georgia, 'Times New Roman', serif;
     font-size: clamp(24px, 5vw, 36px);
-    font-weight: 700; color: var(--ink); line-height: 1.2; margin-bottom: 16px;
+    font-weight: 700; color: var(--ink); line-height: 1.2;
+    margin-bottom: 16px;
   }
   .doc-intro { font-size: 17px; color: var(--body); line-height: 1.75; }
+
+  /* Identity model box */
+  .identity-box {
+    background: var(--teal-light); border: 1px solid var(--teal);
+    border-radius: 10px; padding: 20px 24px; margin-top: 24px;
+  }
+  .identity-box-title {
+    font-size: 12px; font-weight: 700; letter-spacing: .1em;
+    text-transform: uppercase; color: var(--teal); margin-bottom: 10px;
+  }
+  .identity-box p { font-size: 15px; color: var(--body); line-height: 1.7; margin-bottom: 8px; }
+  .identity-box p:last-child { margin-bottom: 0; }
 
   .story { margin-bottom: 60px; padding-bottom: 60px; border-bottom: 1px solid var(--rule); }
   .story:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
 
-  .story-person { display: flex; align-items: flex-start; gap: 16px; margin-bottom: 24px; }
+  .story-person {
+    display: flex; align-items: flex-start; gap: 16px; margin-bottom: 24px;
+  }
   .story-avatar {
     width: 54px; height: 54px; border-radius: 50%;
     background: var(--teal-light);
@@ -99,7 +113,9 @@
     font-size: 12px; font-weight: 700; letter-spacing: .1em;
     text-transform: uppercase; color: var(--muted); margin-bottom: 14px;
   }
-  .step { display: flex; gap: 14px; margin-bottom: 14px; align-items: flex-start; }
+  .step {
+    display: flex; gap: 14px; margin-bottom: 14px; align-items: flex-start;
+  }
   .step-num {
     width: 26px; height: 26px; border-radius: 50%;
     background: var(--teal); color: #fff;
@@ -109,7 +125,10 @@
   }
   .step-body { font-size: 15px; color: var(--body); line-height: 1.6; flex: 1; }
   .step-body strong { color: var(--ink); }
-  .step-body a { color: var(--teal); text-decoration: none; font-weight: 600; border-bottom: 1px solid currentColor; }
+  .step-body a {
+    color: var(--teal); text-decoration: none; font-weight: 600;
+    border-bottom: 1px solid currentColor;
+  }
   .step-body a:hover { opacity: .75; }
 
   .role-badge {
@@ -118,9 +137,9 @@
     text-transform: uppercase; padding: 2px 8px;
     border-radius: 4px; margin-left: 6px; vertical-align: middle;
   }
-  .role-curator  { background: var(--teal-light);  color: var(--teal); }
-  .role-presenter{ background: var(--amber-light); color: var(--amber); }
-  .role-audience { background: var(--red-light);   color: var(--red); }
+  .role-curator { background: var(--teal-light); color: var(--teal); }
+  .role-presenter { background: var(--amber-light); color: var(--amber); }
+  .role-audience { background: var(--red-light); color: var(--red); }
 
   .cost-box {
     background: var(--amber-light); border: 1px solid var(--amber);
@@ -143,6 +162,16 @@
     margin-top: 10px; padding-top: 10px; border-top: 2px solid var(--amber);
   }
 
+  .gets { list-style: none; margin: 20px 0; }
+  .gets li {
+    display: flex; align-items: flex-start; gap: 10px;
+    font-size: 15px; color: var(--body); margin-bottom: 8px;
+  }
+  .gets li::before {
+    content: '✓'; color: var(--teal); font-weight: 700;
+    flex-shrink: 0; margin-top: 2px;
+  }
+
   .forms-bar {
     background: var(--surface); border: 1px solid var(--rule);
     border-radius: 10px; padding: 16px 20px; margin: 24px 0;
@@ -158,6 +187,7 @@
     color: var(--teal); text-decoration: none;
     background: var(--teal-light); border: 1px solid var(--teal);
     border-radius: 6px; padding: 6px 12px;
+    transition: opacity .15s;
   }
   .form-link:hover { opacity: .75; }
 
@@ -168,14 +198,24 @@
   }
 </style>
 
-<div class="wrap">
+<div style="background:#006B63;padding:10px 24px;font-size:13px;">
+  <a href="/onda-archive/docs/whats-new.html" style="color:rgba(255,255,255,.85);text-decoration:none;font-weight:600;">← What's New · August 2026</a>
+  &nbsp;&nbsp;·&nbsp;&nbsp;
+  <a href="/onda-archive/" style="color:rgba(255,255,255,.65);text-decoration:none;">Archive Home</a>
+</div>
 
-  <a class="back-link" href="../">← ONDA Archive</a>
+<div class="wrap">
 
   <div class="doc-header">
     <div class="doc-eyebrow">ONDA Nile · Curator Model · Working Draft</div>
     <h1 class="doc-title">Three Ways a Curator Station Works</h1>
     <p class="doc-intro">A Curator station on ONDA Nile is a curated library of audio content — searchable, playable, and shareable — built from the voices of people you know and trust. This document describes three real scenarios. Links to the actual forms are included so you can see what the workflow looks like in practice.</p>
+
+    <div class="identity-box">
+      <div class="identity-box-title">How identity works across ONDA Nile</div>
+      <p>A contributor's phone number is their identity across the entire system. It carries across events, stations, and curators. One contributor may be enrolled in PCA35, have presented at PCA28, and contribute to a completely separate station — all under the same phone number.</p>
+      <p>When they open ONDA Replay and enter their phone, the OTP verification surfaces every record associated with that number — across all events and stations. They choose which one to open and work on. The curator does not need to re-enroll them for each new event; enrollment is a one-time action per person.</p>
+    </div>
   </div>
 
   <!-- ── ARTURO ── -->
@@ -189,70 +229,108 @@
     </div>
 
     <div class="story-body">
-      <p>Every ProductCamp event draws 15 to 25 speaker candidates — product managers, academics, consultants. Right now, those talks live in someone's phone video or nowhere at all. A week after the event, they're gone.</p>
-      <p>ONDA changes that. Here is the complete workflow from Arturo's perspective as Curator, through the speaker candidates as Presenters, to the audience on the day of the event.</p>
+      <p>Every ProductCamp event draws 15 to 25 speaker candidates — product managers, academics, consultants. Right now, those talks live in someone's phone video at best. It might be two or three weeks before PCA produces and uploads the videos to YouTube — and by then, the moment has passed for most of the audience who were in the room.</p>
+      <p>ONDA changes that. The recording is done, transcribed, and in the audience's hands before they leave the building. Here is the complete workflow from Arturo's perspective as Curator, through the speaker candidates as Contributors, to the audience on the day of the event.</p>
     </div>
 
     <div class="workflow">
-      <div class="workflow-title">The ProductCamp workflow — 11 steps</div>
+      <div class="workflow-title">The ProductCamp workflow</div>
 
-      <div class="step"><div class="step-num">1</div><div class="step-body">
-        <strong>Arturo registers as a Curator</strong> <span class="role-badge role-curator">Curator</span><br>
-        He sets up the ProductCamp Austin curator station — name, location, color theme, his LinkedIn profile as the human-curation gate. One-time setup that carries forward to every future event.
-        <br><a href="https://david78737.github.io/onda-archive/nile-admin/register.html" target="_blank" rel="noopener">→ register.html</a> &nbsp;·&nbsp; <a href="https://david78737.github.io/onda-archive/nile-admin/station.html" target="_blank" rel="noopener">→ station.html</a>
-      </div></div>
+      <div class="step">
+        <div class="step-num">1</div>
+        <div class="step-body">
+          <strong>Arturo registers as a Curator</strong> <span class="role-badge role-curator">Curator</span><br>
+          He sets up the ProductCamp Austin curator station — name, location, color theme, his LinkedIn profile as the human-curation gate. One-time setup that carries forward to every future event.
+          <br><a href="https://david78737.github.io/onda-archive/nile-admin/register.html" target="_blank" rel="noopener">→ register.html</a>
+          &nbsp;·&nbsp;
+          <a href="https://david78737.github.io/onda-archive/nile-admin/station.html" target="_blank" rel="noopener">→ station.html</a>
+        </div>
+      </div>
 
-      <div class="step"><div class="step-num">2</div><div class="step-body">
-        <strong>Arturo creates the event and designated speaker slots</strong> <span class="role-badge role-curator">Curator</span><br>
-        He sets up PCA35 — date, venue, number of slots. Each slot is a placeholder waiting for a speaker candidate to claim it.
-        <br><a href="https://david78737.github.io/onda-archive/nile-admin/event.html" target="_blank" rel="noopener">→ event.html</a>
-      </div></div>
+      <div class="step">
+        <div class="step-num">2</div>
+        <div class="step-body">
+          <strong>Arturo creates an issue</strong> <span class="role-badge role-curator">Curator</span><br>
+          The station curator may create PCA35 plus additional issues — date, venue, number of slots. The issue code (e.g. <em>PCA35</em>) is Arturo's internal label for organizing and tracking. It is how Arturo identifies the issue in his admin role. He shares it with candidates wishing to present.
+          <br><a href="https://david78737.github.io/onda-archive/nile-admin/event.html" target="_blank" rel="noopener">→ event.html</a>
+        </div>
+      </div>
 
-      <div class="step"><div class="step-num">3</div><div class="step-body">
-        <strong>Arturo shares the event code</strong> <span class="role-badge role-curator">Curator</span><br>
-        He distributes the conference code to speaker candidates. Audience members will use the same code on the day of the event to receive .onda files by text message at the end of each presentation.
-      </div></div>
+      <div class="step">
+        <div class="step-num">3</div>
+        <div class="step-body">
+          <strong>Arturo puts out a call for speakers and collects responses</strong> <span class="role-badge role-curator">Curator</span><br>
+          Via email, LinkedIn, or his existing network. When someone applies, Arturo ensures their phone number linking their identity is in the system. Presenters only register once.
+          <br><a href="https://david78737.github.io/onda-archive/nile-admin/enroll.html" target="_blank" rel="noopener">→ enroll.html</a>
+        </div>
+      </div>
 
-      <div class="step"><div class="step-num">4</div><div class="step-body">
-        <strong>Speaker candidates subscribe to ONDA Replay ($8.99/mo)</strong> <span class="role-badge role-presenter">Presenter</span><br>
-        The Contributor subscription gives them access to the presenter tools — the card form, the recording app, and the ability to submit to a Curator's event.
-      </div></div>
+      <div class="step">
+        <div class="step-num">4</div>
+        <div class="step-body">
+          <strong>Speaker candidates subscribe to ONDA Replay ($8.99/mo)</strong> <span class="role-badge role-presenter">Contributor</span><br>
+          The Contributor subscription gives them access to the presenter tools — the card form, the recording app, and the ability to submit to a Curator's event.
+        </div>
+      </div>
 
-      <div class="step"><div class="step-num">5</div><div class="step-body">
-        <strong>Speaker candidates fill out their application card</strong> <span class="role-badge role-presenter">Presenter</span><br>
-        Each candidate submits their name, photo, bio, talk title, synopsis, and who the talk is for. They enter the event code to associate their card with PCA35.
-        <br><a href="https://david78737.github.io/onda-archive/nile-admin/cards.html" target="_blank" rel="noopener">→ cards.html (Arturo's review view)</a>
-      </div></div>
+      <div class="step">
+        <div class="step-num">5</div>
+        <div class="step-body">
+          <strong>Contributors apply to present in ONDA Replay</strong> <span class="role-badge role-presenter">Contributor</span><br>
+          Contributors enter their phone number into the Replay for Business screen to receive a one-time password. That confirms their identity. They can then select a tile they have been authorized to update. Selecting the new card, they can fill it out completely or come back and complete it later: name, photo, bio, talk title, and synopsis.
+        </div>
+      </div>
 
-      <div class="step"><div class="step-num">6</div><div class="step-body">
-        <strong>Arturo reviews cards for completeness</strong> <span class="role-badge role-curator">Curator</span><br>
-        He checks each application — bio, synopsis, photo — before it goes public. Incomplete cards are flagged. Complete cards are approved and visible on ONDA Nile as "Coming Soon" before the event.
-      </div></div>
+      <div class="step">
+        <div class="step-num">6</div>
+        <div class="step-body">
+          <strong>Arturo reviews cards for completeness</strong> <span class="role-badge role-curator">Curator</span><br>
+          He checks each submission — bio, synopsis, photo — before anything goes public. Incomplete cards are flagged. Approved cards appear on ONDA Nile as "Coming Soon" before the event.
+          <br><a href="https://david78737.github.io/onda-archive/nile-admin/cards.html" target="_blank" rel="noopener">→ cards.html</a>
+        </div>
+      </div>
 
-      <div class="step"><div class="step-num">7</div><div class="step-body">
-        <strong>PCA protocol: the audience votes speakers in</strong> <span class="role-badge role-audience">Audience</span><br>
-        This is the ProductCamp unconference model — attendees vote on the day of the event for which candidates present. ONDA does not change this process; it works alongside it.
-      </div></div>
+      <div class="workflow-title" style="margin-top:24px;font-size:12px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--amber);">PCA protocol — Arturo only · Live event distribution</div>
 
-      <div class="step"><div class="step-num">8</div><div class="step-body">
-        <strong>Voted-in presenters are assigned a room and time slot</strong> <span class="role-badge role-presenter">Presenter</span><br>
-        Each slot corresponds to a card Arturo created during setup. The presenter enters the slot code into ONDA Replay — this arms their Stop button and links their recording to the correct card.
-      </div></div>
+      <div class="step">
+        <div class="step-num">7</div>
+        <div class="step-body">
+          <strong>The audience votes speakers in</strong> <span class="role-badge role-audience">Audience</span><br>
+          This is the ProductCamp unconference model — attendees vote on the day of the event for which candidates present. ONDA does not change this process; it works alongside it.
+        </div>
+      </div>
 
-      <div class="step"><div class="step-num">9</div><div class="step-body">
-        <strong>Audience members opt in by text</strong> <span class="role-badge role-audience">Audience</span><br>
-        At the start of each presentation, the presenter announces: <em>"Text REPLAY to [number] to get this talk sent to your phone when I'm done."</em> Audience members text in once. They're in.
-      </div></div>
+      <div class="step">
+        <div class="step-num">8</div>
+        <div class="step-body">
+          <strong>Voted-in presenters are assigned a room and time slot</strong> <span class="role-badge role-presenter">Contributor</span><br>
+          Each slot corresponds to a card Arturo created during setup. The presenter opens ONDA Replay — their assigned slot is already linked to their phone — and they're ready to record.
+        </div>
+      </div>
 
-      <div class="step"><div class="step-num">10</div><div class="step-body">
-        <strong>Presenter taps Stop — everything uploads automatically</strong> <span class="role-badge role-presenter">Presenter</span><br>
-        ONDA Replay uploads the audio file and the real-time transcript in one tap. No editing. No file management. The recording is tied to the presenter's card and the slot they were assigned.
-      </div></div>
+      <div class="step">
+        <div class="step-num">9</div>
+        <div class="step-body">
+          <strong>Audience members opt in by text</strong> <span class="role-badge role-audience">Audience</span><br>
+          At the start of each presentation, the presenter announces: <em>"Text REPLAY to [number] to get this talk sent to your phone when I'm done."</em> Audience members text in once. They're in.
+        </div>
+      </div>
 
-      <div class="step"><div class="step-num">11</div><div class="step-body">
-        <strong>Text messages go out to the audience</strong> <span class="role-badge role-audience">Audience</span><br>
-        Once transcription is complete, every opted-in audience member receives a text with a link to the .onda file. They open it in ONDA Replay: listen, read along, rewind, search the transcript. On their schedule, not the presenter's.
-      </div></div>
+      <div class="step">
+        <div class="step-num">10</div>
+        <div class="step-body">
+          <strong>Presenter taps Stop — everything uploads automatically</strong> <span class="role-badge role-presenter">Contributor</span><br>
+          ONDA Replay uploads the audio file and the real-time transcript in one tap. No editing. No file management. The recording is tied to the presenter's card and the slot they were assigned.
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-num">11</div>
+        <div class="step-body">
+          <strong>Text messages go out to the audience</strong> <span class="role-badge role-audience">Audience</span><br>
+          Once transcription is complete, every opted-in audience member receives a text with a link to the .onda file. They open it in ONDA Replay: listen, read along, rewind, search the transcript. On their schedule, not the presenter's.
+        </div>
+      </div>
     </div>
 
     <div class="pull">"The talk doesn't end when the presenter sits down. It lives in the curator station — discoverable by anyone who wasn't in the room."</div>
@@ -263,6 +341,7 @@
         <a class="form-link" href="https://david78737.github.io/onda-archive/nile-admin/register.html" target="_blank" rel="noopener">🏛 Curator Registration</a>
         <a class="form-link" href="https://david78737.github.io/onda-archive/nile-admin/station.html" target="_blank" rel="noopener">🎨 Station Profile</a>
         <a class="form-link" href="https://david78737.github.io/onda-archive/nile-admin/event.html" target="_blank" rel="noopener">📅 Create Event</a>
+        <a class="form-link" href="https://david78737.github.io/onda-archive/nile-admin/enroll.html" target="_blank" rel="noopener">📋 Enroll Contributor</a>
         <a class="form-link" href="https://david78737.github.io/onda-archive/nile-admin/cards.html" target="_blank" rel="noopener">🃏 Review Cards</a>
         <a class="form-link" href="https://david78737.github.io/onda-archive/nile-admin/bulk-upload.html" target="_blank" rel="noopener">📦 Bulk Upload</a>
       </div>
@@ -272,7 +351,7 @@
       <div class="cost-box-title">What it costs · PCA35 (20 speakers)</div>
       <div class="cost-row"><span class="cost-row-label">Curator subscription — monthly</span><span class="cost-row-value">$19.99/mo · ~$240/yr</span></div>
       <div class="cost-row"><span class="cost-row-label">Curator subscription — semi-annual</span><span class="cost-row-value">$99.99 × 2 · ~$200/yr</span></div>
-      <div class="cost-row"><span class="cost-row-label">Speaker candidate subscriptions (×20)</span><span class="cost-row-value">$8.99/mo each — their cost</span></div>
+      <div class="cost-row"><span class="cost-row-label">Speaker subscriptions (×20)</span><span class="cost-row-value">$8.99/mo each — their cost</span></div>
       <div class="cost-row"><span class="cost-row-label">Upload blocks (if bulk uploading)</span><span class="cost-row-value">4 blocks · $19.96</span></div>
       <div class="cost-total"><span>Arturo's cost for one event</span><span>~$220–$260/yr</span></div>
     </div>
@@ -289,69 +368,102 @@
     </div>
 
     <div class="story-body">
-      <p>LeverageUp Media publishes articles written by experts — health practitioners, business coaches, specialists in their fields. There is a cohort who don't read well or tire easily. For them, an audio format is preferable — and often the difference between engaging with the content and skipping it entirely.</p>
-      <p>As a Curator, Robin invites each contributor to record their article in their own voice and upload the audio file. She reviews each recording, then publishes it to the LeverageUp curator station on ONDA Nile. Every article now has a button alongside it: <em>Listen to this in ONDA Replay.</em></p>
-      <p>Some contributors may introduce unfamiliar technical terms, or speak with an accent some listeners find difficult to follow. The Whisper transcription engine is adept at converting challenging dialects into accurate English text — so the reader can listen, read along, or do both at once.</p>
+      <p>LeverageUp Media publishes more than one magazine — health, business, lifestyle, and others. Each is a distinct publication with its own contributors and editorial standards. As a Curator, Robin manages all of them from a single ONDA Nile station, organized into named collections — one per magazine title.</p>
+      <p>She invites each contributor to record their article in their own voice and links them to the specific publication they're submitting to. A health practitioner authorized for LeverageUp Health does not automatically appear in LeverageUp Business. Robin controls that separation.</p>
+      <p>This same model applies to any curator managing multiple topic areas. David, for example, might separate contributors into Services, Products, or Use Cases rather than grouping everything under one undifferentiated station.</p>
+      <p>A contributor enrolled in Robin's station may also be a speaker at a ProductCamp event. Their phone number links both records. When they sign in, they see all of it — and choose what to work on.</p>
+
       <div class="pull">"Replay isn't replacing articles — it's giving them another dimension." — Robin Roberson, LeverageUp Media</div>
-      <p>Readers choose how they engage. The author's personality comes through in a way the printed page never could. Brenda explaining Bowen Therapy in her own voice is a different — and more compelling — experience than reading about it.</p>
-      <p>For Robin's contributors, being on ONDA Nile is a publishing credit. Their voice, their expertise, in a curated professional library — not buried in a YouTube algorithm.</p>
 
       <div class="workflow">
-        <div class="workflow-title">The LeverageUp workflow — 10 steps</div>
+        <div class="workflow-title">The LeverageUp workflow</div>
 
-        <div class="step"><div class="step-num">1</div><div class="step-body">
-          <strong>Robin registers as a Curator</strong> <span class="role-badge role-curator">Curator</span><br>
-          One-time setup: LeverageUp Media station name, location, color theme, LinkedIn profile as the human-curation gate.
-          <br><a href="https://david78737.github.io/onda-archive/nile-admin/register.html" target="_blank" rel="noopener">→ register.html</a> &nbsp;·&nbsp; <a href="https://david78737.github.io/onda-archive/nile-admin/station.html" target="_blank" rel="noopener">→ station.html</a>
-        </div></div>
+        <div class="step">
+          <div class="step-num">1</div>
+          <div class="step-body">
+            <strong>Robin registers as a Curator</strong> <span class="role-badge role-curator">Curator</span><br>
+            One-time setup: LeverageUp Media curator station name, location, color theme, and LinkedIn profile as the human-curation gate.
+            <br><a href="https://david78737.github.io/onda-archive/nile-admin/register.html" target="_blank" rel="noopener">→ register.html</a>
+            &nbsp;·&nbsp;
+            <a href="https://david78737.github.io/onda-archive/nile-admin/station.html" target="_blank" rel="noopener">→ station.html</a>
+          </div>
+        </div>
 
-        <div class="step"><div class="step-num">2</div><div class="step-body">
-          <strong>Robin creates a slot for each contributor</strong> <span class="role-badge role-curator">Curator</span><br>
-          Each article gets a card — a placeholder with a title and a slot waiting to be filled. Robin decides how many contributors she's enrolling for this issue.
-          <br><a href="https://david78737.github.io/onda-archive/nile-admin/event.html" target="_blank" rel="noopener">→ event.html</a>
-        </div></div>
+        <div class="step">
+          <div class="step-num">2</div>
+          <div class="step-body">
+          <strong>Robin creates an issue for each publication</strong> <span class="role-badge role-curator">Curator</span><br>
+            Robin creates issues inside her station — for example, <em>LeverageUp Health Issue 1</em> or <em>LeverageUp Business Issue 1</em>. Each issue carries a publication name (e.g. "LeverageUp Health") that groups it with other issues of the same magazine. This is the same step as Arturo creating PCA35 — the structure is identical, just named differently. Robin can have as many publications and issues as she has magazines.
+            <br><a href="https://david78737.github.io/onda-archive/nile-admin/event.html" target="_blank" rel="noopener">→ event.html</a>
+          </div>
+        </div>
 
-        <div class="step"><div class="step-num">3</div><div class="step-body">
-          <strong>Robin shares a contributor code with each expert</strong> <span class="role-badge role-curator">Curator</span><br>
-          Each contributor receives a code that links their submission to their assigned card in the LeverageUp curator station.
-        </div></div>
+        <div class="step">
+          <div class="step-num">3</div>
+          <div class="step-body">
+            <strong>Robin enrolls each contributor by phone number</strong> <span class="role-badge role-curator">Curator</span><br>
+            Robin adds each contributor's phone number to the system, authorizing them to submit to a specific issue. This is the same step Arturo takes with his speaker candidates — the curator confirms who is allowed in before anyone can sign in. If a contributor is already in the system from another station or issue, they are simply authorized for this new one. No duplicate record is created.
+            <br><a href="https://david78737.github.io/onda-archive/nile-admin/enroll.html" target="_blank" rel="noopener">→ enroll.html</a>
+          </div>
+        </div>
 
-        <div class="step"><div class="step-num">4</div><div class="step-body">
-          <strong>Contributors fill out their card</strong> <span class="role-badge role-presenter">Contributor</span><br>
-          Name, photo, bio, article title, synopsis, and who the article is for. They enter their contributor code to associate the card with the correct slot.
-          <br><a href="https://david78737.github.io/onda-archive/nile-admin/cards.html" target="_blank" rel="noopener">→ cards.html (Robin's review view)</a>
-        </div></div>
+        <div class="step">
+          <div class="step-num">4</div>
+          <div class="step-body">
+            <strong>Contributors subscribe to ONDA Replay ($8.99/mo)</strong> <span class="role-badge role-presenter">Contributor</span><br>
+            The Contributor subscription gives them access to the presenter tools — the card form, the recording app, and the ability to submit to a Curator's issue.
+          </div>
+        </div>
 
-        <div class="step"><div class="step-num">5</div><div class="step-body">
-          <strong>Robin reviews each card for completeness</strong> <span class="role-badge role-curator">Curator</span><br>
-          She checks bio, article synopsis, and photo before anything goes public. Approved cards appear in the LeverageUp station — how Robin manages her publication schedule is her own editorial workflow, outside of ONDA.
-        </div></div>
+        <div class="step">
+          <div class="step-num">5</div>
+          <div class="step-body">
+            <strong>Contributors sign in and fill out their card</strong> <span class="role-badge role-presenter">Contributor</span><br>
+            They open ONDA Replay, enter their phone number, receive a one-time code by text, and verify it. The app surfaces all their records across ONDA Nile. They select the issue they are authorized for and fill out their card: name, photo, bio, article title, and synopsis.
+            <br><a href="https://david78737.github.io/onda-archive/nile-admin/cards.html" target="_blank" rel="noopener">→ cards.html (Robin's review view)</a>
+          </div>
+        </div>
 
-        <div class="step"><div class="step-num">6</div><div class="step-body">
-          <strong>Contributors record and share their .onda file via Utilities</strong> <span class="role-badge role-presenter">Contributor</span><br>
-          Each expert records their article in their own voice using ONDA Replay and shares the .onda file from Utilities directly to Robin's curator station queue. Recorded on their device — not uploaded from YouTube.
-        </div></div>
+        <div class="step">
+          <div class="step-num">6</div>
+          <div class="step-body">
+            <strong>Robin reviews each card for completeness</strong> <span class="role-badge role-curator">Curator</span><br>
+            She checks bio, article synopsis, and photo before anything goes public. Incomplete cards are flagged. Approved cards are visible on ONDA Nile.
+          </div>
+        </div>
 
-        <div class="step"><div class="step-num">7</div><div class="step-body">
-          <strong>Robin applies her editorial judgment</strong> <span class="role-badge role-curator">Curator</span><br>
-          In most cases the recording will be fine as-is. She can trim or modify audio in Audacity or CapCut — tools outside of ONDA Replay — and re-transcribe before it goes live. ONDA does not do audio editing. That craft stays with the curator.
-        </div></div>
+        <div class="step">
+          <div class="step-num">7</div>
+          <div class="step-body">
+            <strong>Contributors record and share their .onda file</strong> <span class="role-badge role-presenter">Contributor</span><br>
+            Each expert records their article in their own voice using ONDA Replay and shares the .onda file from Utilities directly to Robin's curator station queue. Recorded on their device. Not uploaded from YouTube.
+          </div>
+        </div>
 
-        <div class="step"><div class="step-num">8</div><div class="step-body">
-          <strong>Approved files are queued for the curator station</strong> <span class="role-badge role-curator">Curator</span><br>
-          Contributors shared their .onda directly from the app — Robin's approval moves them into the station. If Robin wants to publish her own articles as audio, she can use bulk upload — up to 5 at a time.
-          <br><a href="https://david78737.github.io/onda-archive/nile-admin/bulk-upload.html" target="_blank" rel="noopener">→ bulk-upload.html</a>
-        </div></div>
+        <div class="step">
+          <div class="step-num">8</div>
+          <div class="step-body">
+            <strong>Robin and the contributor reach agreement on the final recording</strong> <span class="role-badge role-curator">Curator</span><br>
+            Robin reviews the recording and may send feedback — a section that needs clarification, an intro that should be re-recorded. The contributor responds and resubmits if needed. This is an editorial conversation, not a unilateral decision. The content is the contributor's intellectual property. Nothing goes live until both sides are satisfied.
+          </div>
+        </div>
 
-        <div class="step"><div class="step-num">9</div><div class="step-body">
-          <strong>Each article goes live on the LeverageUp curator station</strong> <span class="role-badge role-curator">Curator</span><br>
-          The station page on ONDA Nile shows every article — title, author, synopsis — with a <em>Listen in ONDA Replay</em> button. Robin maintains the station: updating profiles, adding new issues, managing visibility.
-        </div></div>
+        <div class="step">
+          <div class="step-num">9</div>
+          <div class="step-body">
+            <strong>Approved files go live on the LeverageUp curator station</strong> <span class="role-badge role-curator">Curator</span><br>
+            The station page on ONDA Nile shows every article — title, author, synopsis — with a <em>Listen in ONDA Replay</em> button. If Robin wants to publish her own articles as audio, she can use bulk upload.
+            <br><a href="https://david78737.github.io/onda-archive/nile-admin/bulk-upload.html" target="_blank" rel="noopener">→ bulk-upload.html</a>
+          </div>
+        </div>
 
-        <div class="step"><div class="step-num">10</div><div class="step-body">
-          <strong>Each contributor receives their .onda in their private archive</strong> <span class="role-badge role-presenter">Contributor</span><br>
-          Their article, in their own voice, with a synchronized transcript — on their phone. A publishing credit they can share, and a copy they keep regardless of what Robin does with the station.
-        </div></div>
+        <div class="step">
+          <div class="step-num">10</div>
+          <div class="step-body">
+            <strong>Each contributor receives their .onda in their private archive</strong> <span class="role-badge role-presenter">Contributor</span><br>
+            Their article, in their own voice, with a synchronized transcript — on their phone. A publishing credit they can share, and a copy they keep regardless of what Robin does with the station.
+          </div>
+        </div>
       </div>
 
       <div class="forms-bar">
@@ -359,6 +471,7 @@
         <div class="form-links">
           <a class="form-link" href="https://david78737.github.io/onda-archive/nile-admin/register.html" target="_blank" rel="noopener">🏛 Curator Registration</a>
           <a class="form-link" href="https://david78737.github.io/onda-archive/nile-admin/station.html" target="_blank" rel="noopener">🎨 Station Profile</a>
+          <a class="form-link" href="https://david78737.github.io/onda-archive/nile-admin/enroll.html" target="_blank" rel="noopener">📋 Enroll Contributor</a>
           <a class="form-link" href="https://david78737.github.io/onda-archive/nile-admin/bulk-upload.html" target="_blank" rel="noopener">📦 Bulk Upload</a>
           <a class="form-link" href="https://david78737.github.io/onda-archive/nile-admin/cards.html" target="_blank" rel="noopener">🃏 Review Cards</a>
         </div>
@@ -386,60 +499,100 @@
 
     <div class="story-body">
       <p>Samar knows his field. He also knows colleagues who have built tutorials, explained processes, and answered the same client questions a hundred times. That knowledge exists. It just isn't organized anywhere.</p>
-      <p>Of the three curators in this document, Samar has the lightest ongoing workload. He sets up his curator station once, reaches out to colleagues, opens slots, and reviews what comes in. There is no recurring publication schedule, no event to run. The station simply grows as contributors add content — and once it reaches depth, it largely runs itself.</p>
+      <p>Of the three curators in this document, Samar has the lightest ongoing workload. He sets up his curator station once, reaches out to colleagues, opens slots, and reviews what comes in. There is no recurring publication schedule, no event to run. The station simply grows as contributors add content.</p>
+
       <div class="pull">A curator station with 50 files isn't a business card. It's a destination.</div>
+
       <p>Anyone searching for how patents work finds Samar's curator station. They don't just find Samar — they find his entire network. Every contributor has a reason to send their own clients and contacts to the station.</p>
 
       <div class="workflow">
-        <div class="workflow-title">The Samar workflow — 9 steps</div>
+        <div class="workflow-title">The Samar workflow</div>
 
-        <div class="step"><div class="step-num">1</div><div class="step-body">
-          <strong>Samar registers as a Curator</strong> <span class="role-badge role-curator">Curator</span><br>
-          One-time setup: curator station name, field of practice, location, LinkedIn profile as the human-curation gate. His station represents his professional network, not just himself.
-          <br><a href="https://david78737.github.io/onda-archive/nile-admin/register.html" target="_blank" rel="noopener">→ register.html</a> &nbsp;·&nbsp; <a href="https://david78737.github.io/onda-archive/nile-admin/station.html" target="_blank" rel="noopener">→ station.html</a>
-        </div></div>
+        <div class="step">
+          <div class="step-num">1</div>
+          <div class="step-body">
+            <strong>Samar registers as a Curator</strong> <span class="role-badge role-curator">Curator</span><br>
+            One-time setup: curator station name, field of practice, location, LinkedIn profile as the human-curation gate.
+            <br><a href="https://david78737.github.io/onda-archive/nile-admin/register.html" target="_blank" rel="noopener">→ register.html</a>
+            &nbsp;·&nbsp;
+            <a href="https://david78737.github.io/onda-archive/nile-admin/station.html" target="_blank" rel="noopener">→ station.html</a>
+          </div>
+        </div>
 
-        <div class="step"><div class="step-num">2</div><div class="step-body">
-          <strong>Samar creates a slot for each colleague</strong> <span class="role-badge role-curator">Curator</span><br>
-          Each colleague who agrees to contribute gets a card — a placeholder with a topic and a slot waiting to be filled. No event required. Slots are added as the network grows.
-          <br><a href="https://david78737.github.io/onda-archive/nile-admin/event.html" target="_blank" rel="noopener">→ event.html</a>
-        </div></div>
+        <div class="step">
+          <div class="step-num">2</div>
+          <div class="step-body">
+            <strong>Samar creates an issue</strong> <span class="role-badge role-curator">Curator</span><br>
+            Samar creates a named issue inside his station — for example, <em>Patent Prosecution Issue 1</em> or <em>Trademark Issue 1</em>. The publication name groups issues by practice area. Fresh issues keep the station active and visible. New issues are added as the network and content grow.
+            <br><a href="https://david78737.github.io/onda-archive/nile-admin/event.html" target="_blank" rel="noopener">→ event.html</a>
+          </div>
+        </div>
 
-        <div class="step"><div class="step-num">3</div><div class="step-body">
-          <strong>Samar shares a contributor code with each colleague</strong> <span class="role-badge role-curator">Curator</span><br>
-          The code links their submission to the correct card in the curator station. Samar decides who gets a slot — that editorial judgment is the whole point.
-        </div></div>
+        <div class="step">
+          <div class="step-num">3</div>
+          <div class="step-body">
+            <strong>Samar enrolls each contributor by phone number</strong> <span class="role-badge role-curator">Curator</span><br>
+            He adds each contributor's phone number, authorizing them to submit to a specific issue. His editorial judgment controls access — you are enrolled because Samar decided you belong in this station. If a contributor is already in the ONDA Nile system from another station or issue, they are simply authorized for this new one.
+            <br><a href="https://david78737.github.io/onda-archive/nile-admin/enroll.html" target="_blank" rel="noopener">→ enroll.html</a>
+          </div>
+        </div>
 
-        <div class="step"><div class="step-num">4</div><div class="step-body">
-          <strong>Colleagues fill out their card</strong> <span class="role-badge role-presenter">Contributor</span><br>
-          Name, photo, bio, topic title, synopsis, and who the content is for. They enter their contributor code to associate the card with their slot.
-          <br><a href="https://david78737.github.io/onda-archive/nile-admin/cards.html" target="_blank" rel="noopener">→ cards.html (Samar's review view)</a>
-        </div></div>
+        <div class="step">
+          <div class="step-num">4</div>
+          <div class="step-body">
+            <strong>Contributors subscribe to ONDA Replay ($8.99/mo)</strong> <span class="role-badge role-presenter">Contributor</span><br>
+            The Contributor subscription gives them access to the presenter tools — the card form, the recording app, and the ability to submit to a Curator's issue.
+          </div>
+        </div>
 
-        <div class="step"><div class="step-num">5</div><div class="step-body">
-          <strong>Samar reviews each card</strong> <span class="role-badge role-curator">Curator</span><br>
-          He checks that the bio, topic synopsis, and photo are complete and professional before anything goes public. This is his editorial standard — the station reflects his judgment.
-        </div></div>
+        <div class="step">
+          <div class="step-num">5</div>
+          <div class="step-body">
+            <strong>Contributors sign in and fill out their card</strong> <span class="role-badge role-presenter">Contributor</span><br>
+            They open ONDA Replay, enter their phone number, receive a one-time code by text, and verify it. The app surfaces all their records across ONDA Nile. They select the issue they are authorized for and fill out their card: name, photo, bio, topic title, and synopsis.
+            <br><a href="https://david78737.github.io/onda-archive/nile-admin/cards.html" target="_blank" rel="noopener">→ cards.html (Samar's review view)</a>
+          </div>
+        </div>
 
-        <div class="step"><div class="step-num">6</div><div class="step-body">
-          <strong>Colleagues record and share their .onda file via Utilities</strong> <span class="role-badge role-presenter">Contributor</span><br>
-          Each colleague records their tutorial, explanation, or talk using ONDA Replay and shares it from Utilities directly to Samar's curator station queue. From their device — not from YouTube.
-        </div></div>
+        <div class="step">
+          <div class="step-num">6</div>
+          <div class="step-body">
+            <strong>Samar reviews each card</strong> <span class="role-badge role-curator">Curator</span><br>
+            He checks that the bio, topic synopsis, and photo are complete and professional before anything goes public. This is his editorial standard — the station reflects his judgment.
+          </div>
+        </div>
 
-        <div class="step"><div class="step-num">7</div><div class="step-body">
-          <strong>Samar reviews each recording</strong> <span class="role-badge role-curator">Curator</span><br>
-          In most cases the recording will be fine as-is. If a file needs editing — trimming, cleaning up — that happens in Audacity or CapCut outside of ONDA Replay, then re-submitted. Nothing goes live without Samar's approval.
-        </div></div>
+        <div class="step">
+          <div class="step-num">7</div>
+          <div class="step-body">
+            <strong>Contributors record and share their .onda file</strong> <span class="role-badge role-presenter">Contributor</span><br>
+            Each contributor records their tutorial or explanation using ONDA Replay and shares the .onda from Utilities directly to Samar's curator station queue. Recorded on their device. Not uploaded from YouTube.
+          </div>
+        </div>
 
-        <div class="step"><div class="step-num">8</div><div class="step-body">
-          <strong>Approved files go live on the curator station</strong> <span class="role-badge role-curator">Curator</span><br>
-          Each .onda appears on Samar's ONDA Nile curator station — searchable by topic, playable in Replay, with a synchronized transcript. Anyone searching patent topics finds the station. They don't just find Samar — they find his entire network.
-        </div></div>
+        <div class="step">
+          <div class="step-num">8</div>
+          <div class="step-body">
+            <strong>Samar and the contributor reach agreement on the final recording</strong> <span class="role-badge role-curator">Curator</span><br>
+            Samar reviews the recording and may send feedback. The contributor responds and resubmits if needed. This is an editorial conversation, not a unilateral decision. The content is the contributor's intellectual property. Nothing goes live until both sides are satisfied.
+          </div>
+        </div>
 
-        <div class="step"><div class="step-num">9</div><div class="step-body">
-          <strong>Each colleague receives their .onda in their private archive</strong> <span class="role-badge role-presenter">Contributor</span><br>
-          Their recording, their expertise, with a synchronized transcript — on their phone. A professional credential they can share with their own clients and contacts. Every contributor has a reason to point people to the curator station.
-        </div></div>
+        <div class="step">
+          <div class="step-num">9</div>
+          <div class="step-body">
+            <strong>Approved files go live on the curator station</strong> <span class="role-badge role-curator">Curator</span><br>
+            Each .onda appears on Samar's ONDA Nile station — searchable by topic, playable in Replay, with a synchronized transcript. Anyone searching finds the station and his entire network.
+          </div>
+        </div>
+
+        <div class="step">
+          <div class="step-num">10</div>
+          <div class="step-body">
+            <strong>Each contributor receives their .onda in their private archive</strong> <span class="role-badge role-presenter">Contributor</span><br>
+            Their recording, their expertise, with a synchronized transcript — on their phone. A professional credential they can share with their own clients and contacts.
+          </div>
+        </div>
       </div>
 
       <div class="forms-bar">
@@ -447,6 +600,7 @@
         <div class="form-links">
           <a class="form-link" href="https://david78737.github.io/onda-archive/nile-admin/register.html" target="_blank" rel="noopener">🏛 Curator Registration</a>
           <a class="form-link" href="https://david78737.github.io/onda-archive/nile-admin/station.html" target="_blank" rel="noopener">🎨 Station Profile</a>
+          <a class="form-link" href="https://david78737.github.io/onda-archive/nile-admin/enroll.html" target="_blank" rel="noopener">📋 Enroll Contributor</a>
           <a class="form-link" href="https://david78737.github.io/onda-archive/nile-admin/cards.html" target="_blank" rel="noopener">🃏 Review Cards</a>
           <a class="form-link" href="https://david78737.github.io/onda-archive/nile-admin/bulk-upload.html" target="_blank" rel="noopener">📦 Bulk Upload</a>
         </div>
@@ -468,3 +622,5 @@
   </div>
 
 </div>
+
+</body></html>
