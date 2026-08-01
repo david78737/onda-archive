@@ -142,6 +142,31 @@
     pointer-events: none;
   }
 
+  .tool-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-bottom: 40px;
+  }
+  .tool-item {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 13px 16px;
+    background: #1a1d27;
+    border: 1px solid #2a2d3a;
+    border-radius: 10px;
+    text-decoration: none;
+    color: inherit;
+    transition: border-color .15s, background .15s;
+  }
+  .tool-item:hover { border-color: #008B82; background: #1e2233; }
+  .tool-icon { font-size: 20px; flex-shrink: 0; line-height: 1; }
+  .tool-text { flex: 1; min-width: 0; }
+  .tool-name { font-size: 14px; font-weight: 600; color: #e8eaf0; }
+  .tool-desc { font-size: 12px; color: #6870a0; margin-top: 1px; }
+  .tool-arrow { color: #008B82; font-size: 14px; flex-shrink: 0; }
+
   footer {
     text-align: center;
     padding: 24px;
@@ -161,6 +186,90 @@
 </header>
 
 <main>
+
+  <div class="section-label">Curator Tools</div>
+  <div class="tool-list">
+    <a class="tool-item" href="ondanile/">
+      <span class="tool-icon">🌊</span>
+      <span class="tool-text">
+        <span class="tool-name">ONDA Nile Browse</span>
+        <span class="tool-desc">Browse all published sessions live</span>
+      </span>
+      <span class="tool-arrow">↗</span>
+    </a>
+    <a class="tool-item" href="nile-admin/register.html">
+      <span class="tool-icon">🏷️</span>
+      <span class="tool-text">
+        <span class="tool-name">Curator Registration</span>
+        <span class="tool-desc">OTP sign-in → set up your station</span>
+      </span>
+      <span class="tool-arrow">↗</span>
+    </a>
+    <a class="tool-item" href="nile-admin/station.html">
+      <span class="tool-icon">🎨</span>
+      <span class="tool-text">
+        <span class="tool-name">Station Profile</span>
+        <span class="tool-desc">Edit your station name, color, and LinkedIn</span>
+      </span>
+      <span class="tool-arrow">↗</span>
+    </a>
+    <a class="tool-item" href="nile-admin/event.html">
+      <span class="tool-icon">📅</span>
+      <span class="tool-text">
+        <span class="tool-name">Create Event</span>
+        <span class="tool-desc">Generate an event code to share with presenter candidates</span>
+      </span>
+      <span class="tool-arrow">↗</span>
+    </a>
+    <a class="tool-item" href="nile-admin/cards.html">
+      <span class="tool-icon">🗳️</span>
+      <span class="tool-text">
+        <span class="tool-name">Review Presenter Cards</span>
+        <span class="tool-desc">Approve or return applications for your event</span>
+      </span>
+      <span class="tool-arrow">↗</span>
+    </a>
+    <a class="tool-item" href="nile-admin/">
+      <span class="tool-icon">🗂️</span>
+      <span class="tool-text">
+        <span class="tool-name">Create Slots &amp; Proxy Codes</span>
+        <span class="tool-desc">Assign session slots and generate proxy codes for approved presenters</span>
+      </span>
+      <span class="tool-arrow">↗</span>
+    </a>
+    <a class="tool-item" href="nile-session/">
+      <span class="tool-icon">✏️</span>
+      <span class="tool-text">
+        <span class="tool-name">Session Card Editor</span>
+        <span class="tool-desc">Edit tile fields, tags, and metadata after upload</span>
+      </span>
+      <span class="tool-arrow">↗</span>
+    </a>
+    <a class="tool-item" href="nile-admin/bulk-upload.html">
+      <span class="tool-icon">📤</span>
+      <span class="tool-text">
+        <span class="tool-name">Bulk Upload</span>
+        <span class="tool-desc">Upload multiple .onda files to your station at once</span>
+      </span>
+      <span class="tool-arrow">↗</span>
+    </a>
+    <a class="tool-item" href="nile-brand/">
+      <span class="tool-icon">🖼️</span>
+      <span class="tool-text">
+        <span class="tool-name">Archive Identity</span>
+        <span class="tool-desc">Design your station's visual theme</span>
+      </span>
+      <span class="tool-arrow">↗</span>
+    </a>
+    <a class="tool-item" href="chapter/?org_l1=Toastmasters&org_l2=Austin&org_l3=Chapter+47">
+      <span class="tool-icon">🎤</span>
+      <span class="tool-text">
+        <span class="tool-name">Chapter Archive (Demo)</span>
+        <span class="tool-desc">Toastmasters Austin · Chapter 47 — skinnable template</span>
+      </span>
+      <span class="tool-arrow">↗</span>
+    </a>
+  </div>
 
   <div class="section-label">Working Documents</div>
   <div class="grid">
