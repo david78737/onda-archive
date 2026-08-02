@@ -1,292 +1,175 @@
-# PCA Archive — Agent Handoff Document
+# ONDA Nile / onda-archive — Agent Handoff Document
 
-**Last updated:** 2026-06-13
-**Repo:** https://github.com/david78737/pca-archive
-**Live site:** https://david78737.github.io/pca-archive/
+**Last updated:** 2026-08-02
+**Repo:** https://github.com/david78737/onda-archive
+**Live site:** https://david78737.github.io/onda-archive/
 
 This document is the single source of truth for any agent (Mac Claude, PC Claude,
 iOS Claude, or a future instance) working on this repo. Read it before touching
 anything. Update it when you make a significant change.
 
+**Note on this rewrite:** the previous version of this file was a byte-for-byte
+copy of `pca-archive/HANDOFF.md` — it described a different, sibling repo and
+never mentioned anything built in `onda-archive` itself (ONDA Nile, the curator
+tools, or any of the `docs/` pages). It was likely used as a starting template
+when this repo was created and never customized. This version replaces it with
+what's actually in this repo as of 2026-08-02.
+
+---
+
+## Repo Relationship Map — read this first
+
+There are **three separate repos** in play. Mixing them up is the single easiest
+mistake to make here:
+
+| Repo | What it is | Live site |
+|------|-----------|-----------|
+| `onda-replay` | The Flutter iOS/Android app | (TestFlight / Play Console, not a website) |
+| `pca-archive` | Standalone ProductCamp Austin session archive — PCA28–PCA34, SQLite+FTS5 search | https://david78737.github.io/pca-archive/ |
+| `onda-archive` (this repo) | Started as the Elevate Summit 2026 archive, has grown into **ONDA Nile** — a multi-organization curator/discovery platform. Also hosts legacy static copies of the PCA28–34 pages. | https://david78737.github.io/onda-archive/ |
+
+**`onda-archive` depends on `pca-archive` being cloned as a sibling directory.**
+`build_ondanile.js` reads `../pca-archive/sessions.json` by relative path to merge
+PCA sessions into the unified ONDA Nile dataset. If you only clone `onda-archive`,
+that build script will fail. Clone both, side by side:
+
+```
+~/Developer/onda-replay
+~/Developer/onda-archive
+~/Developer/pca-archive
+```
+
 ---
 
 ## What This Repo Is
 
-A static GitHub Pages site that serves as the public-facing knowledge archive for
-ProductCamp Austin. All 97 sessions from PCA28–PCA34 (2023–2026) are searchable
-in one place — no server, no login, no API calls at runtime.
+A static GitHub Pages site with two layers:
 
-The site is designed to grow: new events add rows to `sessions.json`, one
-`node build.js` regenerates the database, one `git push` publishes it.
+1. **The original layer** — `sessions.json` (top-level) holds **Elevate Summit 2026**
+   session data only (17 sessions as of this writing), built into `archive.db` via
+   `build_node20.js`, browsable at `/elevate2026/`. The `pca28`–`pca34` directories
+   are legacy static per-event pages, kept for direct links (not the live PCA
+   archive — that's the separate `pca-archive` repo).
+
+2. **ONDA Nile** — a multi-org curator/discovery layer built on top, at `/ondanile/`.
+   Organizations ("curators") claim a station, manage their own session catalog,
+   and their content is browsable/searchable in one unified place alongside other
+   orgs' content. This is the actively developed part of the repo — see commit
+   history, nearly all recent commits are Nile features.
 
 ---
 
 ## Repository Structure
 
 ```
-pca-archive/
-├── index.html        ← The entire front-end. Single-page app.
-├── archive.db        ← SQLite database (binary). GENERATED — do not hand-edit.
-├── sessions.json     ← Source of truth for session data. Edit this to add/change sessions.
-├── build.js          ← Node script that generates archive.db from sessions.json.
-├── pca28/index.html  ← Legacy per-event pages (kept for reference / direct links).
-├── pca29/index.html
-├── pca30/index.html
-├── pca31/index.html
-├── pca32/index.html
-├── pca33/index.html
-├── pca34/index.html
-└── HANDOFF.md        ← This file.
+onda-archive/
+├── index.html              ← Hub landing page, links to Elevate Summit + Nile tools
+├── sessions.json            ← Elevate Summit 2026 session data ONLY (not PCA)
+├── archive.db                ← Generated from sessions.json via build_node20.js
+├── build.js                  ← Original build script (Node 24+, node:sqlite, FTS5) — likely a leftover copy from pca-archive, verify before relying on it
+├── build_node20.js           ← Actual build script used here (sql.js, no FTS5 — search is client-side)
+├── build_ondanile.js         ← Merges THIS repo's sessions.json + ../pca-archive/sessions.json → ondanile/sessions.json
+├── patch_levels.js           ← (purpose not yet documented — check before use)
+├── elevate2026/               ← Elevate Summit 2026 static archive page
+├── pca28/ … pca34/            ← Legacy static PCA pages (copies, not the canonical PCA archive)
+├── chapter/                   ← Generic chapter/org archive template (ONDA Archive branding)
+├── ondanile/                  ← ONDA Nile browse page — the unified cross-org discovery UI
+│   └── sessions.json          ← Generated output of build_ondanile.js — do not hand-edit
+├── nile-admin/                ← Event Admin: create session slots, phone-OTP auth, per-slot edit/deactivate
+├── nile-brand/                ← "Your Archive Identity" — org branding/logo/identity form
+├── nile-claim/                ← Claim Your Session — presenter claims a session slot
+├── nile-profile-edit/         ← Edit Profile
+├── nile-schedule/              ← Upcoming event submission form (generates a QR code on success)
+├── nile-session/               ← Session tile editor (photo picker, Save / Save & Close)
+├── nile-session-update/       ← Presenter-facing "update your session" form
+├── nile-tile-create/           ← Add a Tile — create a new session card
+├── nile-update/                ← Presenter profile edit (magic-link identity flow)
+├── docs/                       ← Marketing/spec/handoff HTML pages (see below)
+├── img/, img_summit/, assets/  ← Images — img_summit is Elevate Summit speaker headshots
+├── .nojekyll                   ← Disables Jekyll processing on GitHub Pages
+└── HANDOFF.md                  ← This file
 ```
 
----
+### `docs/` page purposes
 
-## How It Works
-
-### The Database Approach
-
-Earlier versions embedded all session data as a JavaScript array in `index.html`.
-That works at 97 sessions but becomes unwieldy as data grows, and `string.includes()`
-search is crude.
-
-The current approach uses **SQLite running in the browser** via
-[sql.js](https://github.com/sql-js/sql.js) (SQLite compiled to WebAssembly):
-
-1. `sessions.json` is the human-editable data source.
-2. `node build.js` reads it and produces `archive.db` — a real SQLite file.
-3. `index.html` loads sql.js from CDN, fetches `archive.db` (~344 KB), and opens
-   it as an in-memory database. All filtering and searching runs as SQL queries
-   in the browser tab — no server involved.
-
-**Why SQLite + FTS5?**
-- Real full-text search with porter stemming: "strategy" matches "strategies",
-  "build" matches "building", etc.
-- BM25 relevance ranking: most relevant results surface first.
-- Prefix matching: typing "road" returns sessions about roadmaps instantly.
-- All filters compose cleanly as WHERE clauses.
-- The `.db` file is a standard artifact any SQLite tool can inspect.
+| File | Title / Purpose |
+|------|------------------|
+| `whats-new.html` | "What's New — ONDA Replay" — Aug 2026 tester update summary (tiers, features, ONDA Nile) |
+| `curator-stories.html` | "Three Ways to Use ONDA Nile as a Curator" |
+| `membership-tiers.html` | "ONDA Replay — Membership Tiers" |
+| `channel-partner-it.html` | "The IT Channel Partner Model" |
+| `onda-doc.html` / `onda-doc-demo.html` | "ONDA Doc — Living Help Documentation" concept + demo |
+| `prakash-brief.html` | "Users Deserve Better Than This" |
+| `working-documents.html` | "ONDA Working Documents" index |
+| `xano-eli5-script.html` | "Xano + Codex — Plain Language Script" |
 
 ---
 
-## Database Schema
+## Build System
 
-```sql
--- Main table: one row per session
-CREATE TABLE sessions (
-  id        INTEGER PRIMARY KEY AUTOINCREMENT,
-  event     TEXT NOT NULL,   -- e.g. "PCA34"
-  title     TEXT NOT NULL,
-  presenter TEXT,
-  level     TEXT,            -- "Essentials" | "Advanced" | "Entrepreneurs"
-  format    TEXT,            -- "Workshop" | "Presentation" | "Case Study" | etc.
-  synopsis  TEXT,
-  takeaways TEXT,            -- JSON array: ["takeaway 1", "takeaway 2", ...]
-  who       TEXT,            -- "Best for..." sentence
-  brief     TEXT,            -- One-sentence call to action
-  youtube   TEXT,            -- YouTube video ID (not full URL), or NULL
-  tags      TEXT             -- JSON array: ["ai", "framework", ...] — auto-generated
-);
+Three build scripts exist; they are **not interchangeable**:
 
--- FTS5 virtual table for full-text search
--- content= means it mirrors sessions; no storage duplication.
--- tokenize='porter ascii' enables stemming.
-CREATE VIRTUAL TABLE sessions_fts USING fts5(
-  title, presenter, synopsis, takeaways, who, brief, tags,
-  content = sessions,
-  content_rowid = id,
-  tokenize = 'porter ascii'
-);
+- **`build_node20.js`** — the one actually used for this repo's own `sessions.json`
+  (Elevate Summit) → `archive.db`. Uses `sql.js` (pure JS, no native deps). No FTS5 —
+  search is handled client-side in `index.html`/`elevate2026/index.html`.
+  ```bash
+  node build_node20.js
+  ```
+- **`build.js`** — Node 24+ / built-in `node:sqlite` / FTS5 version. This matches
+  `pca-archive`'s build script exactly and was likely copied over at the same time
+  as the old HANDOFF.md. Verify which one `index.html` actually expects before
+  assuming this is live/current here. (This Mac has Node 24.14.1, so it *would* run.)
+- **`build_ondanile.js`** — merges `sessions.json` (this repo, Elevate) +
+  `../pca-archive/sessions.json` (sibling repo, PCA) into `ondanile/sessions.json`,
+  the dataset the ONDA Nile browse page reads. Requires `pca-archive` cloned as a
+  sibling directory. Re-run this any time either source `sessions.json` changes.
+  ```bash
+  node build_ondanile.js
+  ```
+
+Always commit the regenerated output (`archive.db` and/or `ondanile/sessions.json`)
+after running a build script — the browser fetches these directly, nothing is
+built server-side.
+
+---
+
+## Xano Backend
+
+Workspace `xrxm-29on-xlyt` (same workspace referenced elsewhere in `onda-replay`'s
+memory/docs — this is David's personal/template Xano workspace).
+
+**Known inconsistency, unresolved as of 2026-08-02:** the API base URL is not
+consistent across pages. Some reference `api:onda-nile`, at least one references
+`api:nile` (per commit `8f97381 Fix API base URL: onda-nile → nile`, which
+apparently wasn't applied everywhere):
+
+```
+https://xrxm-29on-xlyt.n7e.xano.io/api:onda-nile      (most pages)
+https://xrxm-29on-xlyt.n7e.xano.io/api:nile           (at least one page)
 ```
 
-`takeaways` and `tags` are stored as **JSON arrays serialized to TEXT**.
-The front-end parses them with `JSON.parse()` before rendering.
-The `tags` field is also indexed in FTS5 so tag words are searchable.
+If you hit a mysterious 404 on a Nile form, check which `NILE_API` / `NILE_API2`
+constant that specific page uses before assuming the backend is down.
+
+Auth pattern across the nile-* forms: phone number → OTP → `magic_auth_token`.
+Several early commits show this token-extraction logic being debugged repeatedly
+(profile_url query param parsing, Bearer header vs. body placement) — if a form's
+auth breaks again, check `magic_auth_token` handling first, it's been fragile.
 
 ---
 
-## Tags
+## Known Gaps / Open Items
 
-Tags are a **starter set generated automatically** from word-frequency analysis
-of each session's text (title + synopsis + takeaways + who + brief).
-
-### How they are generated
-
-`build.js` does NOT generate tags — that happens in the pre-processing step
-when `sessions.json` is produced. The tag generation logic lives in the script
-that was used to build `sessions.json` (documented below).
-
-The tagging algorithm:
-1. Concatenate title + synopsis + takeaways + who + brief for each session.
-2. Lowercase, strip punctuation and contractions.
-3. Boost "AI" and "API" (captured before lowercasing).
-4. Remove stop words (English function words + ProductCamp-universal terms like
-   "product", "manager", "team" — words that appear in nearly every session and
-   carry no filter value).
-5. Light plural normalization: "strategies" → "strategy", "customers" → "customer".
-6. Take the top 8 words by frequency as tags for that session.
-
-### Design philosophy
-
-These are intentionally imperfect. They are a **starter set** — enough for basic
-filtering to work. The long-term plan (Phase 2, not yet built) is a presenter
-intake form where each presenter supplies their own tags. Presenter-supplied tags
-will always be more accurate than frequency-derived ones.
-
-**Do NOT use AI to assign "smart" tags.** Tags in ONDA always come from the person
-closest to the content. The frequency approach is a mechanical proxy until presenters
-can do it themselves.
-
-### The Topics filter strip
-
-The 24 tags shown in the Topics row are the most common tags across all sessions,
-hardcoded in `index.html` as `TOP_TAGS`. If the session data changes significantly,
-regenerate this list by running:
-
-```bash
-node -e "
-const s = require('./sessions.json');
-const c = {};
-s.forEach(x => (x.tags||[]).forEach(t => c[t]=(c[t]||0)+1));
-Object.entries(c).sort((a,b)=>b[1]-a[1]).slice(0,30).forEach(([t,n])=>console.log(n,t));
-"
-```
-
-Then update the `TOP_TAGS` array in `index.html` accordingly.
-
----
-
-## How to Add or Update Sessions
-
-### Adding a new event (e.g. PCA35)
-
-1. Get session data from the per-event HTML file or Xano.
-2. Add entries to `sessions.json` following the existing structure:
-
-```json
-{
-  "event": "PCA35",
-  "title": "Session Title",
-  "presenter": "Presenter Name",
-  "level": "Essentials",
-  "format": "Presentation",
-  "synopsis": "...",
-  "takeaways": ["...", "...", "..."],
-  "who": "...",
-  "brief": "...",
-  "youtube": "VIDEO_ID_OR_NULL",
-  "tags": ["ai", "framework", "career"]
-}
-```
-
-3. Generate tags for new sessions (use the tagging script or assign manually).
-4. Run `node build.js` to regenerate `archive.db`.
-5. Update the `TOP_TAGS` array in `index.html` if the tag landscape has shifted.
-6. Update the `header .sub` line in `index.html` with the new session count.
-7. Commit both `sessions.json` and `archive.db`. Push to main.
-
-### Updating an existing session (e.g. adding a YouTube ID)
-
-1. Find the session in `sessions.json` by title.
-2. Update the `youtube` field (just the video ID, not the full URL).
-3. Run `node build.js`.
-4. Commit and push `sessions.json` and `archive.db`.
-
-### Fixing a tag
-
-1. Edit the `tags` array for that session in `sessions.json`.
-2. Run `node build.js`.
-3. Commit and push.
-
----
-
-## How to Rebuild the Database
-
-Requirements: **Node 24+** (uses the built-in `node:sqlite` module, no npm install needed).
-
-```bash
-cd pca-archive
-node build.js
-```
-
-Output:
-```
-archive.db built:
-  Sessions : 97 (FTS rows: 97)
-  File size: 344.0 KB
-  By event :
-    PCA28: 19
-    ...
-```
-
-Always commit `archive.db` after rebuilding. The browser fetches it directly.
-
----
-
-## sql.js Dependency
-
-- **Library:** sql.js 1.10.2
-- **CDN:** `https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.10.2/`
-- **Files used:** `sql-wasm.js` (loader) + `sql-wasm.wasm` (the SQLite engine)
-- **No npm install required** — loaded from CDN at page load.
-- **Works on GitHub Pages** — does not require `SharedArrayBuffer` or special HTTP
-  headers (unlike the official `@sqlite.org/sqlite-wasm` package).
-
-To upgrade sql.js, update the version in both CDN URLs in `index.html` and
-verify the DB still loads and queries correctly.
-
----
-
-## What Each Filter Does (Technical)
-
-| Filter | SQL generated |
-|--------|---------------|
-| Event chip | `WHERE s.event = 'PCA34'` |
-| Level chip | `WHERE s.level = 'Essentials'` |
-| Topic chip | `WHERE EXISTS (SELECT 1 FROM json_each(s.tags) WHERE value = 'ai')` |
-| Search box | `JOIN sessions_fts ... WHERE sessions_fts MATCH 'roadmap*' ORDER BY rank` |
-
-All filters compose — clicking multiple chips adds `AND` clauses to the same query.
-Search and filters also compose: you can search "pricing" within PCA31 Advanced sessions.
-
----
-
-## Known Gaps / Future Work
-
-### Phase 2 — Presenter-supplied tags
-Each presenter should get a unique URL to a form where they fill in their own
-description and tags. That form POSTs to Xano and enriches the archive record.
-This was designed but not built. See `LETTER_TO_PC_CLAUDE.md` for the full plan.
-
-### YouTube IDs
-Some sessions have `youtube: null` because the video hasn't been published or
-the ID wasn't recovered after the miniMac crash that lost the compiled URL list.
-These should be filled in as videos become available.
-
-### Real transcripts
-The current synopsis/takeaways/who/brief were generated by Claude from actual
-session transcripts (for sessions where transcripts existed). Tags are derived
-from those fields. When raw transcript text is added to sessions, re-running
-the tag generator against the full transcript will produce significantly better tags.
-
-### Speaker photos
-`speaker_photo_url` exists in the Xano `session_archive` table but is not yet
-in `sessions.json` or displayed on the archive page.
-
----
-
-## Xano Backend (Separate from This Repo)
-
-A Xano backend exists for the ONDA pipeline (transcription → Claude → structured
-fields). The archive page does NOT use Xano at runtime — it's fully static.
-Xano is used during the content generation pipeline only.
-
-Endpoints (workspace `xrxm-29on-xlyt`, API group `gaCgk7Bm`):
-- `POST /create` — accepts transcript + metadata, calls Claude API, writes synopsis/takeaways/who/brief
-- `GET /sessions` — returns all archive records
-- `PATCH /session/{id}` — updates individual fields (youtube, onda, status, etc.)
-- `POST /import-request` — intake form submission from ondareplay.com/import
-
-See `LETTER_TO_PC_CLAUDE.md` for full pipeline documentation.
+- `build.js` vs `build_node20.js` — unclear which is authoritative for this repo's
+  own `sessions.json`; `build.js` looks like a leftover copy from `pca-archive`.
+- Xano API base URL inconsistency (`onda-nile` vs `nile`) — not yet fully fixed.
+- `patch_levels.js` — purpose undocumented, check contents before use.
+- No `CNAME` file — site serves at the default `david78737.github.io/onda-archive/`
+  path, not a custom domain.
+- See [[project_onda_visual_bundle_idea]] and [[project_youtube_upside_down_model_critique]]
+  in `onda-replay`'s Claude memory for active product-direction threads that will
+  likely touch this repo (embedded visuals in `.onda` bundles; ONDA Nile as a
+  YouTube-alternative consumption format for talking-head/instructional content).
 
 ---
 
@@ -296,32 +179,32 @@ This repo is worked on by multiple Claude instances across different machines:
 
 | Agent | Machine | Role |
 |-------|---------|------|
-| PC Claude | Windows / VS Code | Session data curation, Xano pipeline, repo management |
-| Mac Claude | miniMac | BlackHole capture pipeline, batch Whisper transcription, Xano POST |
-| iOS Claude | miniMac (Claude Code iOS) | Flutter app (onda-replay repo), TestFlight builds |
+| PC Claude | Windows / VS Code | Primary driver of ONDA Nile feature work (nearly all recent commits) |
+| Mac Claude | miniMac | iOS TestFlight builds (`onda-replay`), archive/capture pipeline work, now also this repo |
 
-**Before making changes:** `git pull` first. Multiple agents push to this repo.
+**As of 2026-08-02: David's PC is going in for hardware repair.** Mac Claude
+(miniMac, via VS Code + Claude Code extension) is the primary interface for the
+duration. When PC Claude comes back online, it should `git pull` on all three
+repos (`onda-replay`, `onda-archive`, `pca-archive`) and read this file before
+resuming work — anything Mac Claude does in the meantime will be here or in commit
+history, not in PC Claude's own memory (Claude's memory is local per-machine, not
+synced — see `onda-replay`'s CLAUDE.md and memory notes for why).
+
+**Before making changes:** `git pull` on whichever repo(s) you're touching —
+multiple agents push to these.
 
 **After making changes:** commit immediately. Do not hold uncommitted work across
-sessions. The miniMac has crashed before and lost in-memory work.
+sessions — this pattern has caused lost work before (the miniMac has crashed with
+in-memory work lost).
 
-**Commit-first protocol (from PC Claude, 2026-06-08):**
-Any list, mapping, or dataset that required effort to compile must be committed
-the moment it exists. Especially: YouTube URL lists, session-to-filename mappings,
-any intermediate data file. These live in `docs/data/` in the onda-replay repo
-(not this repo).
+**Commit-first protocol (from PC Claude, 2026-06-08, originally written for
+`pca-archive` but applies here too):** any list, mapping, or dataset that required
+effort to compile must be committed the moment it exists — YouTube URL lists,
+session-to-filename mappings, intermediate data files.
 
 ---
 
-## Session Count Reference
+## Session Count Reference (this repo's own data, not PCA)
 
-| Event | Date | Sessions |
-|-------|------|----------|
-| PCA28 | April 2023 | 19 |
-| PCA29 | October 2023 | 7 |
-| PCA30 | April 2024 | 11 |
-| PCA31 | October 2024 | 14 |
-| PCA32 | April 2025 | 11 |
-| PCA33 | October 2025 | 9 |
-| PCA34 | April 2026 | 26 |
-| **Total** | | **97** |
+Elevate Summit 2026: 17 sessions (grew from 13 at initial commit — check
+`sessions.json` for current count, this will keep changing).
