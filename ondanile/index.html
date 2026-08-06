@@ -382,6 +382,7 @@ const LOCKED_CURATOR = _params.get('curator')  || null;
 const LOCKED_L1      = _params.get('org_l1')   || null;
 const LOCKED_L2      = _params.get('org_l2')   || null;
 const LOCKED_L3      = _params.get('org_l3')   || null;
+const LOCKED_QUERY   = _params.get('q')        || null;
 
 // Inject skin stylesheet before any render
 if (LOCKED_SKIN) {
@@ -407,7 +408,7 @@ if (LOCKED_SKIN) {
 // ── Data + state ──────────────────────────────────────────────────────────────
 let allSessions = [];
 let allTags = [];
-const state = { org: 'all', tags: new Set(), query: '' };
+const state = { org: 'all', tags: new Set(), query: LOCKED_QUERY || '' };
 if (LOCKED_TAG) state.tags.add(LOCKED_TAG);
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
@@ -742,6 +743,7 @@ function normalizeTile(t) {
     const topicTags = Object.entries(tagCount).filter(([t]) => !isEvent(t)).sort((a,b) => b[1]-a[1]).map(([tag,n]) => ({tag,n}));
     allTags = [...eventTags, ...topicTags];
 
+    if (LOCKED_QUERY) document.getElementById('search-input').value = LOCKED_QUERY;
     buildSourceFilters();
     render();
   } catch (err) {
