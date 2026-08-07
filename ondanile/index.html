@@ -578,7 +578,7 @@ function render() {
          </a>`
       : '';
 
-    const ondaBtn = (s.onda_url && s.status === 'live')
+    const ondaBtn = (s.onda_url && s.status !== 'pending')
       ? `<a class="onda-btn" href="${s.onda_url}" target="_blank" rel="noopener"
              onclick="return openOnda(event,'${s.onda_url}')" title="Download .onda">
            <img src="../img/onda-download.png" alt="Download ONDA">
@@ -670,15 +670,15 @@ function normalizeNileSession(s) {
   return {
     id: 'nile-' + s.id,
     title: s.title || '',
-    presenter: name,
+    presenter: s.presenter || name,
     org: s.org_l1 || '',
     source: parts.length ? parts.join(' › ') : (s.org_l1 || ''),
     tags: Array.isArray(s.tags) ? s.tags : [],
     synopsis: s.synopsis || '',
-    takeaways: [],
-    who: '',
+    takeaways: Array.isArray(s.takeaways) ? s.takeaways : [],
+    who: s.who || '',
     brief: '',
-    youtube: null,
+    youtube: s.youtube || null,
     photo: s.photo_url || null,
     linkedin: s.linkedin || null,
     onda_url: s.file_url || s.session_url || null,
