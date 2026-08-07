@@ -684,6 +684,7 @@ function normalizeNileSession(s) {
     onda_url: s.file_url || s.session_url || null,
     status: s.status,
     visibility: s.visibility,
+    is_visible: s.is_visible === true,
     language: s.language || null,
     country: s.country   || null,
     curator: s.curator   || null,
@@ -733,7 +734,7 @@ function normalizeTile(t) {
     const staticSessions = await staticResp.json();
     const liveSessions = liveResp && liveResp.ok ? (await liveResp.json()).map(normalizeNileSession) : [];
     const tileSessions = tilesResp && tilesResp.ok ? (await tilesResp.json()).map(normalizeTile) : [];
-    allSessions = [...tileSessions, ...liveSessions.filter(s => s.status === 'claimed'), ...staticSessions];
+    allSessions = [...tileSessions, ...liveSessions.filter(s => s.is_visible === true), ...staticSessions];
 
     // Build ranked tag list — event tags (PCA##, Elevate Summit *) pinned first
     const tagCount = {};
