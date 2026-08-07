@@ -681,7 +681,7 @@ function normalizeNileSession(s) {
     youtube: s.youtube || null,
     photo: s.photo_url || null,
     linkedin: s.linkedin || null,
-    onda_url: s.file_url || s.session_url || null,
+    onda_url: s.onda_url || s.file_url || s.session_url || null,
     status: s.status,
     visibility: s.visibility,
     is_visible: s.is_visible === true,
