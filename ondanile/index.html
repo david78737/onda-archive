@@ -624,13 +624,12 @@ function render() {
         </div>
       </div>
       <div class="card-body">
-        <div class="section-label">Synopsis</div>
-        <div class="synopsis">${s.synopsis}</div>
-        <div class="section-label">Key Takeaways</div>
-        <ul class="takeaways">${(s.takeaways || []).map(t => `<li>${t}</li>`).join('')}</ul>
-        <div class="section-label">Best For</div>
-        <div class="who">${s.who}</div>
-        <div class="brief-row">${s.brief}</div>
+        ${s.synopsis ? `<div class="section-label">Synopsis</div><div class="synopsis">${s.synopsis}</div>` : ''}
+        ${Array.isArray(s.takeaways) && s.takeaways.length
+          ? `<div class="section-label">Key Takeaways</div><ul class="takeaways">${s.takeaways.map(t => `<li>${t}</li>`).join('')}</ul>`
+          : ''}
+        ${s.who ? `<div class="section-label">Best For</div><div class="who">${s.who}</div>` : ''}
+        ${s.brief ? `<div class="brief-row">${s.brief}</div>` : ''}
         ${s.proxy && s.status !== 'live' ? `<div style="margin-top:12px;font-size:12px;color:#888;">Recording code: <strong style="color:#008787;letter-spacing:.05em;">${s.proxy}</strong></div>` : ''}
         ${actionRow}
       </div>`;
