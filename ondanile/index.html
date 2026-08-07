@@ -615,7 +615,9 @@ function render() {
           <div class="badges">
             <span class="badge badge-source">${s.source}</span>
             ${s.id.toString().startsWith('nile-')
-              ? `<a class="badge badge-update" href="../nile-session-update/?session_id=${s.id.toString().replace('nile-','')}" onclick="event.stopPropagation()">update</a>`
+              ? (s.status === 'unclaimed' && s.invite_code
+                  ? `<a class="badge badge-update" href="../nile-claim/?session_id=${s.id.toString().replace('nile-','')}&invite_code=${encodeURIComponent(s.invite_code)}" onclick="event.stopPropagation()">claim</a>`
+                  : `<a class="badge badge-update" href="../nile-session-update/?session_id=${s.id.toString().replace('nile-','')}" onclick="event.stopPropagation()">update</a>`)
               : ''}
           </div>
           <div class="card-tags">${tagChips}</div>
@@ -685,6 +687,7 @@ function normalizeNileSession(s) {
     status: s.status,
     visibility: s.visibility,
     is_visible: s.is_visible === true,
+    invite_code: s.invite_code || null,
     language: s.language || null,
     country: s.country   || null,
     curator: s.curator   || null,
