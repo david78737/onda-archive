@@ -120,8 +120,12 @@
   <div class="wrap">
     <div class="draft-banner">This is a first draft — fields and layout are expected to change.</div>
     <div class="card">
-      <div class="card-title" id="list-title">Your Presentations</div>
-      <div class="record-list" id="record-list"></div>
+      <div class="card-title">Pending Review</div>
+      <div class="record-list" id="record-list-pending"></div>
+    </div>
+    <div class="card">
+      <div class="card-title">Published</div>
+      <div class="record-list" id="record-list-published"></div>
     </div>
     <button class="btn-primary" id="new-record-btn">+ New Presentation</button>
   </div>
@@ -239,34 +243,45 @@ if (!TOKEN || !ORG_ID) {
 }
 
 // ── Screen 1: list ────────────────────────────────────────────────────────────
+function renderRecordGroup(containerId, rows, emptyText) {
+  const list = document.getElementById(containerId);
+  if (!rows.length) {
+    list.innerHTML = `<p style="color:#999;font-size:14px;">${emptyText}</p>`;
+    return;
+  }
+  list.innerHTML = '';
+  rows.forEach(r => {
+    const btn = document.createElement('button');
+    btn.className = 'record-btn';
+    const statusClass = r.status === 'published' ? 'status-published' : (r.status === 'rejected' ? 'status-rejected' : 'status-proposed');
+    btn.innerHTML = `
+      <div class="r-title">${r.title || 'Untitled'}<span class="status-pill ${statusClass}">${r.status || 'proposed'}</span></div>
+      <div class="r-meta">${r.presenter || ''}</div>
+    `;
+    btn.addEventListener('click', () => openEditor(r));
+    list.appendChild(btn);
+  });
+}
+
 async function loadRecords() {
   show('screen-list');
-  const list = document.getElementById('record-list');
-  list.innerHTML = '<p style="color:#999;font-size:14px;">Loading…</p>';
+  const pendingList = document.getElementById('record-list-pending');
+  const publishedList = document.getElementById('record-list-published');
+  pendingList.innerHTML = '<p style="color:#999;font-size:14px;">Loading…</p>';
+  publishedList.innerHTML = '';
   try {
     const resp = await fetch(`${API}/list`);
     if (!resp.ok) throw new Error('Could not load presentations.');
     const all = await resp.json();
     records = all.filter(r => String(r.org_id) === String(ORG_ID));
 
-    if (!records.length) {
-      list.innerHTML = '<p style="color:#999;font-size:14px;">No presentations yet for this station.</p>';
-      return;
-    }
-    list.innerHTML = '';
-    records.forEach(r => {
-      const btn = document.createElement('button');
-      btn.className = 'record-btn';
-      const statusClass = r.status === 'published' ? 'status-published' : (r.status === 'rejected' ? 'status-rejected' : 'status-proposed');
-      btn.innerHTML = `
-        <div class="r-title">${r.title || 'Untitled'}<span class="status-pill ${statusClass}">${r.status || 'proposed'}</span></div>
-        <div class="r-meta">${r.presenter || ''}</div>
-      `;
-      btn.addEventListener('click', () => openEditor(r));
-      list.appendChild(btn);
-    });
+    const published = records.filter(r => r.status === 'published');
+    const pending   = records.filter(r => r.status !== 'published');
+
+    renderRecordGroup('record-list-pending', pending, 'Nothing waiting on review.');
+    renderRecordGroup('record-list-published', published, 'Nothing published yet.');
   } catch (e) {
-    list.innerHTML = `<p style="color:#c0392b;font-size:14px;">${e.message}</p>`;
+    pendingList.innerHTML = `<p style="color:#c0392b;font-size:14px;">${e.message}</p>`;
   }
 }
 
@@ -403,6 +418,7 @@ document.getElementById('save-close-btn').addEventListener('click', async () => 
     await loadRecords();
   } catch (e) {
     msg('save-msg', e.message, 'err');
+  } finally {
     btn.disabled = false; btn.textContent = 'Save & Close';
   }
 });
