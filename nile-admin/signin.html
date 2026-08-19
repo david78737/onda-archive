@@ -106,6 +106,16 @@
 const NILE_AUTH = 'https://xrxm-29on-xlyt.n7e.xano.io/api:nile';
 const NILE_API  = 'https://xrxm-29on-xlyt.n7e.xano.io/api:onda-nile';
 
+// Draft limitation: presentations' org_id isn't returned by my-stations (which
+// only knows org_l1/l2/l3), so this maps the two orgs that currently have
+// presentations content. A new org won't get the "Manage Presentations"
+// button until it's added here — fine for now, worth fixing properly (a
+// real org_id lookup) once the presentations editor itself has stabilized.
+const PRESENTATIONS_ORG_MAP = {
+  'ONDA|Replay|ONDA Replay': 5,
+  'Circle Docs|Austin|Food': 4,
+};
+
 // ── Query-string config ───────────────────────────────────────────────────────
 const _p = new URLSearchParams(location.search);
 const SKIN       = _p.get('skin')    || null;
@@ -259,6 +269,12 @@ async function loadStations() {
       const isPresenter  = s.role === 'presenter';
       const isOrganizer  = s.role === 'organizer';
 
+      const orgKey = `${s.org_l1}|${s.org_l2}|${s.org_l3}`;
+      const presOrgId = PRESENTATIONS_ORG_MAP[orgKey];
+      const presParams = new URLSearchParams({ org_id: presOrgId, token: authToken });
+      if (SKIN) presParams.set('skin', SKIN);
+      const presentationsUrl = `../nile-presentation/?${presParams}`;
+
       const card = document.createElement('div');
       card.className = 'station-card';
       card.innerHTML = `
@@ -270,6 +286,7 @@ async function loadStations() {
         <div class="station-actions">
           ${isPresenter ? `<button class="action-btn primary" onclick="window.location.href='${tileUrl}'">Add Tile</button>` : ''}
           ${isOrganizer ? `<button class="action-btn primary" onclick="window.location.href='${sessionUrl}'">Manage Sessions</button>` : ''}
+          ${presOrgId ? `<button class="action-btn primary" onclick="window.location.href='${presentationsUrl}'">Manage Presentations</button>` : ''}
           <button class="action-btn secondary" onclick="window.location.href='${profileUrl}'">Edit Profile</button>
         </div>`;
       list.appendChild(card);

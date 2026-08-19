@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Manage Presentations — ONDA Nile</title>
+<style>
+  :root {
+    --teal: #009688;
+    --teal-dark: #007a70;
+    --teal-light: #E8F8F6;
+    --ink: #1a1a1a;
+    --body: #333;
+    --muted: #666;
+    --border: #CCC;
+    --bg: #F7F9F9;
+    --surface: #FFF;
+    --error: #c0392b;
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: var(--bg); color: var(--body);
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    font-size: 16px; line-height: 1.6; padding: 0 0 80px;
+  }
+  header { background: var(--teal); padding: 16px 24px; display: flex; align-items: center; gap: 12px; }
+  .wordmark { font-size: 18px; font-weight: 700; color: #fff; letter-spacing: .03em; }
+  .header-sub { font-size: 12px; color: rgba(255,255,255,.75); margin-top: 1px; }
+  .wrap { max-width: 580px; margin: 0 auto; padding: 32px 20px 0; }
+  .card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 24px; margin-bottom: 20px; }
+  .card-title { font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: .1em; color: var(--teal); margin-bottom: 16px; }
+  .field { margin-bottom: 16px; }
+  .field:last-child { margin-bottom: 0; }
+  label { display: block; font-size: 14px; font-weight: 600; color: var(--ink); margin-bottom: 5px; }
+  label .optional { font-weight: 400; color: var(--muted); font-size: 12px; }
+  input[type="text"], input[type="url"], textarea, select {
+    width: 100%; padding: 11px 13px; font-size: 15px;
+    border: 1px solid var(--border); border-radius: 7px;
+    color: var(--ink); background: var(--surface);
+    transition: border-color .15s; font-family: inherit;
+  }
+  input:focus, textarea:focus, select:focus { border-color: var(--teal); outline: none; }
+  textarea { min-height: 90px; resize: vertical; }
+  .hint { font-size: 12px; color: var(--muted); margin-top: 4px; }
+  .readonly-note { font-size: 13px; color: var(--muted); background: var(--bg); border-radius: 6px; padding: 8px 12px; }
+
+  .tag-pills { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+  .tag-pill { display: inline-flex; align-items: center; gap: 4px; background: var(--teal-light); border: 1px solid var(--teal); border-radius: 4px; padding: 3px 8px; font-size: 13px; color: var(--teal); }
+  .tag-pill button { background: none; border: none; color: var(--teal); cursor: pointer; font-size: 15px; line-height: 1; padding: 0; }
+  .tag-input-row { display: flex; gap: 8px; margin-top: 8px; }
+  .tag-input-row input { flex: 1; }
+  .tag-add { padding: 8px 14px; background: var(--teal); color: #fff; border: none; border-radius: 7px; font-size: 14px; cursor: pointer; white-space: nowrap; font-family: inherit; }
+  .tag-add:hover { background: var(--teal-dark); }
+
+  .record-list { display: flex; flex-direction: column; gap: 8px; }
+  .record-btn { width: 100%; text-align: left; padding: 12px 14px; background: var(--surface); border: 1px solid var(--border); border-radius: 7px; font-size: 14px; cursor: pointer; font-family: inherit; color: var(--ink); transition: border-color .15s, background .15s; }
+  .record-btn:hover { border-color: var(--teal); background: var(--teal-light); }
+  .record-btn .r-title { font-weight: 600; }
+  .record-btn .r-meta { font-size: 12px; color: var(--muted); margin-top: 2px; }
+  .status-pill { display: inline-block; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .04em; border-radius: 4px; padding: 1px 6px; margin-left: 6px; }
+  .status-published { background: var(--teal-light); color: var(--teal); }
+  .status-proposed  { background: #FDF2E3; color: #B8760B; }
+  .status-rejected  { background: #FBE9E7; color: var(--error); }
+
+  .btn-primary { width: 100%; padding: 14px; background: var(--teal); color: #fff; font-size: 16px; font-weight: 700; border: none; border-radius: 8px; cursor: pointer; font-family: inherit; transition: background .15s; }
+  .btn-primary:hover { background: var(--teal-dark); }
+  .btn-primary:disabled { background: #AAA; cursor: default; }
+  .btn-ghost { width: 100%; padding: 12px; background: none; color: var(--muted); font-size: 14px; border: 1px solid var(--border); border-radius: 8px; cursor: pointer; font-family: inherit; margin-top: 10px; transition: color .15s, border-color .15s; }
+  .btn-ghost:hover { color: var(--teal); border-color: var(--teal); }
+
+  .msg { margin-top: 12px; font-size: 14px; display: none; }
+  .msg.ok  { color: var(--teal); }
+  .msg.err { color: var(--error); }
+  .msg.show { display: block; }
+
+  .screen { display: none; }
+  .screen.active { display: block; }
+
+  .photo-row { display: flex; gap: 14px; align-items: flex-start; }
+  .photo-preview { width: 72px; height: 48px; border-radius: 6px; background: var(--teal-light); border: 2px solid var(--border); flex-shrink: 0; overflow: hidden; display: flex; align-items: center; justify-content: center; font-size: 11px; color: var(--muted); }
+  .photo-preview img { width: 100%; height: 100%; object-fit: cover; }
+  .photo-controls { flex: 1; }
+
+  .save-row { display: flex; gap: 10px; }
+  .btn-save { flex: 1; padding: 14px; background: var(--teal-light); color: var(--teal); font-size: 16px; font-weight: 700; border: 2px solid var(--teal); border-radius: 8px; cursor: pointer; font-family: inherit; transition: background .15s; }
+  .btn-save:hover { background: #C8EFEB; }
+  .btn-save:disabled { opacity: .5; cursor: default; }
+  .btn-save-close { flex: 2; padding: 14px; background: var(--teal); color: #fff; font-size: 16px; font-weight: 700; border: none; border-radius: 8px; cursor: pointer; font-family: inherit; transition: background .15s; }
+  .btn-save-close:hover { background: var(--teal-dark); }
+  .btn-save-close:disabled { background: #AAA; cursor: default; }
+
+  .saved-banner { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%); background: var(--teal); color: #fff; padding: 12px 24px; border-radius: 8px; font-size: 15px; font-weight: 600; box-shadow: 0 4px 16px rgba(0,150,136,.3); opacity: 0; transition: opacity .25s; pointer-events: none; }
+  .saved-banner.show { opacity: 1; }
+
+  .draft-banner { background: #FDF2E3; border: 1px solid #F0C070; color: #8a5a00; font-size: 13px; padding: 10px 14px; border-radius: 8px; margin-bottom: 20px; }
+</style>
+</head>
+<body>
+
+<header>
+  <div>
+    <div class="wordmark">ONDA Nile</div>
+    <div class="header-sub">Manage Presentations</div>
+  </div>
+</header>
+
+<!-- ── Error: missing/invalid link ── -->
+<div class="screen active" id="screen-error" style="display:none;">
+  <div class="wrap">
+    <div class="card">
+      <div class="card-title">Invalid Link</div>
+      <p style="font-size:14px;color:#555;">This page needs a valid token and organization — please sign in again.</p>
+      <button class="btn-ghost" onclick="window.location.href='../nile-admin/signin.html'">← Sign in</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── Screen 1: Record list ── -->
+<div class="screen" id="screen-list">
+  <div class="wrap">
+    <div class="draft-banner">This is a first draft — fields and layout are expected to change.</div>
+    <div class="card">
+      <div class="card-title" id="list-title">Your Presentations</div>
+      <div class="record-list" id="record-list"></div>
+    </div>
+    <button class="btn-primary" id="new-record-btn">+ New Presentation</button>
+  </div>
+</div>
+
+<!-- ── Screen 2: Edit form ── -->
+<div class="screen" id="screen-edit">
+  <div class="wrap">
+    <button class="btn-ghost" id="back-to-list" style="margin-bottom:16px;">← Back to list</button>
+
+    <div class="card">
+      <div class="card-title">Presentation Info</div>
+      <div class="field">
+        <label>Title</label>
+        <input type="text" id="f-title" placeholder="What this presentation is called">
+      </div>
+      <div class="field">
+        <label>Presenter</label>
+        <div class="readonly-note" id="f-presenter-display">—</div>
+        <div class="hint">Set automatically from your account, not editable here.</div>
+      </div>
+      <div class="field">
+        <label>Status</label>
+        <select id="f-status">
+          <option value="proposed">Proposed (draft, hidden)</option>
+          <option value="scheduled">Scheduled</option>
+          <option value="recorded">Recorded</option>
+          <option value="published">Published (live on ONDA Nile)</option>
+          <option value="rejected">Rejected</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Photo <span class="optional">URL</span></label>
+        <div class="photo-row">
+          <div class="photo-preview" id="photo-preview"><span id="photo-empty">none</span><img id="photo-img" src="" alt="" style="display:none;"></div>
+          <div class="photo-controls">
+            <input type="url" id="f-photo" placeholder="https://…/photo.png">
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Tags</div>
+      <div class="tag-pills" id="tag-pills"></div>
+      <div class="tag-input-row">
+        <input type="text" id="tag-input" placeholder="add a tag…">
+        <button class="tag-add" id="tag-add-btn">Add</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Content</div>
+      <div class="field">
+        <label>Summary <span class="optional">2–3 sentences</span></label>
+        <textarea id="f-summary" placeholder="What this presentation is about…"></textarea>
+      </div>
+      <div class="field">
+        <label>Audience <span class="optional">who this is for</span></label>
+        <textarea id="f-audience" style="min-height:60px;" placeholder="Who should see this…"></textarea>
+      </div>
+      <div class="field">
+        <label>Key Takeaways <span class="optional">one per line</span></label>
+        <textarea id="f-takeaways" style="min-height:110px;" placeholder="One takeaway per line…"></textarea>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Links <span class="optional" style="text-transform:none;letter-spacing:0;">optional</span></div>
+      <div class="field"><label>Session URL</label><input type="url" id="f-session-url"></div>
+      <div class="field"><label>.onda file URL</label><input type="url" id="f-onda-url"></div>
+      <div class="field"><label>Deck URL</label><input type="url" id="f-deck-url"></div>
+      <div class="field"><label>YouTube ID</label><input type="text" id="f-youtube" placeholder="e.g. dQw4w9WgXcQ"></div>
+    </div>
+
+    <div class="save-row">
+      <button type="button" class="btn-save" id="save-btn">Save</button>
+      <button type="button" class="btn-save-close" id="save-close-btn">Save &amp; Close</button>
+    </div>
+    <div class="msg" id="save-msg"></div>
+  </div>
+</div>
+
+<div class="saved-banner" id="saved-banner">Saved ✓</div>
+
+<script>
+const API = 'https://xrxm-29on-xlyt.n7e.xano.io/api:presentations';
+
+const _p = new URLSearchParams(location.search);
+const TOKEN  = _p.get('token')  || null;
+const ORG_ID = _p.get('org_id') || null;
+
+let records = [];
+let currentRecord = null;
+let currentTags = [];
+
+function show(id) {
+  document.querySelectorAll('.screen').forEach(s => { s.style.display = 'none'; s.classList.remove('active'); });
+  const el = document.getElementById(id);
+  el.style.display = 'block';
+  el.classList.add('active');
+  window.scrollTo(0, 0);
+}
+function msg(id, text, type) {
+  const el = document.getElementById(id);
+  el.textContent = text;
+  el.className = `msg ${type} show`;
+}
+function clearMsg(id) { document.getElementById(id).className = 'msg'; }
+
+if (!TOKEN || !ORG_ID) {
+  show('screen-error');
+} else {
+  loadRecords();
+}
+
+// ── Screen 1: list ────────────────────────────────────────────────────────────
+async function loadRecords() {
+  show('screen-list');
+  const list = document.getElementById('record-list');
+  list.innerHTML = '<p style="color:#999;font-size:14px;">Loading…</p>';
+  try {
+    const resp = await fetch(`${API}/list`);
+    if (!resp.ok) throw new Error('Could not load presentations.');
+    const all = await resp.json();
+    records = all.filter(r => String(r.org_id) === String(ORG_ID));
+
+    if (!records.length) {
+      list.innerHTML = '<p style="color:#999;font-size:14px;">No presentations yet for this station.</p>';
+      return;
+    }
+    list.innerHTML = '';
+    records.forEach(r => {
+      const btn = document.createElement('button');
+      btn.className = 'record-btn';
+      const statusClass = r.status === 'published' ? 'status-published' : (r.status === 'rejected' ? 'status-rejected' : 'status-proposed');
+      btn.innerHTML = `
+        <div class="r-title">${r.title || 'Untitled'}<span class="status-pill ${statusClass}">${r.status || 'proposed'}</span></div>
+        <div class="r-meta">${r.presenter || ''}</div>
+      `;
+      btn.addEventListener('click', () => openEditor(r));
+      list.appendChild(btn);
+    });
+  } catch (e) {
+    list.innerHTML = `<p style="color:#c0392b;font-size:14px;">${e.message}</p>`;
+  }
+}
+
+document.getElementById('new-record-btn').addEventListener('click', () => {
+  openEditor({ id: null, org_id: ORG_ID, title: '', status: 'proposed' });
+});
+document.getElementById('back-to-list').addEventListener('click', loadRecords);
+
+// ── Screen 2: edit ────────────────────────────────────────────────────────────
+function openEditor(r) {
+  currentRecord = r;
+  currentTags = r.tags ? String(r.tags).split(',').map(t => t.trim()).filter(Boolean) : [];
+
+  document.getElementById('f-title').value      = r.title || '';
+  document.getElementById('f-presenter-display').textContent = r.presenter || '(will be set from your account on save)';
+  document.getElementById('f-status').value     = r.status || 'proposed';
+  document.getElementById('f-photo').value      = r.photo || '';
+  updatePhotoPreview(r.photo || '');
+  document.getElementById('f-summary').value    = r.summary || '';
+  document.getElementById('f-audience').value   = r.audience || '';
+  document.getElementById('f-takeaways').value  = r.takeaways
+    ? String(r.takeaways).split('\n').map(l => l.replace(/^→\s*/, '').trim()).filter(Boolean).join('\n')
+    : '';
+  document.getElementById('f-session-url').value = r.session_url || '';
+  document.getElementById('f-onda-url').value    = r.onda_url || '';
+  document.getElementById('f-deck-url').value    = r.deck_url || '';
+  document.getElementById('f-youtube').value     = r.youtube || '';
+
+  renderTags();
+  clearMsg('save-msg');
+  show('screen-edit');
+}
+
+function updatePhotoPreview(url) {
+  const img = document.getElementById('photo-img');
+  const empty = document.getElementById('photo-empty');
+  if (url) { img.src = url; img.style.display = 'block'; empty.style.display = 'none'; }
+  else     { img.style.display = 'none'; empty.style.display = 'block'; }
+}
+document.getElementById('f-photo').addEventListener('change', e => updatePhotoPreview(e.target.value.trim()));
+
+// ── Tags ──────────────────────────────────────────────────────────────────────
+function renderTags() {
+  const container = document.getElementById('tag-pills');
+  container.innerHTML = '';
+  currentTags.forEach(tag => {
+    const pill = document.createElement('span');
+    pill.className = 'tag-pill';
+    pill.innerHTML = `${tag}<button type="button" aria-label="Remove ${tag}">×</button>`;
+    pill.querySelector('button').addEventListener('click', () => {
+      currentTags = currentTags.filter(t => t !== tag);
+      renderTags();
+    });
+    container.appendChild(pill);
+  });
+}
+document.getElementById('tag-add-btn').addEventListener('click', addTag);
+document.getElementById('tag-input').addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); addTag(); } });
+function addTag() {
+  const input = document.getElementById('tag-input');
+  const tag = input.value.trim().toLowerCase();
+  if (tag && !currentTags.includes(tag)) { currentTags.push(tag); renderTags(); }
+  input.value = '';
+  input.focus();
+}
+
+// ── Save ──────────────────────────────────────────────────────────────────────
+function buildPayload() {
+  const takeawaysRaw = document.getElementById('f-takeaways').value.trim();
+  const takeaways = takeawaysRaw
+    ? takeawaysRaw.split('\n').map(l => l.trim()).filter(Boolean).map(l => `→ ${l}`).join('\n')
+    : '';
+  return {
+    magic_auth_token: TOKEN,
+    title:        document.getElementById('f-title').value.trim(),
+    status:       document.getElementById('f-status').value,
+    photo:        document.getElementById('f-photo').value.trim() || null,
+    tags:         currentTags.join(', '),
+    summary:      document.getElementById('f-summary').value.trim(),
+    audience:     document.getElementById('f-audience').value.trim(),
+    takeaways,
+    session_url:  document.getElementById('f-session-url').value.trim() || null,
+    onda_url:     document.getElementById('f-onda-url').value.trim() || null,
+    deck_url:     document.getElementById('f-deck-url').value.trim() || null,
+    youtube:      document.getElementById('f-youtube').value.trim() || null,
+  };
+}
+
+async function saveRecord() {
+  const payload = buildPayload();
+  let resp;
+  if (currentRecord && currentRecord.id) {
+    resp = await fetch(`${API}/${currentRecord.id}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+  } else {
+    payload.org_id = ORG_ID;
+    resp = await fetch(`${API}/create`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+  }
+  const data = await resp.json();
+  if (!resp.ok) throw new Error(data.message || 'Save failed.');
+  currentRecord = data;
+  return data;
+}
+
+document.getElementById('save-btn').addEventListener('click', async () => {
+  const btn = document.getElementById('save-btn');
+  btn.disabled = true; btn.textContent = 'Saving…';
+  clearMsg('save-msg');
+  try {
+    await saveRecord();
+    const banner = document.getElementById('saved-banner');
+    banner.classList.add('show');
+    setTimeout(() => banner.classList.remove('show'), 2500);
+  } catch (e) {
+    msg('save-msg', e.message, 'err');
+  } finally {
+    btn.disabled = false; btn.textContent = 'Save';
+  }
+});
+
+document.getElementById('save-close-btn').addEventListener('click', async () => {
+  const btn = document.getElementById('save-close-btn');
+  btn.disabled = true; btn.textContent = 'Saving…';
+  clearMsg('save-msg');
+  try {
+    await saveRecord();
+    await loadRecords();
+  } catch (e) {
+    msg('save-msg', e.message, 'err');
+    btn.disabled = false; btn.textContent = 'Save & Close';
+  }
+});
+</script>
+</body>
+</html>
