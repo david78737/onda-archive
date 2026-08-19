@@ -581,10 +581,15 @@ function render() {
          </a>`
       : '';
 
+    // Opens the hosted web player (play in-browser, download link lives inside
+    // the player itself) instead of force-downloading the raw .onda file.
+    // The iOS app deep-link still passes the raw file — the app needs the
+    // actual .onda, not the player page.
+    const playerUrl = 'https://default-dev-51573d-xrxm-29on-xlyt.n7e.xano.io/index.html?src=' + encodeURIComponent(s.onda_url || '');
     const ondaBtn = (s.onda_url && s.status !== 'pending')
-      ? `<a class="onda-btn" href="${s.onda_url}" target="_blank" rel="noopener"
-             onclick="return openOnda(event,'${s.onda_url}')" title="Download .onda">
-           <img src="../img/onda-download.png" alt="Download ONDA">
+      ? `<a class="onda-btn" href="${playerUrl}" target="_blank" rel="noopener"
+             onclick="return openOnda(event,'${s.onda_url}')" title="Play recording">
+           <img src="../img/onda-download.png" alt="Play recording">
          </a>`
       : (s.status === 'pending' ? `<span class="buy-soon">Recording coming soon</span>` : '');
 
