@@ -165,7 +165,7 @@
       <div class="field">
         <label>Photo <span class="optional">URL</span></label>
         <div class="photo-row">
-          <div class="photo-preview" id="photo-preview"><span id="photo-empty">none</span><img id="photo-img" src="" alt="" style="display:none;"></div>
+          <a class="photo-preview" id="photo-preview" href="#" target="_blank" rel="noopener" title="Open full image in a new tab"><span id="photo-empty">none</span><img id="photo-img" src="" alt="" style="display:none;"></a>
           <div class="photo-controls">
             <input type="url" id="f-photo" placeholder="https://…/photo.png">
           </div>
@@ -334,8 +334,14 @@ function openEditor(r) {
 function updatePhotoPreview(url) {
   const img = document.getElementById('photo-img');
   const empty = document.getElementById('photo-empty');
-  if (url) { img.src = url; img.style.display = 'block'; empty.style.display = 'none'; }
-  else     { img.style.display = 'none'; empty.style.display = 'block'; }
+  const link = document.getElementById('photo-preview');
+  if (url) {
+    img.src = url; img.style.display = 'block'; empty.style.display = 'none';
+    link.href = url; link.style.cursor = 'pointer';
+  } else {
+    img.style.display = 'none'; empty.style.display = 'block';
+    link.removeAttribute('href'); link.style.cursor = 'default';
+  }
 }
 document.getElementById('f-photo').addEventListener('change', e => updatePhotoPreview(e.target.value.trim()));
 
