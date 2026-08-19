@@ -660,8 +660,11 @@ document.getElementById('search-input').addEventListener('input', e => {
 });
 
 // ── Boot ──────────────────────────────────────────────────────────────────────
-const NILE_API       = 'https://xrxm-29on-xlyt.n7e.xano.io/api:onda-nile/sessions?per_page=1000';
-const NILE_TILES_API = 'https://xrxm-29on-xlyt.n7e.xano.io/api:onda-nile/nile/tiles';
+const NILE_API          = 'https://xrxm-29on-xlyt.n7e.xano.io/api:onda-nile/sessions?per_page=1000';
+const PRESENTATIONS_API = 'https://xrxm-29on-xlyt.n7e.xano.io/api:presentations/list';
+
+// Temporary: org_id -> display name, until presentations has a public org-list endpoint.
+const ORG_NAMES = { 5: 'ONDA Replay', 6: 'Circle Docs' };
 
 function normalizeNileSession(s) {
   const name = s.presenter_slug
@@ -693,24 +696,29 @@ function normalizeNileSession(s) {
   };
 }
 
-function normalizeTile(t) {
+function normalizePresentation(p) {
+  const orgName = ORG_NAMES[p.org_id] || 'Unknown';
+  const takeaways = (p.takeaways || '')
+    .split('\n')
+    .map(t => t.replace(/^→\s*/, '').trim())
+    .filter(Boolean);
   return {
-    id: 'tile-' + t.id,
-    title: t.title || '',
-    presenter: t.presenter || '',
-    org: t.org_l1 || '',
-    source: [t.org_l1, t.org_l2, t.org_l3].filter(Boolean).join(' · '),
-    tags: Array.isArray(t.tags) ? t.tags : [],
-    synopsis: t.synopsis || '',
-    takeaways: Array.isArray(t.takeaways) ? t.takeaways : [],
-    who: t.who || '',
-    brief: t.brief || '',
-    youtube: t.youtube || null,
-    photo: t.photo || null,
-    onda_url: t.onda_url || null,
-    deck_url: t.deck_url || null,
-    proxy: t.proxy || null,
-    status: t.status || null,
+    id: 'pres-' + p.id,
+    title: p.title || '',
+    presenter: p.presenter || 'ONDA Doc',
+    org: orgName,
+    source: orgName,
+    tags: p.tags ? p.tags.split(',').map(t => t.trim()).filter(Boolean) : [],
+    synopsis: p.summary || '',
+    takeaways,
+    who: p.audience || '',
+    brief: '',
+    youtube: p.youtube || null,
+    photo: p.photo || null,
+    onda_url: p.onda_url || null,
+    deck_url: p.deck_url || null,
+    proxy: null,
+    status: p.status || null,
     language: null,
     country: null,
     curator: null,
@@ -719,24 +727,18 @@ function normalizeTile(t) {
 
 (async () => {
   try {
-    // Build tiles URL with org filters if station is locked
-    let tilesUrl = NILE_TILES_API;
-    const tileParams = new URLSearchParams();
-    if (LOCKED_L1) tileParams.set('org_l1', LOCKED_L1);
-    if (LOCKED_L2) tileParams.set('org_l2', LOCKED_L2);
-    if (LOCKED_L3) tileParams.set('org_l3', LOCKED_L3);
-    if ([...tileParams].length) tilesUrl += '?' + tileParams;
-
-    const [staticResp, liveResp, tilesResp] = await Promise.all([
+    const [staticResp, liveResp, presResp] = await Promise.all([
       fetch('sessions.json'),
       fetch(NILE_API).catch(() => null),
-      fetch(tilesUrl).catch(() => null),
+      fetch(PRESENTATIONS_API).catch(() => null),
     ]);
     if (!staticResp.ok) throw new Error(`sessions.json: ${staticResp.status}`);
     const staticSessions = await staticResp.json();
     const liveSessions = liveResp && liveResp.ok ? (await liveResp.json()).map(normalizeNileSession) : [];
-    const tileSessions = tilesResp && tilesResp.ok ? (await tilesResp.json()).map(normalizeTile) : [];
-    allSessions = [...tileSessions, ...liveSessions.filter(s => s.is_visible === true), ...staticSessions];
+    const presSessions = presResp && presResp.ok
+      ? (await presResp.json()).filter(p => p.status === 'published').map(normalizePresentation)
+      : [];
+    allSessions = [...presSessions, ...liveSessions.filter(s => s.is_visible === true), ...staticSessions];
 
     // Build ranked tag list — event tags (PCA##, Elevate Summit *) pinned first
     const tagCount = {};
