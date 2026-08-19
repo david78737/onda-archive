@@ -86,6 +86,16 @@
   .photo-preview img { width: 100%; height: 100%; object-fit: contain; }
   .photo-controls { flex: 1; }
 
+  /* ── Editor: desktop two-column layout (this tool is PC/Mac only) ── */
+  .edit-header { padding: 16px 24px 4px; display: flex; align-items: center; gap: 16px; }
+  .edit-header .btn-ghost { width: auto; margin-top: 0; padding: 8px 16px; }
+  .edit-title { font-size: 19px; font-weight: 700; color: var(--ink); }
+  .edit-layout { display: flex; gap: 24px; padding: 12px 24px 24px; align-items: flex-start; height: calc(100vh - 76px); box-sizing: border-box; }
+  .edit-left { width: 340px; flex-shrink: 0; height: 100%; overflow-y: auto; padding-right: 4px; }
+  .edit-right { flex: 1; min-width: 0; height: 100%; overflow-y: auto; padding-right: 4px; }
+  .edit-left .photo-row { flex-direction: column; }
+  .edit-left .photo-preview { width: 100%; height: 320px; }
+
   .save-row { display: flex; gap: 10px; }
   .btn-save { flex: 1; padding: 14px; background: var(--teal-light); color: var(--teal); font-size: 16px; font-weight: 700; border: 2px solid var(--teal); border-radius: 8px; cursor: pointer; font-family: inherit; transition: background .15s; }
   .btn-save:hover { background: #C8EFEB; }
@@ -138,84 +148,90 @@
 
 <!-- ── Screen 2: Edit form ── -->
 <div class="screen" id="screen-edit">
-  <div class="wrap">
-    <button class="btn-ghost" id="back-to-list" style="margin-bottom:16px;">← Back to list</button>
-
-    <div class="card">
-      <div class="card-title">Presentation Info</div>
-      <div class="field">
-        <label>Title</label>
-        <input type="text" id="f-title" placeholder="What this presentation is called">
-      </div>
-      <div class="field">
-        <label>Presenter</label>
-        <div class="readonly-note" id="f-presenter-display">—</div>
-        <div class="hint">Set automatically from your account, not editable here.</div>
-      </div>
-      <div class="field">
-        <label>Status</label>
-        <select id="f-status">
-          <option value="proposed">Proposed (draft, hidden)</option>
-          <option value="scheduled">Scheduled</option>
-          <option value="recorded">Recorded</option>
-          <option value="published">Published (live on ONDA Nile)</option>
-          <option value="rejected">Rejected</option>
-        </select>
-      </div>
-      <div class="field">
-        <label>Photo <span class="optional">URL</span></label>
-        <div class="photo-row">
-          <a class="photo-preview" id="photo-preview" href="#" target="_blank" rel="noopener" title="Open full image in a new tab"><span id="photo-empty">none</span><img id="photo-img" src="" alt="" style="display:none;"></a>
-          <div class="photo-controls">
-            <input type="url" id="f-photo" placeholder="https://…/photo.png">
+  <div class="edit-header">
+    <button class="btn-ghost" id="back-to-list">← Back to list</button>
+    <div class="edit-title" id="edit-title">Editing</div>
+  </div>
+  <div class="edit-layout">
+    <div class="edit-left">
+      <div class="card">
+        <div class="card-title">Presentation Info</div>
+        <div class="field">
+          <label>Photo <span class="optional">URL</span></label>
+          <div class="photo-row">
+            <a class="photo-preview" id="photo-preview" href="#" target="_blank" rel="noopener" title="Open full image in a new tab"><span id="photo-empty">none</span><img id="photo-img" src="" alt="" style="display:none;"></a>
+            <div class="photo-controls">
+              <input type="url" id="f-photo" placeholder="https://…/photo.png">
+            </div>
           </div>
+        </div>
+        <div class="field">
+          <label>Title</label>
+          <input type="text" id="f-title" placeholder="What this presentation is called">
+        </div>
+        <div class="field">
+          <label>Presenter</label>
+          <div class="readonly-note" id="f-presenter-display">—</div>
+          <div class="hint">Set automatically from your account, not editable here.</div>
+        </div>
+        <div class="field">
+          <label>Status</label>
+          <select id="f-status">
+            <option value="proposed">Proposed (draft, hidden)</option>
+            <option value="scheduled">Scheduled</option>
+            <option value="recorded">Recorded</option>
+            <option value="published">Published (live on ONDA Nile)</option>
+            <option value="rejected">Rejected</option>
+          </select>
         </div>
       </div>
     </div>
 
-    <div class="card">
-      <div class="card-title">Tags</div>
-      <div class="tag-pills" id="tag-pills"></div>
-      <div class="tag-input-row">
-        <input type="text" id="tag-input" placeholder="add a tag…">
-        <button class="tag-add" id="tag-add-btn">Add</button>
+    <div class="edit-right">
+      <div class="card">
+        <div class="card-title">Tags</div>
+        <div class="tag-pills" id="tag-pills"></div>
+        <div class="tag-input-row">
+          <input type="text" id="tag-input" placeholder="add a tag…">
+          <button class="tag-add" id="tag-add-btn">Add</button>
+        </div>
       </div>
-    </div>
 
-    <div class="card">
-      <div class="card-title">Content</div>
-      <div class="field">
-        <label>Summary <span class="optional">2–3 sentences</span></label>
-        <textarea id="f-summary" placeholder="What this presentation is about…"></textarea>
+      <div class="card">
+        <div class="card-title">Content</div>
+        <div class="field">
+          <label>Summary <span class="optional">2–3 sentences</span></label>
+          <textarea id="f-summary" placeholder="What this presentation is about…"></textarea>
+        </div>
+        <div class="field">
+          <label>Audience <span class="optional">who this is for</span></label>
+          <textarea id="f-audience" style="min-height:60px;" placeholder="Who should see this…"></textarea>
+        </div>
+        <div class="field">
+          <label style="display:flex;align-items:center;gap:6px;">
+            <input type="text" id="f-takeaways-label" value="Key Takeaways"
+                   title="Rename this section — e.g. 'Numbered Controls' for a help screen"
+                   style="font-size:14px;font-weight:600;color:var(--ink);border:none;border-bottom:1px dashed var(--border);background:transparent;padding:0 2px 2px;width:auto;max-width:240px;">
+            <span class="optional">one per line</span>
+          </label>
+          <textarea id="f-takeaways" style="min-height:110px;" placeholder="One takeaway per line…"></textarea>
+        </div>
       </div>
-      <div class="field">
-        <label>Audience <span class="optional">who this is for</span></label>
-        <textarea id="f-audience" style="min-height:60px;" placeholder="Who should see this…"></textarea>
-      </div>
-      <div class="field">
-        <label style="display:flex;align-items:center;gap:6px;">
-          <input type="text" id="f-takeaways-label" value="Key Takeaways"
-                 title="Rename this section — e.g. 'Numbered Controls' for a help screen"
-                 style="font-size:14px;font-weight:600;color:var(--ink);border:none;border-bottom:1px dashed var(--border);background:transparent;padding:0 2px 2px;width:auto;max-width:240px;">
-          <span class="optional">one per line</span>
-        </label>
-        <textarea id="f-takeaways" style="min-height:110px;" placeholder="One takeaway per line…"></textarea>
-      </div>
-    </div>
 
-    <div class="card">
-      <div class="card-title">Links <span class="optional" style="text-transform:none;letter-spacing:0;">optional</span></div>
-      <div class="field"><label>Session URL</label><input type="url" id="f-session-url"></div>
-      <div class="field"><label>.onda file URL</label><input type="url" id="f-onda-url"></div>
-      <div class="field"><label>Deck URL</label><input type="url" id="f-deck-url"></div>
-      <div class="field"><label>YouTube ID</label><input type="text" id="f-youtube" placeholder="e.g. dQw4w9WgXcQ"></div>
-    </div>
+      <div class="card">
+        <div class="card-title">Links <span class="optional" style="text-transform:none;letter-spacing:0;">optional</span></div>
+        <div class="field"><label>Session URL</label><input type="url" id="f-session-url"></div>
+        <div class="field"><label>.onda file URL</label><input type="url" id="f-onda-url"></div>
+        <div class="field"><label>Deck URL</label><input type="url" id="f-deck-url"></div>
+        <div class="field"><label>YouTube ID</label><input type="text" id="f-youtube" placeholder="e.g. dQw4w9WgXcQ"></div>
+      </div>
 
-    <div class="save-row">
-      <button type="button" class="btn-save" id="save-btn">Save</button>
-      <button type="button" class="btn-save-close" id="save-close-btn">Save &amp; Close</button>
+      <div class="save-row">
+        <button type="button" class="btn-save" id="save-btn">Save</button>
+        <button type="button" class="btn-save-close" id="save-close-btn">Save &amp; Close</button>
+      </div>
+      <div class="msg" id="save-msg"></div>
     </div>
-    <div class="msg" id="save-msg"></div>
   </div>
 </div>
 
@@ -315,6 +331,7 @@ document.getElementById('back-to-list').addEventListener('click', loadRecords);
 function openEditor(r) {
   currentRecord = r;
   currentTags = r.tags ? String(r.tags).split(',').map(t => t.trim()).filter(Boolean) : [];
+  document.getElementById('edit-title').textContent = r.title ? `Editing: ${r.title}` : 'Editing: New Presentation';
 
   document.getElementById('f-title').value      = r.title || '';
   document.getElementById('f-presenter-display').textContent = r.presenter || '(will be set from your account on save)';
