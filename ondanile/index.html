@@ -212,6 +212,14 @@
     border-radius: 5px; object-fit: cover;
     background: #E8E8E8; align-self: center;
   }
+  /* Presentations photos are tall phone screenshots, not 16:9 video
+     thumbnails — sized and fitted differently so the whole screen shows
+     instead of a thin cropped sliver from the middle. */
+  .card-thumb-tall {
+    flex-shrink: 0; width: 130px; height: 200px;
+    border-radius: 5px; object-fit: contain;
+    background: #E8E8E8; align-self: center;
+  }
 
   .card-meta { flex: 1; min-width: 0; }
   .card-title { font-size: 14px; font-weight: 700; color: #222222; margin-bottom: 2px; }
@@ -564,7 +572,7 @@ function render() {
 
     const bgColor = avatarColor(s.presenter);
     const visual = (s.photo && s.photoStyle === 'thumb')
-      ? `<img class="card-thumb" loading="lazy" src="${s.photo}" alt="${s.title}"
+      ? `<img class="card-thumb-tall" loading="lazy" src="${s.photo}" alt="${s.title}"
              data-name="${s.presenter}" onerror="window._thumbErr(this)">`
       : s.photo
       ? `<img class="card-avatar card-avatar-photo" loading="lazy" src="${s.photo}" alt="${s.presenter}"
