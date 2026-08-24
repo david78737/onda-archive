@@ -325,8 +325,79 @@
   footer a { color: #008787; text-decoration: none; }
   .header-link { color: rgba(255,255,255,0.9); text-decoration: underline; }
 
-  @media (max-width: 480px) {
-    .left-panel { width: 110px; }
+  /* ── Mobile topics filter — button + backdrop, hidden on desktop ── */
+  .topics-toggle-btn { display: none; }
+  .topics-backdrop { display: none; }
+
+  @media (max-width: 640px) {
+    .layout { flex-direction: column; }
+
+    .left-panel {
+      position: static;
+      width: 100%;
+      max-height: none;
+      overflow: visible;
+      border-right: none;
+      padding: 10px 20px 0;
+    }
+
+    /* Source stays always-visible, just goes horizontal to save vertical
+       space — it's a short list (~5 options), no need to hide it behind
+       a tap the way the much longer Topics list does. */
+    .filter-group-source .source-scroll {
+      flex-direction: row;
+      overflow-x: auto;
+      overflow-y: visible;
+      max-height: none;
+      padding-bottom: 4px;
+    }
+    .filter-group-source .filter-btn {
+      white-space: nowrap;
+      flex-shrink: 0;
+      min-height: 30px;
+    }
+
+    .topics-toggle-btn {
+      display: block;
+      margin: 0 20px 10px;
+      background: #FFFFFF;
+      border: 1px solid #008787;
+      color: #008787;
+      border-radius: 6px;
+      padding: 8px 14px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    /* Topics becomes a bottom sheet — avoids the left-edge-swipe-back
+       conflict a side drawer would have on iOS Safari. */
+    .filter-group-topics {
+      position: fixed;
+      left: 0; right: 0; bottom: 0;
+      background: #FFFFFF;
+      border-radius: 14px 14px 0 0;
+      max-height: 65vh;
+      overflow-y: auto;
+      padding: 16px 16px 28px;
+      box-shadow: 0 -4px 20px rgba(0,0,0,0.2);
+      transform: translateY(110%);
+      transition: transform .25s ease;
+      z-index: 60;
+    }
+    .filter-group-topics.open { transform: translateY(0); }
+
+    .topics-backdrop {
+      display: block;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.35);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity .25s ease;
+      z-index: 55;
+    }
+    .topics-backdrop.open { opacity: 1; pointer-events: auto; }
   }
 </style>
 </head>
@@ -349,18 +420,21 @@
   </div>
 </div>
 
+<button type="button" class="topics-toggle-btn" id="topics-toggle-btn">Filter Topics</button>
+<div class="topics-backdrop" id="topics-backdrop"></div>
+
 <div class="layout">
 
   <aside class="left-panel">
 
-    <div class="filter-group">
+    <div class="filter-group filter-group-source">
       <div class="filter-label">Source</div>
       <div class="source-scroll" id="source-filters">
         <button type="button" class="filter-btn active" data-group="org" data-filter="all">All</button>
       </div>
     </div>
 
-    <div class="filter-group">
+    <div class="filter-group filter-group-topics" id="topics-panel">
       <div class="filter-label">Topics</div>
       <div class="tag-list" id="tag-list" style="flex-direction:column;flex-wrap:nowrap;gap:3px;"></div>
     </div>
@@ -509,6 +583,7 @@ function renderTags(rows) {
 
   const relatedEvents = related.filter(({tag}) => isEvent(tag));
   const relatedTopics = related.filter(({tag}) => !isEvent(tag));
+  if (relatedEvents.length) listEl.appendChild(miniLabel('EVENTS · PCA = ProductCamp Austin'));
   relatedEvents.forEach(({tag, n}) => listEl.appendChild(makeTagBtn(tag, 'related', n)));
   if (relatedEvents.length && relatedTopics.length) listEl.appendChild(miniLabel('TOPICS'));
   relatedTopics.forEach(({tag, n}) => listEl.appendChild(makeTagBtn(tag, 'related', n)));
@@ -543,12 +618,22 @@ function miniLabel(text) {
   return el;
 }
 
+// ── Mobile topics sheet ──────────────────────────────────────────────────────
+const topicsToggleBtn = document.getElementById('topics-toggle-btn');
+const topicsPanel = document.getElementById('topics-panel');
+const topicsBackdrop = document.getElementById('topics-backdrop');
+function openTopicsSheet() { topicsPanel.classList.add('open'); topicsBackdrop.classList.add('open'); }
+function closeTopicsSheet() { topicsPanel.classList.remove('open'); topicsBackdrop.classList.remove('open'); }
+topicsToggleBtn.addEventListener('click', openTopicsSheet);
+topicsBackdrop.addEventListener('click', closeTopicsSheet);
+
 // ── Render ────────────────────────────────────────────────────────────────────
 function render() {
   const rows = filtered();
   const isFiltered = state.org !== 'all' || state.tags.size > 0 || state.query;
   document.getElementById('status').textContent =
     isFiltered ? `${rows.length} of ${allSessions.length} items` : `${allSessions.length} items`;
+  topicsToggleBtn.textContent = state.tags.size ? `Filter Topics (${state.tags.size})` : 'Filter Topics';
 
   renderTags(rows);
 
