@@ -338,7 +338,12 @@
     .header-tagline { display: none; }
     .header-right { margin-left: 0; font-size: 10px; }
 
-    .layout { flex-direction: column; }
+    /* align-items: flex-start on the base rule means "top-align the two
+       desktop columns" — but once direction flips to column here, that
+       same property means "shrink each panel to its content width"
+       instead of "stretch to fill the screen," which is what was
+       pushing content past the phone's edge. Override back to stretch. */
+    .layout { flex-direction: column; align-items: stretch; }
 
     /* Search, Filter Topics, and Source stay on screen together while
        scrolling through results — stacked sticky elements, each offset
