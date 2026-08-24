@@ -53,6 +53,8 @@
     border-bottom: 2px solid #008787;
     padding: 10px 24px;
     box-shadow: 0 2px 6px rgba(0,150,136,0.12);
+    position: relative;
+    z-index: 40;
   }
   .search-bar-inner {
     max-width: 1000px;
@@ -330,15 +332,31 @@
   .topics-backdrop { display: none; }
 
   @media (max-width: 640px) {
+    /* Branding takes a back seat to the controls people actually use —
+       drop the tagline entirely and let "Powered by" sit compactly in
+       the space it vacates instead of wrapping onto its own row. */
+    .header-tagline { display: none; }
+    .header-right { margin-left: 0; font-size: 10px; }
+
     .layout { flex-direction: column; }
 
+    /* Search, Filter Topics, and Source stay on screen together while
+       scrolling through results — stacked sticky elements, each offset
+       by the approximate height of the one above it. Nudge these top
+       values if the header/search/button styling changes enough to
+       throw the stacking off. */
+    .search-bar { position: sticky; top: 0; }
+    .topics-toggle-btn { position: sticky; top: 56px; }
+    .left-panel { position: sticky; top: 102px; }
+
     .left-panel {
-      position: static;
       width: 100%;
       max-height: none;
       overflow: visible;
       border-right: none;
       padding: 10px 20px 0;
+      background: #F0F0F0;
+      z-index: 30;
     }
 
     /* Source stays always-visible, just goes horizontal to save vertical
@@ -368,6 +386,7 @@
       font-size: 13px;
       font-weight: 600;
       cursor: pointer;
+      z-index: 35;
     }
 
     /* Topics becomes a bottom sheet — avoids the left-edge-swipe-back
