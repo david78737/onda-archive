@@ -129,6 +129,7 @@
   .candidate-card.status-public { border-left: 4px solid var(--success); }
   .candidate-card.status-submitted { border-left: 4px solid var(--teal); }
   .candidate-card.status-draft { border-left: 4px solid var(--border); }
+  .candidate-card.status-pending { border-left: 4px solid var(--warn); }
 
   .cc-header {
     padding: 16px 20px 12px;
@@ -146,6 +147,7 @@
   .status-pill.submitted { background: var(--teal-light); color: var(--teal); }
   .status-pill.public    { background: var(--success-bg); color: var(--success); }
   .status-pill.draft     { background: #f0f0f0; color: var(--muted); }
+  .status-pill.pending   { background: var(--warn-bg); color: var(--warn); }
 
   .cc-presenter { font-size: 13px; color: var(--muted); }
 
@@ -331,6 +333,7 @@
     </div>
 
     <div class="filter-row">
+      <button class="filter-btn" onclick="loadCards('pending')" id="filter-pending">New Applications</button>
       <button class="filter-btn active" onclick="loadCards('submitted')" id="filter-submitted">Needs Review</button>
       <button class="filter-btn" onclick="loadCards('public')" id="filter-public">Approved</button>
       <button class="filter-btn" onclick="loadCards('draft')" id="filter-draft">Returned</button>
@@ -455,7 +458,7 @@ async function loadCards(statusFilter) {
   currentFilter = statusFilter;
 
   // Update filter buttons
-  ['submitted','public','draft',''].forEach(f => {
+  ['pending','submitted','public','draft',''].forEach(f => {
     const id = 'filter-' + (f || 'all');
     const btn = document.getElementById(id);
     if (btn) btn.className = 'filter-btn' + (f === statusFilter ? ' active' : '');
@@ -479,7 +482,8 @@ async function loadCards(statusFilter) {
     if (!r.ok) { const e = await r.json(); throw new Error(e.message || 'Failed to load cards'); }
     const cards = await r.json();
 
-    const label = statusFilter === 'submitted' ? 'Needs Review'
+    const label = statusFilter === 'pending'   ? 'New Applications'
+                : statusFilter === 'submitted' ? 'Needs Review'
                 : statusFilter === 'public'    ? 'Approved'
                 : statusFilter === 'draft'     ? 'Returned'
                 : 'All';
@@ -490,7 +494,9 @@ async function loadCards(statusFilter) {
       return;
     }
 
-    document.getElementById('cards-list').innerHTML = cards.map(c => renderCard(c)).join('');
+    document.getElementById('cards-list').innerHTML = cards.map(c =>
+      statusFilter === 'pending' ? renderPendingCard(c) : renderCard(c)
+    ).join('');
   } catch(e) {
     showBanner('cards-banner', 'error', e.message);
     document.getElementById('cards-list').innerHTML = '';
@@ -566,6 +572,119 @@ function renderCard(c) {
       <div class="cc-actions">${actions}</div>
     </div>
   `;
+}
+
+// New applications don't have a title/synopsis/bio yet — they're a request
+// to be let in at all, not a session to review. Separate render + actions
+// (Admit/Reject) rather than reusing renderCard/approveCard/returnCard,
+// since admitting someone here means "let them proceed to fill in a real
+// card," not "publish this to Nile."
+function renderPendingCard(c) {
+  const phone = c.presenter_phone || c.phone;
+  return `
+    <div class="candidate-card status-pending" id="card-${phone.replace(/\+/g,'')}">
+      <div class="cc-header">
+        <div class="cc-title-row">
+          <div class="cc-title">${c.name || '<em style="color:var(--muted);font-weight:400">No name given</em>'}</div>
+          <span class="status-pill pending">New Application</span>
+        </div>
+        <div class="cc-presenter">${phone}</div>
+      </div>
+      <div class="cc-body">
+        <div class="cc-field">
+          <div class="cc-field-label">LinkedIn</div>
+          <div class="cc-text">${c.linkedin_url ? `<a href="${c.linkedin_url}" target="_blank" rel="noopener">${c.linkedin_url}</a>` : '<em style="color:var(--muted)">Not provided</em>'}</div>
+        </div>
+        <div class="cc-field">
+          <div class="cc-field-label">Event Requested</div>
+          <div class="cc-text">${c.event_code || '<em style="color:var(--muted)">Not matched to an event — confirm this is meant for this one</em>'}</div>
+        </div>
+        <div class="cc-field">
+          <div class="cc-field-label">About</div>
+          <div class="cc-text">${c.about || '<em style="color:var(--muted)">Not provided</em>'}</div>
+        </div>
+      </div>
+      <div class="cc-actions">
+        <button class="btn-approve" onclick="admitCandidate('${phone}', this)">Admit</button>
+        <button class="btn-return" onclick="toggleReturnForm(this)">Reject</button>
+        <div class="return-form">
+          <textarea placeholder="Reason (optional)"></textarea>
+          <div class="return-form-actions">
+            <button class="btn-send-return" onclick="rejectCandidate('${phone}', this)">Send</button>
+            <button class="btn-cancel-return" onclick="toggleReturnForm(this.closest('.cc-actions').querySelector('.btn-return'))">Cancel</button>
+          </div>
+        </div>
+        <div class="action-result"></div>
+      </div>
+    </div>
+  `;
+}
+
+async function admitCandidate(presenterPhone, btn) {
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span>';
+  const resultEl = btn.closest('.cc-actions').querySelector('.action-result');
+
+  try {
+    const r = await fetch(`${NILE_API}/nile/card/review`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        phone: authedPhone,
+        magic_auth_token: authToken,
+        org_l1: currentOrg.l1, org_l2: currentOrg.l2, org_l3: currentOrg.l3,
+        event_code: currentEventCode,
+        presenter_phone: presenterPhone,
+        decision: 'admit'
+      })
+    });
+    const data = await r.json();
+    if (!r.ok) throw new Error(data.message || 'Admit failed');
+
+    const actions = btn.closest('.cc-actions');
+    actions.innerHTML = '<div class="action-result success" style="display:block">✓ Admitted — can now fill in their session card</div>';
+  } catch(e) {
+    btn.disabled = false;
+    btn.textContent = 'Admit';
+    resultEl.className = 'action-result error';
+    resultEl.textContent = e.message;
+    resultEl.style.display = 'block';
+  }
+}
+
+async function rejectCandidate(presenterPhone, btn) {
+  const actions = btn.closest('.cc-actions');
+  const note = actions.querySelector('textarea').value.trim();
+  const resultEl = actions.querySelector('.action-result');
+
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span>';
+
+  try {
+    const r = await fetch(`${NILE_API}/nile/card/review`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        phone: authedPhone,
+        magic_auth_token: authToken,
+        org_l1: currentOrg.l1, org_l2: currentOrg.l2, org_l3: currentOrg.l3,
+        event_code: currentEventCode,
+        presenter_phone: presenterPhone,
+        decision: 'reject',
+        reviewer_note: note
+      })
+    });
+    const data = await r.json();
+    if (!r.ok) throw new Error(data.message || 'Reject failed');
+
+    actions.innerHTML = `<div class="action-result success" style="display:block">Application rejected${note ? ' with note' : ''}.</div>`;
+  } catch(e) {
+    btn.disabled = false;
+    btn.textContent = 'Send';
+    resultEl.className = 'action-result error';
+    resultEl.textContent = e.message;
+    resultEl.style.display = 'block';
+  }
 }
 
 function toggleReturnForm(btn) {
