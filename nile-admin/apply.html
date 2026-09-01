@@ -52,6 +52,13 @@
     letter-spacing: .1em; color: var(--teal); margin-bottom: 16px;
   }
 
+  .event-confirm {
+    background: var(--teal-light); border: 1px solid var(--teal);
+    border-radius: 8px; padding: 12px 16px; margin-bottom: 20px;
+    font-size: 14px; color: var(--teal-dark);
+  }
+  .event-confirm strong { display: block; font-size: 15px; margin-bottom: 2px; }
+
   .field { margin-bottom: 16px; }
   .field:last-child { margin-bottom: 0; }
   label { display: block; font-size: 14px; font-weight: 600; color: var(--ink); margin-bottom: 5px; }
@@ -62,7 +69,7 @@
     transition: border-color .15s; font-family: inherit;
   }
   input:focus, textarea:focus { border-color: var(--teal); outline: none; }
-  textarea { resize: vertical; min-height: 140px; line-height: 1.5; }
+  textarea { resize: vertical; min-height: 110px; line-height: 1.5; }
   .hint { font-size: 12px; color: var(--muted); margin-top: 4px; }
   .word-count { font-size: 12px; color: var(--muted); margin-top: 4px; text-align: right; }
   .word-count.over { color: var(--error); font-weight: 600; }
@@ -75,7 +82,6 @@
   .btn-primary { background: var(--teal); color: #fff; }
   .btn-primary:hover { background: var(--teal-dark); }
   .btn-primary:disabled { background: #aaa; cursor: default; }
-  .btn-secondary { background: none; color: var(--muted); border: 1px solid var(--border); }
 
   .banner {
     padding: 12px 16px; border-radius: 8px; font-size: 14px;
@@ -87,11 +93,18 @@
   .otp-row { display: flex; gap: 10px; }
   .otp-row input { flex: 1; }
 
-  #screen-form { display: none; }
+  #screen-application { display: none; }
   #screen-done { display: none; text-align: center; padding: 40px 20px; }
   #screen-done .icon { font-size: 40px; margin-bottom: 12px; }
   #screen-done h2 { font-size: 20px; color: var(--ink); margin-bottom: 8px; }
   #screen-done p { color: var(--muted); font-size: 14px; }
+
+  .section-label {
+    font-size: 11px; font-weight: 700; text-transform: uppercase;
+    letter-spacing: .08em; color: var(--muted); margin: 24px 0 14px;
+    padding-top: 16px; border-top: 1px solid #f0f0f0;
+  }
+  .card > .section-label:first-child { margin-top: 0; padding-top: 0; border-top: none; }
 </style>
 </head>
 <body>
@@ -103,41 +116,45 @@
 
 <div class="wrap">
 
-  <!-- ── AUTH ── -->
-  <div id="screen-auth">
+  <!-- ── START: event + phone ── -->
+  <div id="screen-start">
     <div class="card">
-      <div class="card-title">Verify Your Phone</div>
-      <div id="auth-banner" class="banner"></div>
+      <div class="card-title">Find Your Event</div>
+      <div id="start-banner" class="banner"></div>
 
-      <div id="step-phone">
-        <div class="field">
-          <label for="phone-input">Your phone number</label>
-          <input type="tel" id="phone-input" placeholder="+1 512 555 0100" autocomplete="tel">
-          <div class="hint">We'll text you a one-time code — no account needed to start.</div>
-        </div>
-        <button class="btn btn-primary" onclick="sendOtp()">Send Code</button>
+      <div class="field">
+        <label for="start-event">Event Code or Description</label>
+        <input type="text" id="start-event" placeholder="e.g. an event code, or a short description of the event">
+        <div class="hint">Don't know the exact code? A description is fine — the organizer will match it up.</div>
       </div>
 
-      <div id="step-otp" style="display:none">
-        <div class="field">
-          <label for="otp-input">Enter your code</label>
-          <div class="otp-row">
-            <input type="text" id="otp-input" placeholder="6-digit code" inputmode="numeric" maxlength="6" autocomplete="one-time-code">
-            <button class="btn btn-primary" style="width:auto" onclick="verifyOtp()">Verify</button>
-          </div>
-          <div class="hint" style="margin-top:6px">
-            <a href="#" onclick="resetAuth(); return false;" style="color:var(--teal)">Wrong number?</a>
-          </div>
-        </div>
+      <div class="field">
+        <label for="start-phone">Your phone number</label>
+        <input type="tel" id="start-phone" placeholder="+1 512 555 0100" autocomplete="tel">
+        <div class="hint">We'll text you a one-time code — no account needed to start.</div>
       </div>
+
+      <button class="btn btn-primary" id="start-btn" onclick="startApplication()">Send Code</button>
     </div>
   </div>
 
-  <!-- ── APPLICATION FORM ── -->
-  <div id="screen-form">
+  <!-- ── APPLICATION: code + details ── -->
+  <div id="screen-application">
     <div class="card">
       <div class="card-title">Your Application</div>
-      <div id="form-banner" class="banner"></div>
+      <div id="app-banner" class="banner"></div>
+
+      <div class="event-confirm" id="event-confirm"></div>
+
+      <div class="field">
+        <label for="app-otp">Code from your text</label>
+        <div class="otp-row">
+          <input type="text" id="app-otp" placeholder="6-digit code" inputmode="numeric" maxlength="6" autocomplete="one-time-code">
+        </div>
+        <div class="hint"><a href="#" onclick="resetStart(); return false;" style="color:var(--teal)">Wrong number? Start over</a></div>
+      </div>
+
+      <div class="section-label">About You</div>
 
       <div class="field">
         <label for="app-name">Your name</label>
@@ -151,15 +168,22 @@
       </div>
 
       <div class="field">
-        <label for="app-event">Event Code or Description</label>
-        <input type="text" id="app-event" placeholder="e.g. an event code, or a short description of the event">
-        <div class="hint">Don't know the exact code? A description is fine — the organizer will match it up.</div>
+        <label for="app-bio">Tell us about yourself <span style="font-weight:400;color:var(--muted)">(optional)</span></label>
+        <textarea id="app-bio" placeholder="Who you are and why you'd like to present — this helps the organizer screen applications." oninput="updateWordCount('app-bio','bio-word-count')"></textarea>
+        <div class="word-count" id="bio-word-count">0 / 1000 words</div>
+      </div>
+
+      <div class="section-label">Your Talk</div>
+
+      <div class="field">
+        <label for="app-title">Talk title <span style="font-weight:400;color:var(--muted)">(optional)</span></label>
+        <input type="text" id="app-title" placeholder="Working title is fine">
       </div>
 
       <div class="field">
-        <label for="app-about">Tell us about yourself</label>
-        <textarea id="app-about" placeholder="Who you are, what you'd like to present, and why — 1000 words or less." oninput="updateWordCount()"></textarea>
-        <div class="word-count" id="word-count">0 / 1000 words</div>
+        <label for="app-description">What would you like to present?</label>
+        <textarea id="app-description" placeholder="A description of your talk — 1000 words or less." oninput="updateWordCount('app-description','desc-word-count')"></textarea>
+        <div class="word-count" id="desc-word-count">0 / 1000 words</div>
       </div>
 
       <button class="btn btn-primary" id="submit-btn" onclick="submitApplication()">Submit Application</button>
@@ -176,17 +200,16 @@
 </div>
 
 <script>
-const NILE_AUTH = 'https://xrxm-29on-xlyt.n7e.xano.io/api:nile';
-const NILE_API  = 'https://xrxm-29on-xlyt.n7e.xano.io/api:onda-nile';
+const NILE_API = 'https://xrxm-29on-xlyt.n7e.xano.io/api:onda-nile';
 
-let authToken = null;
-let authedPhone = null;
+let currentEventCode = '';
+let currentPhone = '';
 
 // Pre-fill event code from URL if a curator shares a direct link, e.g. apply.html?event_code=PCA35
 (function bootstrap() {
   const p = new URLSearchParams(window.location.search);
   if (p.get('event_code')) {
-    document.getElementById('app-event').value = p.get('event_code');
+    document.getElementById('start-event').value = p.get('event_code');
   }
 })();
 
@@ -207,73 +230,79 @@ function hideBanner(id) {
   el.className = 'banner'; el.textContent = '';
 }
 
-async function sendOtp() {
-  hideBanner('auth-banner');
-  const raw = document.getElementById('phone-input').value.trim();
-  if (!raw) { showBanner('auth-banner', 'error', 'Enter your phone number.'); return; }
-  const phone = normalizePhone(raw);
-  try {
-    const r = await fetch(`${NILE_AUTH}/presenter/magic/send`, {
-      method: 'POST', headers: {'Content-Type':'application/json'},
-      body: JSON.stringify({ contact: phone })
-    });
-    if (!r.ok) { const e = await r.json(); throw new Error(e.message || 'Failed to send code'); }
-    document.getElementById('step-phone').style.display = 'none';
-    document.getElementById('step-otp').style.display = 'block';
-    setTimeout(() => document.getElementById('otp-input').focus(), 50);
-  } catch(e) { showBanner('auth-banner', 'error', e.message); }
-}
-
-async function verifyOtp() {
-  hideBanner('auth-banner');
-  const raw = document.getElementById('phone-input').value.trim();
-  const otp = document.getElementById('otp-input').value.trim();
-  const phone = normalizePhone(raw);
-  if (!otp) { showBanner('auth-banner', 'error', 'Enter the code from your text.'); return; }
-  try {
-    const r = await fetch(`${NILE_AUTH}/presenter/magic/verify`, {
-      method: 'POST', headers: {'Content-Type':'application/json'},
-      body: JSON.stringify({ contact: phone, code: otp })
-    });
-    if (!r.ok) { const e = await r.json(); throw new Error(e.message || 'Invalid code'); }
-    const data = await r.json();
-    authToken = (data.profile_url || '').split('?token=')[1]?.split('&')[0] || null;
-    if (!authToken) throw new Error('Verification failed — token not returned');
-    authedPhone = phone;
-    document.getElementById('screen-auth').style.display = 'none';
-    document.getElementById('screen-form').style.display = 'block';
-  } catch(e) { showBanner('auth-banner', 'error', e.message); }
-}
-
-function resetAuth() {
-  document.getElementById('step-phone').style.display = 'block';
-  document.getElementById('step-otp').style.display = 'none';
-  document.getElementById('otp-input').value = '';
-  hideBanner('auth-banner');
-}
-
-function updateWordCount() {
-  const text = document.getElementById('app-about').value.trim();
+function updateWordCount(fieldId, countId) {
+  const text = document.getElementById(fieldId).value.trim();
   const count = text ? text.split(/\s+/).length : 0;
-  const el = document.getElementById('word-count');
+  const el = document.getElementById(countId);
   el.textContent = `${count} / 1000 words`;
   el.className = 'word-count' + (count > 1000 ? ' over' : '');
 }
 
-async function submitApplication() {
-  hideBanner('form-banner');
-  const name       = document.getElementById('app-name').value.trim();
-  const linkedin   = document.getElementById('app-linkedin').value.trim();
-  const event_code = document.getElementById('app-event').value.trim();
-  const about      = document.getElementById('app-about').value.trim();
-  const wordCount  = about ? about.split(/\s+/).length : 0;
+async function startApplication() {
+  hideBanner('start-banner');
+  const event_code = document.getElementById('start-event').value.trim();
+  const rawPhone = document.getElementById('start-phone').value.trim();
 
-  if (!name || !linkedin || !event_code || !about) {
-    showBanner('form-banner', 'error', 'All fields are required.');
+  if (!event_code || !rawPhone) {
+    showBanner('start-banner', 'error', 'Enter both the event and your phone number.');
     return;
   }
-  if (wordCount > 1000) {
-    showBanner('form-banner', 'error', 'Please keep your description to 1000 words or less.');
+  const phone = normalizePhone(rawPhone);
+
+  const btn = document.getElementById('start-btn');
+  btn.disabled = true;
+  btn.textContent = 'Sending…';
+
+  try {
+    const r = await fetch(`${NILE_API}/nile/event/apply/start`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ event_code, phone })
+    });
+    const data = await r.json();
+    if (!r.ok) throw new Error(data.message || 'Could not find that event');
+
+    currentEventCode = event_code;
+    currentPhone = phone;
+
+    const confirmEl = document.getElementById('event-confirm');
+    confirmEl.innerHTML = `<strong>${data.event_label || event_code}</strong>${data.event_date ? data.event_date : ''}`;
+
+    document.getElementById('screen-start').style.display = 'none';
+    document.getElementById('screen-application').style.display = 'block';
+    setTimeout(() => document.getElementById('app-otp').focus(), 50);
+  } catch(e) {
+    showBanner('start-banner', 'error', e.message);
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Send Code';
+  }
+}
+
+function resetStart() {
+  document.getElementById('screen-application').style.display = 'none';
+  document.getElementById('screen-start').style.display = 'block';
+  document.getElementById('app-otp').value = '';
+  hideBanner('app-banner');
+}
+
+async function submitApplication() {
+  hideBanner('app-banner');
+  const otp_code        = document.getElementById('app-otp').value.trim();
+  const speaker_name    = document.getElementById('app-name').value.trim();
+  const linkedin        = document.getElementById('app-linkedin').value.trim();
+  const bio             = document.getElementById('app-bio').value.trim();
+  const talk_title      = document.getElementById('app-title').value.trim();
+  const talk_description = document.getElementById('app-description').value.trim();
+
+  if (!otp_code || !speaker_name || !linkedin || !talk_description) {
+    showBanner('app-banner', 'error', 'Code, name, LinkedIn, and a talk description are all required.');
+    return;
+  }
+  const bioWords = bio ? bio.split(/\s+/).length : 0;
+  const descWords = talk_description.split(/\s+/).length;
+  if (bioWords > 1000 || descWords > 1000) {
+    showBanner('app-banner', 'error', 'Please keep each description to 1000 words or less.');
     return;
   }
 
@@ -282,27 +311,29 @@ async function submitApplication() {
   btn.textContent = 'Submitting…';
 
   try {
-    const r = await fetch(`${NILE_API}/nile/presenter/request`, {
+    const r = await fetch(`${NILE_API}/nile/event/apply/submit`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        magic_auth_token: authToken,
-        name,
-        phone: authedPhone,
-        linkedin_url: linkedin,
-        event_code,
-        about
+        event_code: currentEventCode,
+        phone: currentPhone,
+        otp_code,
+        speaker_name,
+        linkedin,
+        talk_title: talk_title || null,
+        talk_description,
+        bio: bio || null
       })
     });
     const data = await r.json();
     if (!r.ok) throw new Error(data.message || 'Submission failed');
 
-    document.getElementById('screen-form').style.display = 'none';
+    document.getElementById('screen-application').style.display = 'none';
     document.getElementById('screen-done').style.display = 'block';
   } catch(e) {
     btn.disabled = false;
     btn.textContent = 'Submit Application';
-    showBanner('form-banner', 'error', e.message);
+    showBanner('app-banner', 'error', e.message);
   }
 }
 </script>
