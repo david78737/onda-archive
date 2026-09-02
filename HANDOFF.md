@@ -17,6 +17,24 @@ what's actually in this repo as of 2026-08-02.
 
 ---
 
+## UI/UX Conventions — apply to every page in this repo
+
+**Tappable elements must look like pills or buttons — never plain text links.**
+Background fill, rounded shape. No bare `<a>` styled with just color and
+underline-on-hover for anything a user needs to *activate* (an action, a
+filter, a link to an external resource). Reason (David, 2026-09-02): plain
+text links are easy for seniors and neurodivergent users to miss — a filled
+pill/button shape is unambiguous. Matches the accessibility-first principle
+already applied to onda-help (18px+ text, high contrast).
+
+Does not apply to genuine inline citations inside body text (a reference the
+user is reading, not a control they need to press).
+
+Example of the correct pattern already in this repo: `.r-tag`/`.status-pill`
+in `nile-presentation/index.html`.
+
+---
+
 ## Repo Relationship Map — read this first
 
 There are **three separate repos** in play. Mixing them up is the single easiest
