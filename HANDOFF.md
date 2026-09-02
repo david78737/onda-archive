@@ -82,7 +82,7 @@ onda-archive/
 ├── nile-schedule/              ← Upcoming event submission form (generates a QR code on success)
 ├── nile-session/               ← Session tile editor (photo picker, Save / Save & Close)
 ├── nile-session-update/       ← Presenter-facing "update your session" form
-├── nile-tile-create/           ← Add a Tile — create a new session card
+├── nile-tile-create/           ← Propose a Presentation — a presenter submits a talk (writes to `/nile/tile/create`; suspected still writing to the legacy `nile_tiles` table — see Known Gaps)
 ├── nile-update/                ← Presenter profile edit (magic-link identity flow)
 ├── docs/                       ← Marketing/spec/handoff HTML pages (see below)
 ├── img/, img_summit/, assets/  ← Images — img_summit is Elevate Summit speaker headshots
