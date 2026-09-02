@@ -63,6 +63,7 @@
   .record-btn .r-meta { font-size: 12px; color: var(--muted); margin-top: 2px; }
   .r-summary { font-size: 13px; color: var(--ink); margin-top: 6px; line-height: 1.4; }
   .r-summary-empty { color: #bbb; font-style: italic; }
+  .r-audience { font-size: 12px; color: var(--muted); margin-top: 4px; }
   .r-links { display: flex; gap: 8px; margin-top: 6px; flex-wrap: wrap; }
   .r-link-badge {
     font-size: 12px; font-weight: 700; color: #fff; text-decoration: none;
@@ -337,6 +338,9 @@ function renderRecordGroup(containerId, rows, emptyText) {
     const summaryHtml = r.summary
       ? `<div class="r-summary">${r.summary}</div>`
       : `<div class="r-summary r-summary-empty">No summary yet</div>`;
+    const audienceHtml = r.audience
+      ? `<div class="r-audience">Who this is for: ${r.audience}</div>`
+      : '';
     const explainerPlayerUrl = 'https://default-dev-51573d-xrxm-29on-xlyt.n7e.xano.io/index.html?src=' + encodeURIComponent(r.onda_url || '');
     const linkBadges = [
       r.onda_url ? `<a class="r-link-badge" href="${explainerPlayerUrl}" target="_blank" rel="noopener" onclick="event.stopPropagation()">🎧 Explainer</a>` : '',
@@ -349,6 +353,7 @@ function renderRecordGroup(containerId, rows, emptyText) {
         <div class="r-title">${r.title || 'Untitled'}<span class="status-pill ${statusClass}">${statusLabel}</span></div>
         <div class="r-meta">${r.presenter || ''}</div>
         ${summaryHtml}
+        ${audienceHtml}
         ${linksHtml}
         ${tagsHtml}
       </div>
