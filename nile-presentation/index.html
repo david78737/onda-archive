@@ -227,13 +227,13 @@
         <div class="field">
           <label>.onda file URL</label>
           <input type="url" id="f-onda-url">
-          <div class="hint">An explainer for this presentation — a Storyboard you made and shared, the .onda equivalent of a YouTube preview. Paste the share link here.</div>
+          <div class="hint">An explainer for this presentation — a Storyboard you made and shared, the .onda equivalent of a YouTube preview. Paste the share link — any extra wrapping gets cleaned up automatically.</div>
         </div>
         <div class="field"><label>Deck URL</label><input type="url" id="f-deck-url"></div>
         <div class="field">
-          <label>YouTube ID</label>
-          <input type="text" id="f-youtube" placeholder="e.g. dQw4w9WgXcQ">
-          <div class="hint">Just the ID from the video's URL — the part after "watch?v=", not the full link.</div>
+          <label>YouTube</label>
+          <input type="text" id="f-youtube" placeholder="Paste the video's URL, or just the ID">
+          <div class="hint">Paste the whole YouTube link — the ID gets pulled out automatically.</div>
         </div>
       </div>
 
@@ -394,6 +394,32 @@ function updatePhotoPreview(url) {
   }
 }
 document.getElementById('f-photo').addEventListener('change', e => updatePhotoPreview(e.target.value.trim()));
+
+// ── Forgiving link fields — accept whatever gets pasted, clean it up automatically ──
+function extractYoutubeId(raw) {
+  const s = raw.trim();
+  if (!s) return '';
+  if (/^[\w-]{11}$/.test(s)) return s; // already a bare ID
+  const m = s.match(/(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|embed\/|shorts\/))([\w-]{11})/);
+  return m ? m[1] : s; // fall back to whatever was pasted rather than silently blank it
+}
+document.getElementById('f-youtube').addEventListener('blur', e => {
+  e.target.value = extractYoutubeId(e.target.value);
+});
+
+function extractOndaUrl(raw) {
+  const s = raw.trim();
+  if (!s) return '';
+  try {
+    const u = new URL(s);
+    const src = u.searchParams.get('src'); // pasted the wrapping web-player URL instead of the raw file — already decoded by searchParams
+    if (src) return src;
+  } catch (e) { /* not a valid absolute URL — leave as typed */ }
+  return s;
+}
+document.getElementById('f-onda-url').addEventListener('blur', e => {
+  e.target.value = extractOndaUrl(e.target.value);
+});
 
 // ── Tags ──────────────────────────────────────────────────────────────────────
 function renderTags() {
