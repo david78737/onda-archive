@@ -67,9 +67,12 @@
       <textarea id="f-bio" placeholder="A few sentences about you — shown to curators when you apply, and on your talk tiles."></textarea>
     </div>
     <div class="field">
-      <label>Photo URL</label>
-      <input type="url" id="f-photo" placeholder="https://…" oninput="previewPhoto()">
-      <div class="hint">Paste a direct image URL. Square images work best.</div>
+      <label>Photo</label>
+      <input type="file" id="f-photo-file" accept="image/*" style="display:none;">
+      <button type="button" class="btn" style="background:#fff;color:var(--accent);border:1px solid var(--accent);margin-bottom:8px;" id="f-photo-upload-btn">Choose Photo…</button>
+      <div class="hint" id="f-photo-upload-status"></div>
+      <input type="url" id="f-photo" placeholder="or paste an image URL directly" oninput="previewPhoto()">
+      <div class="hint">Square images work best.</div>
     </div>
     <div class="field">
       <label>LinkedIn URL</label>
@@ -138,6 +141,33 @@ function previewPhoto() {
   if (url) { img.src = url; img.style.display = 'block'; }
   else      { img.style.display = 'none'; }
 }
+
+// ── Photo upload — real file picker, hosted by Xano, no URL to hunt for ──
+const UPLOAD_URL = 'https://xrxm-29on-xlyt.n7e.xano.io/api:nile/upload-headshot';
+document.getElementById('f-photo-upload-btn').addEventListener('click', () => {
+  document.getElementById('f-photo-file').click();
+});
+document.getElementById('f-photo-file').addEventListener('change', async (e) => {
+  const file = e.target.files[0];
+  if (!file) return;
+  const statusEl = document.getElementById('f-photo-upload-status');
+  statusEl.textContent = 'Uploading…';
+  try {
+    const form = new FormData();
+    form.append('content', file);
+    const resp = await fetch(UPLOAD_URL, { method: 'POST', body: form });
+    const data = await resp.json();
+    if (!resp.ok || !data.url) throw new Error(data.message || 'Upload failed.');
+    document.getElementById('f-photo').value = data.url;
+    previewPhoto();
+    statusEl.textContent = 'Uploaded ✓';
+    setTimeout(() => { statusEl.textContent = ''; }, 2500);
+  } catch (err) {
+    statusEl.textContent = err.message;
+  } finally {
+    e.target.value = '';
+  }
+});
 
 async function saveProfile() {
   const name     = document.getElementById('f-name').value.trim();

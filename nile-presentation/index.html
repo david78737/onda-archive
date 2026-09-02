@@ -158,11 +158,14 @@
       <div class="card">
         <div class="card-title">Presentation Info</div>
         <div class="field">
-          <label>Photo <span class="optional">URL</span></label>
+          <label>Photo</label>
           <div class="photo-row">
             <a class="photo-preview" id="photo-preview" href="#" target="_blank" rel="noopener" title="Open full image in a new tab"><span id="photo-empty">none</span><img id="photo-img" src="" alt="" style="display:none;"></a>
             <div class="photo-controls">
-              <input type="url" id="f-photo" placeholder="https://…/photo.png">
+              <input type="file" id="f-photo-file" accept="image/*" style="display:none;">
+              <button type="button" class="btn-ghost" id="f-photo-upload-btn">Choose Photo…</button>
+              <div class="hint" id="f-photo-upload-status"></div>
+              <input type="url" id="f-photo" placeholder="or paste an image URL directly">
             </div>
           </div>
         </div>
@@ -394,6 +397,33 @@ function updatePhotoPreview(url) {
   }
 }
 document.getElementById('f-photo').addEventListener('change', e => updatePhotoPreview(e.target.value.trim()));
+
+// ── Photo upload — real file picker, hosted by Xano, no URL to hunt for ──
+const UPLOAD_URL = 'https://xrxm-29on-xlyt.n7e.xano.io/api:nile/upload-headshot';
+document.getElementById('f-photo-upload-btn').addEventListener('click', () => {
+  document.getElementById('f-photo-file').click();
+});
+document.getElementById('f-photo-file').addEventListener('change', async (e) => {
+  const file = e.target.files[0];
+  if (!file) return;
+  const statusEl = document.getElementById('f-photo-upload-status');
+  statusEl.textContent = 'Uploading…';
+  try {
+    const form = new FormData();
+    form.append('content', file);
+    const resp = await fetch(UPLOAD_URL, { method: 'POST', body: form });
+    const data = await resp.json();
+    if (!resp.ok || !data.url) throw new Error(data.message || 'Upload failed.');
+    document.getElementById('f-photo').value = data.url;
+    updatePhotoPreview(data.url);
+    statusEl.textContent = 'Uploaded ✓';
+    setTimeout(() => { statusEl.textContent = ''; }, 2500);
+  } catch (err) {
+    statusEl.textContent = err.message;
+  } finally {
+    e.target.value = '';
+  }
+});
 
 // ── Forgiving link fields — accept whatever gets pasted, clean it up automatically ──
 function extractYoutubeId(raw) {
