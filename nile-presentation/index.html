@@ -185,6 +185,11 @@
           <input type="text" id="f-title" placeholder="What this presentation is called">
         </div>
         <div class="field">
+          <label>Event Code <span class="optional">optional</span></label>
+          <input type="text" id="f-event-code" placeholder="e.g. PCA35" style="text-transform:uppercase">
+          <div class="hint">If this is for a specific event.</div>
+        </div>
+        <div class="field">
           <label>Presenter</label>
           <div class="readonly-note" id="f-presenter-display">—</div>
           <div class="hint">Set automatically from your account, not editable here.</div>
@@ -389,6 +394,7 @@ function openEditor(r) {
   document.getElementById('edit-title').textContent = r.title ? `Editing: ${r.title}` : 'Editing: New Presentation';
 
   document.getElementById('f-title').value      = r.title || '';
+  document.getElementById('f-event-code').value = r.event_code || '';
   document.getElementById('f-presenter-display').textContent = r.presenter || '(will be set from your account on save)';
   document.getElementById('f-status').value     = r.status || 'proposed';
   document.getElementById('f-status').disabled  = (MODE === 'presenter');
@@ -510,6 +516,7 @@ function buildPayload() {
   const payload = {
     magic_auth_token: TOKEN,
     title:        document.getElementById('f-title').value.trim(),
+    event_code:   document.getElementById('f-event-code').value.trim().toUpperCase() || null,
     status:       document.getElementById('f-status').value,
     photo:        document.getElementById('f-photo').value.trim() || null,
     tags:         currentTags.join(', '),
