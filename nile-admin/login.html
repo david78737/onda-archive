@@ -93,8 +93,6 @@
   }
   .work-tile-head {
     display: flex; align-items: center; gap: 12px; padding: 16px;
-    cursor: pointer; background: none; border: none; width: 100%;
-    text-align: left; font-family: inherit;
   }
   .work-tile-icon {
     width: 38px; height: 38px; border-radius: 8px; background: var(--teal);
@@ -107,17 +105,19 @@
   .role-pills { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 6px; }
   .role-pill {
     font-size: 10px; font-weight: 700; text-transform: uppercase;
-    letter-spacing: .06em; padding: 3px 8px; border-radius: 20px;
+    letter-spacing: .06em; padding: 4px 10px; border-radius: 20px;
+    border: 1.5px solid transparent; cursor: pointer; font-family: inherit;
+    transition: box-shadow .15s;
   }
+  .role-pill.active { border-color: currentColor; box-shadow: 0 0 0 1px currentColor inset; }
   .role-curator      { background: #E3F2FD; color: #1565C0; }
   .role-coordinator  { background: #F3E5F5; color: #6A1B9A; }
   .role-presenter    { background: #FFF3E0; color: #B85C00; }
   .role-organizer    { background: #E8F5E9; color: #1B7A2E; }
-  .work-tile-chevron { font-size: 14px; color: var(--muted); flex-shrink: 0; transition: transform .15s; }
-  .work-tile.open .work-tile-chevron { transform: rotate(90deg); }
+  .role-hint { font-size: 12px; color: var(--muted); padding: 14px 16px; border-top: 1px solid var(--border); font-style: italic; }
 
-  .action-column { display: none; flex-direction: column; border-top: 1px solid var(--border); }
-  .work-tile.open .action-column { display: flex; }
+  .work-tile.open { border-color: var(--teal); }
+  .action-column { display: flex; flex-direction: column; border-top: 1px solid var(--border); }
   .action-item {
     display: flex; align-items: center; gap: 14px; padding: 12px 16px;
     text-decoration: none; border-bottom: 1px solid var(--border);
@@ -237,6 +237,7 @@ const PRESENTATIONS_ORG_MAP = {
 
 let authToken = null;
 let authedPhone = null;
+let TILE_DATA = []; // per-tile { role: [actions] }, indexed by render order — reset each loadWorkList() call
 
 // Bootstrap: arriving back from a spoke page with identity already in the URL
 // (e.g. Edit Profile's "Back to Hub" link) — skip OTP, go straight to the list.
@@ -328,6 +329,7 @@ function wireGetStartedLinks() {
 
 async function loadWorkList() {
   wireGetStartedLinks();
+  TILE_DATA = [];
   const list = document.getElementById('work-list');
   list.innerHTML = '<div class="empty-note">Loading what you can work on…</div>';
 
@@ -386,52 +388,79 @@ async function loadWorkList() {
     const presOrgId = PRESENTATIONS_ORG_MAP[orgKey];
     const presParams = new URLSearchParams({ org_id: presOrgId, token: authToken });
 
-    const pills = [];
-    if (isCurator) pills.push('<span class="role-pill role-curator">Curator</span>');
-    if (isCoordinator && !isCurator) pills.push('<span class="role-pill role-coordinator">Coordinator</span>');
-    if (isPresenter) pills.push('<span class="role-pill role-presenter">Presenter</span>');
-    if (isOrganizer) pills.push('<span class="role-pill role-organizer">Organizer</span>');
-
-    // { label, desc, href, primary }
-    const actions = [];
+    // Actions are bucketed BY ROLE — a presenter must never see curator-only
+    // actions (Review Cards, Bulk Upload, etc.) just because the same phone
+    // also curates this station. Each role pill reveals only its own bucket.
+    const actionsByRole = {};
     if (isCurator) {
-      actions.push({ label: 'Create Event',       desc: 'Create a new event',                                            href: `event.html?${params}`,       primary: true  });
-      actions.push({ label: 'Review Cards',        desc: 'Evaluate potential presenters and check for completeness',     href: `cards.html?${params}`,       primary: false });
-      actions.push({ label: 'Station Profile',     desc: 'Select colors and skin of this station',                       href: `station.html?${params}`,     primary: false });
-      actions.push({ label: 'Bulk Upload',         desc: 'Upload multiple .onda files to your station at once',          href: `bulk-upload.html?${params}`, primary: false });
-      actions.push({ label: 'Enroll Contributor',  desc: 'Add a contributor and assign their station directly',          href: `enroll.html?${params}`,      primary: false });
+      actionsByRole.curator = [
+        { label: 'Create Event',      desc: 'Create a new event',                                        href: `event.html?${params}`,       primary: true  },
+        { label: 'Review Cards',      desc: 'Evaluate potential presenters and check for completeness',   href: `cards.html?${params}`,       primary: false },
+        { label: 'Station Profile',   desc: 'Select colors and skin of this station',                     href: `station.html?${params}`,     primary: false },
+        { label: 'Bulk Upload',       desc: 'Upload multiple .onda files to your station at once',        href: `bulk-upload.html?${params}`, primary: false },
+        { label: 'Enroll Contributor',desc: 'Add a contributor and assign their station directly',        href: `enroll.html?${params}`,      primary: false },
+      ];
+      if (presOrgId) actionsByRole.curator.push({ label: 'Manage Presentations', desc: 'Review, edit, and publish this station’s presentation records', href: `../nile-presentation/?${presParams}`, primary: false });
     } else if (isCoordinator) {
-      actions.push({ label: 'Review Cards',        desc: 'Evaluate potential presenters and check for completeness',     href: `cards.html?${params}`,       primary: true  });
+      actionsByRole.coordinator = [
+        { label: 'Review Cards', desc: 'Evaluate potential presenters and check for completeness', href: `cards.html?${params}`, primary: true },
+      ];
     }
-    if (isPresenter) actions.push({ label: 'Add Tile',              desc: 'Fill in your talk details — goes live on the browse page as soon as you submit', href: `../nile-tile-create/?${params}`,   primary: true });
-    if (isOrganizer) actions.push({ label: 'Manage Sessions',       desc: 'Update details on a session you’re organizing',                              href: `../nile-session-update/?${params}`, primary: true });
-    if (presOrgId)   actions.push({ label: 'Manage Presentations',  desc: 'Review, edit, and publish this station’s presentation records',              href: `../nile-presentation/?${presParams}`, primary: false });
-    actions.push({ label: 'Edit Profile', desc: 'Your name and LinkedIn — shown on your talk tiles', href: `../nile-profile-edit/?${params}`, primary: false });
+    if (isPresenter) {
+      actionsByRole.presenter = [
+        { label: 'Add Tile', desc: 'Fill in your talk details — goes live on the browse page as soon as you submit', href: `../nile-tile-create/?${params}`, primary: true },
+      ];
+    }
+    if (isOrganizer) {
+      actionsByRole.organizer = [
+        { label: 'Manage Sessions', desc: 'Update details on a session you’re organizing', href: `../nile-session-update/?${params}`, primary: true },
+      ];
+    }
 
-    const actionRows = actions.map(a => `
-      <a class="action-item" href="${a.href}">
-        <span class="action-label ${a.primary ? 'action-label-primary' : 'action-label-secondary'}">${a.label}</span>
-        <span class="action-desc">${a.desc}</span>
-      </a>`).join('');
+    const roleKeys = Object.keys(actionsByRole);
+    const tileIdx = TILE_DATA.length;
+    TILE_DATA.push(actionsByRole);
+
+    const roleLabel = { curator: 'Curator', coordinator: 'Coordinator', presenter: 'Presenter', organizer: 'Organizer' };
+    const pills = roleKeys.map(role =>
+      `<button type="button" class="role-pill role-${role}" onclick="selectRole(${tileIdx}, '${role}', this)">${roleLabel[role]}</button>`
+    ).join('');
 
     const initial = (org.name || org.l1 || '?').charAt(0).toUpperCase();
     const tile = document.createElement('div');
     tile.className = 'work-tile';
+    tile.id = `tile-${tileIdx}`;
     tile.innerHTML = `
-      <button class="work-tile-head" type="button" onclick="this.closest('.work-tile').classList.toggle('open')">
+      <div class="work-tile-head">
         <div class="work-tile-icon">${initial}</div>
         <div class="work-tile-text">
           <div class="work-tile-name">${org.name}</div>
           <div class="work-tile-meta">${org.l1} · ${org.l2} · ${org.l3}</div>
-          <div class="role-pills">${pills.join('')}</div>
+          <div class="role-pills">${pills}</div>
         </div>
-        <span class="work-tile-chevron">▶</span>
-      </button>
-      <div class="action-column">${actionRows}</div>
+      </div>
+      <div class="action-column" id="action-col-${tileIdx}">
+        ${roleKeys.length > 1 ? '<div class="role-hint">Tap a role above to see what you can do as that role.</div>' : ''}
+      </div>
     `;
-    if (entries.length === 1) tile.classList.add('open');
     list.appendChild(tile);
+    if (roleKeys.length === 1) {
+      selectRole(tileIdx, roleKeys[0], tile.querySelector('.role-pill'));
+    }
   });
+}
+
+function selectRole(tileIdx, role, pillEl) {
+  const tile = document.getElementById(`tile-${tileIdx}`);
+  tile.querySelectorAll('.role-pill').forEach(p => p.classList.remove('active'));
+  pillEl.classList.add('active');
+  tile.classList.add('open');
+  const actions = TILE_DATA[tileIdx][role] || [];
+  document.getElementById(`action-col-${tileIdx}`).innerHTML = actions.map(a => `
+    <a class="action-item" href="${a.href}">
+      <span class="action-label ${a.primary ? 'action-label-primary' : 'action-label-secondary'}">${a.label}</span>
+      <span class="action-desc">${a.desc}</span>
+    </a>`).join('');
 }
 </script>
 </body>
