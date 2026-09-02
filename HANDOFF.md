@@ -82,7 +82,8 @@ onda-archive/
 ├── nile-schedule/              ← Upcoming event submission form (generates a QR code on success)
 ├── nile-session/               ← Session tile editor (photo picker, Save / Save & Close)
 ├── nile-session-update/       ← Presenter-facing "update your session" form
-├── nile-tile-create/           ← Propose a Presentation — a presenter submits a talk (writes to `/nile/tile/create`; suspected still writing to the legacy `nile_tiles` table — see Known Gaps)
+├── nile-tile-create/           ← Propose a Presentation — a presenter submits a talk, writes to `/nile/tile/create` → `nile_presentations` (confirmed 2026-09-02, previously wrote to the legacy `nile_tiles` table)
+├── nile-presentation/           ← Full edit form (tags, photo, summary, takeaways, links) for one `nile_presentations` record. Two modes based on URL params (2026-09-02): `?org_id=` = curator/coordinator's Card Review companion; `?phone=` (no org_id) = "My Presentations," a presenter's own submissions, status field locked — a presenter edits content, only a curator (via Card Review) changes status. **Unverified:** presenter mode filters client-side on `r.presenter_phone` from `/presentations/list` — not confirmed that field is actually in that endpoint's response.
 ├── nile-update/                ← Presenter profile edit (magic-link identity flow)
 ├── docs/                       ← Marketing/spec/handoff HTML pages (see below)
 ├── img/, img_summit/, assets/  ← Images — img_summit is Elevate Summit speaker headshots

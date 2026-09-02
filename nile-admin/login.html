@@ -226,15 +226,6 @@
 const NILE_AUTH = 'https://xrxm-29on-xlyt.n7e.xano.io/api:nile';
 const NILE_API  = 'https://xrxm-29on-xlyt.n7e.xano.io/api:onda-nile';
 
-// Draft limitation carried over from signin.html: presentations' org_id isn't
-// returned by my-stations (which only knows org_l1/l2/l3), so this maps the
-// orgs that currently have presentations content. Fix properly (a real org_id
-// lookup) once the presentations editor has stabilized.
-const PRESENTATIONS_ORG_MAP = {
-  'ONDA|Replay|ONDA Replay': 5,
-  'Circle Docs|Austin|Food': 4,
-};
-
 let authToken = null;
 let authedPhone = null;
 let TILE_DATA = []; // per-tile { role: [actions] }, indexed by render order — reset each loadWorkList() call
@@ -384,10 +375,6 @@ async function loadWorkList() {
     const isPresenter   = org.roles.has('presenter');
     const isOrganizer   = org.roles.has('organizer');
 
-    const orgKey = `${org.l1}|${org.l2}|${org.l3}`;
-    const presOrgId = PRESENTATIONS_ORG_MAP[orgKey];
-    const presParams = new URLSearchParams({ org_id: presOrgId, token: authToken });
-
     // Actions are bucketed BY ROLE — a presenter must never see curator-only
     // actions (Review Cards, Bulk Upload, etc.) just because the same phone
     // also curates this station. Each role pill reveals only its own bucket.
@@ -400,15 +387,16 @@ async function loadWorkList() {
         { label: 'Bulk Upload',       desc: 'Upload multiple .onda files to your station at once',        href: `bulk-upload.html?${params}`, primary: false },
         { label: 'Enroll Contributor',desc: 'Add a contributor and assign their station directly',        href: `enroll.html?${params}`,      primary: false },
       ];
-      if (presOrgId) actionsByRole.curator.push({ label: 'Manage Presentations', desc: 'Review, edit, and publish this station’s presentation records', href: `../nile-presentation/?${presParams}`, primary: false });
     } else if (isCoordinator) {
       actionsByRole.coordinator = [
         { label: 'Review Cards', desc: 'Evaluate potential presenters and check for completeness', href: `cards.html?${params}`, primary: true },
       ];
     }
     if (isPresenter) {
+      const presenterParams = new URLSearchParams({ phone: authedPhone, token: authToken });
       actionsByRole.presenter = [
         { label: 'Propose a Presentation', desc: 'Fill in your talk details — goes live on the browse page as soon as you submit', href: `../nile-tile-create/?${params}`, primary: true },
+        { label: 'My Presentations', desc: 'Edit your own submissions — a curator approves or rejects, but only you edit the content', href: `../nile-presentation/?${presenterParams}`, primary: false },
       ];
     }
     if (isOrganizer) {
