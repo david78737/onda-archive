@@ -145,6 +145,13 @@
 
   .empty-note { font-size: 13px; color: var(--muted); padding: 4px 0 8px; }
 
+  .signed-in-bar {
+    display: flex; align-items: center; justify-content: space-between;
+    font-size: 12px; color: var(--muted); margin-bottom: 18px;
+  }
+  .logout-link { color: var(--teal); font-weight: 600; text-decoration: none; }
+  .logout-link:hover { text-decoration: underline; }
+
   .spinner { display: inline-block; width: 18px; height: 18px; border: 2px solid #fff;
     border-top-color: transparent; border-radius: 50%; animation: spin .6s linear infinite;
     vertical-align: middle; margin-right: 6px; }
@@ -191,6 +198,10 @@
 
   <!-- SCREEN: WORK LIST -->
   <div id="screen-list" style="display:none">
+    <div class="signed-in-bar">
+      <span id="signed-in-as"></span>
+      <a href="login.html" class="logout-link">Log Out</a>
+    </div>
     <div id="list-banner" class="banner"></div>
     <div id="work-list"></div>
 
@@ -226,6 +237,22 @@ const PRESENTATIONS_ORG_MAP = {
 
 let authToken = null;
 let authedPhone = null;
+
+// Bootstrap: arriving back from a spoke page with identity already in the URL
+// (e.g. Edit Profile's "Back to Hub" link) — skip OTP, go straight to the list.
+(function bootstrap() {
+  const p = new URLSearchParams(window.location.search);
+  const token = p.get('token');
+  const phone = p.get('phone');
+  if (token && phone) {
+    authToken = token;
+    authedPhone = phone;
+    document.getElementById('screen-phone').style.display = 'none';
+    document.getElementById('screen-list').style.display = 'block';
+    document.getElementById('signed-in-as').textContent = 'Signed in as ' + phone;
+    loadWorkList();
+  }
+})();
 
 function normalizePhone(raw) {
   const d = raw.replace(/\D/g, '');
@@ -287,6 +314,7 @@ async function verifyOtp() {
     authedPhone = phone;
     document.getElementById('screen-phone').style.display = 'none';
     document.getElementById('screen-list').style.display = 'block';
+    document.getElementById('signed-in-as').textContent = 'Signed in as ' + phone;
     loadWorkList();
   } catch (e) { showBanner('phone-banner', 'error', e.message); }
 }

@@ -320,7 +320,7 @@
 <body>
 
 <header>
-  <a class="back-link" href="register.html">← Admin</a>
+  <a class="back-link" id="back-link" href="login.html">← Hub</a>
   <span class="header-title">Station Profile</span>
 </header>
 
@@ -560,6 +560,7 @@
       document.getElementById('screen-auth').classList.remove('active');
       document.getElementById('screen-main').classList.add('active');
       dbg('Token from admin page — skipping OTP for ' + phone);
+      document.getElementById('back-link').href = `login.html?phone=${encodeURIComponent(phone)}&token=${encodeURIComponent(token)}`;
       loadProfile(p.get('org_l1'), p.get('org_l2'), p.get('org_l3'));
     } else {
       window.location.href = 'login.html';

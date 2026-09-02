@@ -2,13 +2,12 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta http-equiv="refresh" content="0; url=login.html">
 <title>Redirecting…</title>
 </head>
 <body>
 <!-- This page's sign-in/station-picker was merged into login.html (2026-09-02) —
      one hub for both curator and contributor roles instead of separate pickers. -->
-<script>window.location.replace('login.html');</script>
+<script>window.location.replace('login.html' + window.location.search);</script>
 <p>Redirecting to <a href="login.html">login.html</a>…</p>
 </body>
 </html>

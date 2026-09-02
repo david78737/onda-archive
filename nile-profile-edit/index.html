@@ -21,6 +21,9 @@
   .field input:focus{border-color:var(--accent);outline:none;}
   .field .hint{font-size:12px;color:#999;margin-top:3px;}
   .photo-preview{width:72px;height:72px;border-radius:50%;object-fit:cover;border:2px solid var(--border);margin-bottom:10px;display:none;}
+  .field textarea{width:100%;padding:11px 14px;font-size:16px;border:1px solid #CCC;border-radius:6px;color:var(--ink);background:#fff;font-family:inherit;resize:vertical;min-height:90px;}
+  .field textarea:focus{border-color:var(--accent);outline:none;}
+  .field input[readonly]{background:#F2F2F2;color:var(--muted);}
   .btn{width:100%;padding:13px;background:var(--accent);color:#fff;font-size:16px;font-weight:600;border:none;border-radius:6px;cursor:pointer;transition:background .15s;}
   .btn:hover{background:#006f6f;}
   .btn:disabled{background:#aaa;cursor:default;}
@@ -42,13 +45,26 @@
 
   <div id="step-form" style="display:none;">
     <h2>Edit Profile</h2>
-    <p class="sub">Your name and LinkedIn URL are shown on your talk tiles.</p>
+    <p class="sub">This is your contributor card — the same identity every curator sees.</p>
 
     <img id="photo-preview" class="photo-preview" alt="Profile photo preview">
 
     <div class="field">
       <label>Full name</label>
       <input type="text" id="f-name" placeholder="Your name as it appears on tiles">
+    </div>
+    <div class="field">
+      <label>Phone</label>
+      <input type="tel" id="f-phone" readonly>
+      <div class="hint">Verified via sign-in. Contact support to change your number.</div>
+    </div>
+    <div class="field">
+      <label>Email</label>
+      <input type="email" id="f-email" placeholder="you@example.com">
+    </div>
+    <div class="field">
+      <label>Bio</label>
+      <textarea id="f-bio" placeholder="A few sentences about you — shown to curators when you apply, and on your talk tiles."></textarea>
     </div>
     <div class="field">
       <label>Photo URL</label>
@@ -58,7 +74,7 @@
     <div class="field">
       <label>LinkedIn URL</label>
       <input type="url" id="f-linkedin" placeholder="https://linkedin.com/in/yourname">
-      <div class="hint">Used as your public contact — no email or phone exposed.</div>
+      <div class="hint">Required before a curator can approve you — confirms you're a real person.</div>
     </div>
 
     <button class="btn" id="btn-save" onclick="saveProfile()">Save Profile</button>
@@ -77,17 +93,20 @@
 const NILE_API = 'https://xrxm-29on-xlyt.n7e.xano.io/api:onda-nile';
 const p        = new URLSearchParams(location.search);
 const TOKEN    = p.get('token') || '';
+const PHONE    = p.get('phone') || '';
 const ORG_L1   = p.get('org_l1') || '';
 const ORG_L2   = p.get('org_l2') || '';
 const ORG_L3   = p.get('org_l3') || '';
 const SKIN     = p.get('skin') || '';
 
-const browseUrl = SKIN
-  ? `../ondanile/?skin=${SKIN}`
-  : `../ondanile/`;
+const hubUrl = PHONE
+  ? `../nile-admin/login.html?phone=${encodeURIComponent(PHONE)}&token=${encodeURIComponent(TOKEN)}`
+  : `../nile-admin/login.html`;
 
-document.getElementById('back-link').href   = browseUrl;
-document.getElementById('back-link-2').href = browseUrl;
+document.getElementById('back-link').href   = hubUrl;
+document.getElementById('back-link-2').href = hubUrl;
+document.getElementById('back-link').textContent   = '← Back to Hub';
+document.getElementById('back-link-2').textContent = '← Back to Hub';
 
 async function loadProfile() {
   try {
@@ -99,7 +118,10 @@ async function loadProfile() {
     if (!r.ok) throw new Error('Could not load profile');
     const data = await r.json();
     document.getElementById('f-name').value    = data.name    || '';
-    document.getElementById('f-photo').value   = data.photo   || '';
+    document.getElementById('f-phone').value   = data.phone   || PHONE || '';
+    document.getElementById('f-email').value   = data.email   || '';
+    document.getElementById('f-bio').value     = data.bio     || '';
+    document.getElementById('f-photo').value   = data.photo   || data.photo_url || '';
     document.getElementById('f-linkedin').value= data.linkedin|| '';
     previewPhoto();
   } catch(e) {
@@ -119,6 +141,8 @@ function previewPhoto() {
 
 async function saveProfile() {
   const name     = document.getElementById('f-name').value.trim();
+  const email    = document.getElementById('f-email').value.trim() || null;
+  const bio      = document.getElementById('f-bio').value.trim() || null;
   const photo    = document.getElementById('f-photo').value.trim() || null;
   const linkedin = document.getElementById('f-linkedin').value.trim() || null;
   const msg      = document.getElementById('msg-save');
@@ -136,7 +160,7 @@ async function saveProfile() {
     const r = await fetch(`${NILE_API}/nile/presenter/profile/update`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ magic_auth_token: TOKEN, name, photo, linkedin }),
+      body: JSON.stringify({ magic_auth_token: TOKEN, name, email, bio, photo, linkedin }),
     });
     if (!r.ok) { const e = await r.json(); throw new Error(e.message || 'Save failed'); }
     document.getElementById('step-form').style.display    = 'none';
