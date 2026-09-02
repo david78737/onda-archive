@@ -823,9 +823,8 @@ function normalizeNileSession(s) {
 
 function normalizePresentation(p) {
   const orgName = ORG_NAMES[p.org_id] || 'Unknown';
-  const takeaways = (p.takeaways || '')
-    .split('\n')
-    .map(t => t.replace(/^→\s*/, '').trim())
+  const takeaways = (Array.isArray(p.takeaways) ? p.takeaways : (p.takeaways || '').split('\n'))
+    .map(t => String(t).replace(/^→\s*/, '').trim())
     .filter(Boolean);
   return {
     id: 'pres-' + p.id,
@@ -833,7 +832,7 @@ function normalizePresentation(p) {
     presenter: p.presenter || 'ONDA Doc',
     org: orgName,
     source: orgName,
-    tags: p.tags ? p.tags.split(',').map(t => t.trim()).filter(Boolean) : [],
+    tags: Array.isArray(p.tags) ? p.tags : (p.tags ? p.tags.split(',').map(t => t.trim()).filter(Boolean) : []),
     synopsis: p.summary || '',
     takeaways,
     who: p.audience || '',

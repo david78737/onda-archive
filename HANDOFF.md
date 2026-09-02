@@ -194,6 +194,16 @@ auth breaks again, check `magic_auth_token` handling first, it's been fragile.
 - **Sign-in/org-picker sprawl** — see `nile-admin/` table above. Three pages, three
   endpoints, one concept. Needs consolidation before adding anything new that
   touches "which org/role am I."
+- **`ondanile/index.html` reads `nile_presentations` through two separate,
+  independently-filtered paths** (found 2026-09-02 while fixing a live crash —
+  `takeaways`/`tags` could arrive as either an array or a delimited string
+  depending on which path, now handled defensively in `normalizePresentation`/
+  `normalizeNileSession`, but the deeper duplication is still there):
+  `NILE_API` (`/nile/tiles`, just repointed from the legacy `nile_tiles` table,
+  filters on `is_visible === true`) and `PRESENTATIONS_API` (`/presentations/list`,
+  the older pilot path, filters on `status === 'published'`). Same underlying
+  table, two different "is this visible yet" rules. Should be one path with one
+  filter before this grows further.
 - `build.js` vs `build_node20.js` — unclear which is authoritative for this repo's
   own `sessions.json`; `build.js` looks like a leftover copy from `pca-archive`.
 - Xano API base URL inconsistency (`onda-nile` vs `nile`) — not yet fully fixed.
