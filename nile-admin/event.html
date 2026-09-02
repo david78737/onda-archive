@@ -40,6 +40,7 @@
   }
   .wordmark { font-size: 18px; font-weight: 700; color: #fff; letter-spacing: .03em; }
   .header-sub { font-size: 12px; color: rgba(255,255,255,.75); margin-top: 1px; }
+  .back-link { color: rgba(255,255,255,0.75); text-decoration: none; font-size: 13px; font-weight: 600; }
 
   .wrap { max-width: 560px; margin: 0 auto; padding: 32px 20px 0; }
 
@@ -140,9 +141,10 @@
 <body>
 
 <header>
+  <a class="back-link" id="back-link" href="login.html">← Hub</a>
   <div>
     <div class="wordmark">ONDA Nile · Event Admin</div>
-    <div class="header-sub">Create a new event for your station · <a href="register.html" style="color:rgba(255,255,255,.8);font-size:12px">New curator? Register first →</a></div>
+    <div class="header-sub">Create a new event for your station</div>
   </div>
 </header>
 
@@ -273,6 +275,7 @@ let authedPhone = null;
     document.getElementById('screen-auth').style.display = 'none';
     document.getElementById('screen-main').style.display = 'block';
     dbg('Token passed from admin page — skipping OTP for ' + phone);
+    document.getElementById('back-link').href = `login.html?phone=${encodeURIComponent(phone)}&token=${encodeURIComponent(token)}`;
   } else {
     window.location.href = 'login.html';
   }

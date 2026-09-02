@@ -42,6 +42,7 @@
   }
   .wordmark { font-size: 18px; font-weight: 700; color: #fff; letter-spacing: .03em; }
   .header-sub { font-size: 12px; color: rgba(255,255,255,.75); margin-top: 1px; }
+  .back-link { color: rgba(255,255,255,0.75); text-decoration: none; font-size: 13px; font-weight: 600; margin-right: 4px; }
   .header-event {
     font-size: 13px; font-weight: 700; color: rgba(255,255,255,.9);
     background: rgba(255,255,255,.15); padding: 4px 12px; border-radius: 20px;
@@ -254,9 +255,12 @@
 <body>
 
 <header>
-  <div>
-    <div class="wordmark">ONDA Nile · Card Review</div>
-    <div class="header-sub">Review and approve presenter candidates</div>
+  <div style="display:flex;align-items:center;gap:12px">
+    <a class="back-link" id="back-link" href="login.html">← Hub</a>
+    <div>
+      <div class="wordmark">ONDA Nile · Card Review</div>
+      <div class="header-sub">Review and approve presenter candidates</div>
+    </div>
   </div>
   <div class="header-event" id="header-event"></div>
 </header>
@@ -374,6 +378,7 @@ let currentFilter = 'submitted';
     }
     document.getElementById('screen-auth').style.display = 'none';
     document.getElementById('screen-event').style.display = 'block';
+    document.getElementById('back-link').href = `login.html?phone=${encodeURIComponent(phone)}&token=${encodeURIComponent(token)}`;
   } else {
     window.location.href = 'login.html';
   }
