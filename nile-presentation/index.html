@@ -224,10 +224,17 @@
 
       <div class="card">
         <div class="card-title">Links <span class="optional" style="text-transform:none;letter-spacing:0;">optional</span></div>
-        <div class="field"><label>Session URL</label><input type="url" id="f-session-url"></div>
-        <div class="field"><label>.onda file URL</label><input type="url" id="f-onda-url"></div>
+        <div class="field">
+          <label>.onda file URL</label>
+          <input type="url" id="f-onda-url">
+          <div class="hint">The actual recording file, once it exists — set automatically, not something you need to paste in yourself.</div>
+        </div>
         <div class="field"><label>Deck URL</label><input type="url" id="f-deck-url"></div>
-        <div class="field"><label>YouTube ID</label><input type="text" id="f-youtube" placeholder="e.g. dQw4w9WgXcQ"></div>
+        <div class="field">
+          <label>YouTube ID</label>
+          <input type="text" id="f-youtube" placeholder="e.g. dQw4w9WgXcQ">
+          <div class="hint">Just the ID from the video's URL — the part after "watch?v=", not the full link.</div>
+        </div>
       </div>
 
       <div class="save-row">
@@ -365,7 +372,6 @@ function openEditor(r) {
     ? String(r.takeaways).split('\n').map(l => l.replace(/^→\s*/, '').trim()).filter(Boolean).join('\n')
     : '';
   document.getElementById('f-takeaways-label').value = r.takeaways_label || 'Key Takeaways';
-  document.getElementById('f-session-url').value = r.session_url || '';
   document.getElementById('f-onda-url').value    = r.onda_url || '';
   document.getElementById('f-deck-url').value    = r.deck_url || '';
   document.getElementById('f-youtube').value     = r.youtube || '';
@@ -430,7 +436,6 @@ function buildPayload() {
     audience:     document.getElementById('f-audience').value.trim(),
     takeaways,
     takeaways_label: document.getElementById('f-takeaways-label').value.trim() || 'Key Takeaways',
-    session_url:  document.getElementById('f-session-url').value.trim() || null,
     onda_url:     document.getElementById('f-onda-url').value.trim() || null,
     deck_url:     document.getElementById('f-deck-url').value.trim() || null,
     youtube:      document.getElementById('f-youtube').value.trim() || null,
