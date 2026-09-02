@@ -1,6 +1,6 @@
 # ONDA Nile / onda-archive — Agent Handoff Document
 
-**Last updated:** 2026-08-02
+**Last updated:** 2026-09-02
 **Repo:** https://github.com/david78737/onda-archive
 **Live site:** https://david78737.github.io/onda-archive/
 
@@ -75,7 +75,7 @@ onda-archive/
 ├── chapter/                   ← Generic chapter/org archive template (ONDA Archive branding)
 ├── ondanile/                  ← ONDA Nile browse page — the unified cross-org discovery UI
 │   └── sessions.json          ← Generated output of build_ondanile.js — do not hand-edit
-├── nile-admin/                ← Event Admin: create session slots, phone-OTP auth, per-slot edit/deactivate
+├── nile-admin/                ← ONDA Nile's live admin/curator/presenter tool suite — see table below, this is where nearly all current work happens
 ├── nile-brand/                ← "Your Archive Identity" — org branding/logo/identity form
 ├── nile-claim/                ← Claim Your Session — presenter claims a session slot
 ├── nile-profile-edit/         ← Edit Profile
@@ -89,6 +89,37 @@ onda-archive/
 ├── .nojekyll                   ← Disables Jekyll processing on GitHub Pages
 └── HANDOFF.md                  ← This file
 ```
+
+### `nile-admin/` page purposes (as of 2026-09-02)
+
+This folder is the actual live control surface for ONDA Nile — event admins, curators,
+and contributors all operate through these pages. There is no single entry point;
+each page is reached by whoever built/tested it linking directly to it. This is the
+biggest documentation gap in the repo and the reason this table exists.
+
+| File | Title | Purpose |
+|------|-------|---------|
+| `login.html` | ONDA Nile — Sign In | **The single entry point (built 2026-09-02).** Phone OTP once → merges `/nile/coordinator/orgs` (curator/coordinator) + `/nile/presenter/my-stations` (contributor) into one list, one card per org, all applicable action buttons on each. Hub-and-spoke: sign in once here, then every other page below is a pure spoke reached with `?phone=&token=` already in the URL. |
+| `index.html` | Event Admin — ONDA Nile | Older, separate "Create Session Slots" page — has its own standalone OTP with no token-passthrough, not yet folded into the hub. **Known gap**, not fixed 2026-09-02. |
+| `event.html` | Create Event — ONDA Nile | Curator creates a new event/session slot. Spoke — redirects to `login.html` if visited without `?phone=&token=`. |
+| `apply.html` | Apply to Present — ONDA Nile | **Self-service, no sign-in.** A brand-new candidate (no existing record) applies to present: phone OTP + name/LinkedIn/bio/talk info in one flow. Built 2026-08-31/09-01 to close the "catch-22" where only a curator could add a new person. |
+| `cards.html` | Card Review — ONDA Nile | Curator reviews pending applications/cards — Admit/Reject + the older Approve/Return publish-review flow. Spoke — redirects to `login.html` if visited cold. |
+| `register.html` | ONDA Nile Admin | Org-creation wizard ("Register a New Station"). Own OTP retired 2026-09-02 — now redirects to `login.html` if visited without `?phone=&token=`; the hub links here with `&action=new` to jump straight to the create-org screen. |
+| `signin.html` | (redirect stub) | **Retired 2026-09-02** — its contributor picker was fully absorbed into `login.html`. Now just a redirect, kept so old bookmarks/links don't break. |
+| `chapter.html` | ONDA Archive · Admin | Older admin page; auth resolves via `POST /nile/me` — a separate identity/org lookup, still its own standalone sign-in. **Known gap**, not folded into the hub 2026-09-02. |
+| `station.html` | Station Profile — ONDA Nile | Edit a station/org's public profile. Own OTP had a real bug (sent `{phone,token}` instead of `{contact,code}` — fixed 2026-09-02) and now redirects to `login.html` if visited cold. Also had hardcoded ProductCamp/Arturo placeholder values, replaced with generic examples same day. |
+| `enroll.html` | Contributor Enrollment | Curator/coordinator manually enrolls a new contributor. Had no token-passthrough at all until 2026-09-02 — added, now a proper spoke. |
+| `bulk-upload.html` | Bulk Upload — ONDA Nile | Bulk session/file upload tool. Spoke — redirects to `login.html` if visited cold. |
+
+**Sprawl resolved 2026-09-02:** three separate pages (`register.html`, `signin.html`,
+`chapter.html`) used to each independently re-implement "look up which org(s)/role(s)
+this phone belongs to." `login.html` is now the one canonical picker, merging curator
+and contributor roles into a single list. `register.html` and `signin.html` are pure
+spokes/redirects now. `chapter.html` and `index.html` were **not** folded in — both
+still have their own standalone OTP with no token-passthrough support. Confirmed
+separately: `nile_roles` (a table clearly meant for exactly this — org+role per
+person) is dormant/unused by any endpoint; `login.html` reads the same two live
+tables (`nile_org_coordinators`, `nile_presenter_orgs`) the old pages did.
 
 ### `docs/` page purposes
 
@@ -160,6 +191,9 @@ auth breaks again, check `magic_auth_token` handling first, it's been fragile.
 
 ## Known Gaps / Open Items
 
+- **Sign-in/org-picker sprawl** — see `nile-admin/` table above. Three pages, three
+  endpoints, one concept. Needs consolidation before adding anything new that
+  touches "which org/role am I."
 - `build.js` vs `build_node20.js` — unclear which is authoritative for this repo's
   own `sessions.json`; `build.js` looks like a leftover copy from `pca-archive`.
 - Xano API base URL inconsistency (`onda-nile` vs `nile`) — not yet fully fixed.

@@ -273,6 +273,8 @@ let authedPhone = null;
     document.getElementById('screen-auth').style.display = 'none';
     document.getElementById('screen-main').style.display = 'block';
     dbg('Token passed from admin page — skipping OTP for ' + phone);
+  } else {
+    window.location.href = 'login.html';
   }
 })();
 

@@ -346,7 +346,13 @@ let selectedOrg = null;
       document.body.appendChild(toast);
       setTimeout(() => toast.remove(), 3000);
     }
-    loadOrgs();
+    if (p.get('action') === 'new') {
+      show('screen-org');
+    } else {
+      loadOrgs();
+    }
+  } else {
+    window.location.href = 'login.html';
   }
 })();
 

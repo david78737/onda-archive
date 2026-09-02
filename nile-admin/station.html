@@ -383,18 +383,18 @@
 
       <div class="field">
         <label for="station-name">Station name <span class="req">required</span></label>
-        <input type="text" id="station-name" placeholder="ProductCamp Austin">
+        <input type="text" id="station-name" placeholder="Your Station or Enterprise Name">
         <div class="hint">This becomes the badge text on every tile.</div>
       </div>
 
       <div class="field-row">
         <div class="field">
           <label for="station-city">City <span class="req">required</span></label>
-          <input type="text" id="station-city" placeholder="Austin">
+          <input type="text" id="station-city" placeholder="Your City">
         </div>
         <div class="field">
           <label for="station-region">Region <span class="req">required</span></label>
-          <input type="text" id="station-region" placeholder="TX">
+          <input type="text" id="station-region" placeholder="Your State/Region">
         </div>
       </div>
 
@@ -417,7 +417,7 @@
 
       <div class="field">
         <label for="curator-name">Your name <span class="req">required</span></label>
-        <input type="text" id="curator-name" placeholder="Arturo Pina">
+        <input type="text" id="curator-name" placeholder="Your Name">
       </div>
 
       <div class="field">
@@ -479,7 +479,7 @@
 
       <div class="field">
         <label for="station-icon">Station icon <span class="opt">optional</span></label>
-        <input type="text" id="station-icon" placeholder="e.g. 🎤 or a single letter like P">
+        <input type="text" id="station-icon" placeholder="e.g. 🎤 or a single letter like S">
         <div class="hint">A short symbol or emoji that sits next to your station name in the badge. Leave blank to use ◆.</div>
       </div>
     </div>
@@ -561,6 +561,8 @@
       document.getElementById('screen-main').classList.add('active');
       dbg('Token from admin page — skipping OTP for ' + phone);
       loadProfile(p.get('org_l1'), p.get('org_l2'), p.get('org_l3'));
+    } else {
+      window.location.href = 'login.html';
     }
   })();
 

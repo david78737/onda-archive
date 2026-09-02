@@ -176,6 +176,30 @@ const SKINS = {
 
 let authToken = null;
 
+// Bootstrap: token passthrough from login.html — skip OTP if present
+(function bootstrap() {
+  const token = _p.get('token');
+  const phone = _p.get('phone');
+  if (!token || !phone) {
+    window.location.href = 'login.html';
+    return;
+  }
+  authToken = token;
+  document.getElementById('auth-section').style.display = 'none';
+  document.getElementById('enroll-section').style.display = 'block';
+  if (LOCKED_ORG) {
+    const orgField = document.getElementById('enroll-org').closest('.field');
+    orgField.innerHTML = `<label>Station</label>
+      <div style="padding:10px 13px;border:1px solid var(--border);border-radius:7px;font-size:14px;color:var(--ink-mid)">
+        ${LOCKED_L1} · ${LOCKED_L2} · ${LOCKED_L3}
+      </div>`;
+    document.getElementById('new-org-form').style.display = 'none';
+  } else {
+    loadOrgs();
+  }
+  loadRoster();
+})();
+
 function normalizePhone(raw){
   const d=raw.replace(/\D/g,'');
   if(d.length===10) return '+1'+d;

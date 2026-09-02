@@ -342,6 +342,8 @@ let selectedFiles = [];
       document.getElementById('event-code').value = p.get('event_code').toUpperCase();
     }
     showScreen('screen-org');
+  } else {
+    window.location.href = 'login.html';
   }
 })();
 
