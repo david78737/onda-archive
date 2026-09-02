@@ -187,31 +187,31 @@
       <div class="row2">
         <div class="field">
           <label for="org-l1">Organization</label>
-          <input type="text" id="org-l1" value="productcamp" class="prefilled">
-          <div class="prefilled-note">✓ Pre-filled for your station</div>
+          <input type="text" id="org-l1" placeholder="e.g. yourorg">
+          <div class="prefilled-note" style="display:none">✓ Pre-filled for your station</div>
         </div>
         <div class="field">
           <label for="org-l2">Region</label>
-          <input type="text" id="org-l2" value="austin" class="prefilled">
-          <div class="prefilled-note">✓ Pre-filled</div>
+          <input type="text" id="org-l2" placeholder="e.g. yourcity">
+          <div class="prefilled-note" style="display:none">✓ Pre-filled</div>
         </div>
       </div>
 
       <div class="field">
         <label for="org-l3">Station ID</label>
-        <input type="text" id="org-l3" value="pca" class="prefilled">
-        <div class="prefilled-note">✓ Pre-filled</div>
+        <input type="text" id="org-l3" placeholder="e.g. yourgroup">
+        <div class="prefilled-note" style="display:none">✓ Pre-filled</div>
       </div>
 
       <div class="field">
         <label for="event-label">Event name <span style="color:var(--error)">*</span></label>
-        <input type="text" id="event-label" placeholder="e.g. ProductCamp Austin 36">
+        <input type="text" id="event-label" placeholder="e.g. Your Event Name 2026">
       </div>
 
       <div class="row2">
         <div class="field">
           <label for="event-code">Event code <span style="color:var(--error)">*</span></label>
-          <input type="text" id="event-code" placeholder="e.g. PCA36" style="text-transform:uppercase">
+          <input type="text" id="event-code" placeholder="e.g. EVENT2026" style="text-transform:uppercase">
           <div class="hint">Short, memorable — presenters use this to apply</div>
         </div>
         <div class="field">
@@ -260,9 +260,16 @@ let authedPhone = null;
     authToken   = token;
     authedPhone = phone;
     // Pre-fill org fields if passed
-    if (p.get('org_l1')) document.getElementById('org-l1').value = p.get('org_l1');
-    if (p.get('org_l2')) document.getElementById('org-l2').value = p.get('org_l2');
-    if (p.get('org_l3')) document.getElementById('org-l3').value = p.get('org_l3');
+    ['org_l1', 'org_l2', 'org_l3'].forEach((key, i) => {
+      const val = p.get(key);
+      if (!val) return;
+      const id = 'org-l' + (i + 1);
+      const input = document.getElementById(id);
+      input.value = val;
+      input.classList.add('prefilled');
+      const note = input.nextElementSibling;
+      if (note && note.classList.contains('prefilled-note')) note.style.display = '';
+    });
     document.getElementById('screen-auth').style.display = 'none';
     document.getElementById('screen-main').style.display = 'block';
     dbg('Token passed from admin page — skipping OTP for ' + phone);

@@ -285,13 +285,13 @@
     </div>
 
     <label>Organization</label>
-    <input type="text" id="cs-org-l1" placeholder="ProductCamp">
+    <input type="text" id="cs-org-l1" placeholder="Your Organization">
     <label>City / Region</label>
-    <input type="text" id="cs-org-l2" placeholder="Austin">
+    <input type="text" id="cs-org-l2" placeholder="Your City">
     <label>Chapter / Event</label>
-    <input type="text" id="cs-org-l3" placeholder="PCA35">
+    <input type="text" id="cs-org-l3" placeholder="EVENT2026">
     <label>Event Date</label>
-    <input type="text" id="cs-date" placeholder="November 21, 2026">
+    <input type="text" id="cs-date" placeholder="e.g. January 1, 2027">
 
     <div class="modal-row2" style="margin-top:12px">
       <div>
@@ -385,10 +385,10 @@
     <div style="font-size:13px;color:var(--muted);margin-bottom:16px">Customize how your archive looks and describes itself.</div>
 
     <label>Organization Name</label>
-    <input type="text" id="id-name" placeholder="ProductCamp Austin">
+    <input type="text" id="id-name" placeholder="Your Organization Name">
 
     <label>Tagline</label>
-    <input type="text" id="id-tagline" placeholder="Where product people share ideas">
+    <input type="text" id="id-tagline" placeholder="A short line describing your community">
 
     <label>Logo URL</label>
     <input type="url" id="id-logo" placeholder="https://…/logo.png">
@@ -623,7 +623,7 @@ function render() {
           <div class="edit-field"><label>Phone</label><input type="tel" name="phone" value="${s.phone||''}" placeholder="+1 512 555 0100"></div>
           <div class="edit-field"><label>Date</label><input type="text" name="date" value="${s.date||''}" placeholder="November 21, 2026"></div>
           <div class="edit-field full"><label>Title</label><input type="text" name="title" value="${s.title!=='TBD'?(s.title||''):''}" placeholder="Presentation title"></div>
-          <div class="edit-field"><label>City</label><input type="text" name="city" value="${s.city||''}" placeholder="Austin"></div>
+          <div class="edit-field"><label>City</label><input type="text" name="city" value="${s.city||''}" placeholder="Your City"></div>
           <div class="edit-field"><label>Status</label><select name="status">
             <option value="pending" ${s.status==='pending'?'selected':''}>Pending</option>
             <option value="recording" ${s.status==='recording'?'selected':''}>Recording</option>
