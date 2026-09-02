@@ -822,14 +822,14 @@ function normalizeNileSession(s) {
 }
 
 function normalizePresentation(p) {
-  const orgName = ORG_NAMES[p.org_id] || 'Unknown';
+  const orgName = ORG_NAMES[p.org_id] || p.org_l1 || 'Unknown';
   const takeaways = (Array.isArray(p.takeaways) ? p.takeaways : (p.takeaways || '').split('\n'))
     .map(t => String(t).replace(/^→\s*/, '').trim())
     .filter(Boolean);
   return {
     id: 'pres-' + p.id,
     title: p.title || '',
-    presenter: p.presenter || 'ONDA Doc',
+    presenter: p.presenter_name || p.presenter || 'ONDA Doc',
     org: orgName,
     source: orgName,
     tags: Array.isArray(p.tags) ? p.tags : (p.tags ? p.tags.split(',').map(t => t.trim()).filter(Boolean) : []),
