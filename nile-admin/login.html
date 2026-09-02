@@ -89,9 +89,13 @@
 
   .work-tile {
     background: var(--surface); border: 1.5px solid var(--border);
-    border-radius: 10px; padding: 16px; margin-bottom: 10px;
+    border-radius: 10px; margin-bottom: 10px; overflow: hidden;
   }
-  .work-tile-head { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; }
+  .work-tile-head {
+    display: flex; align-items: center; gap: 12px; padding: 16px;
+    cursor: pointer; background: none; border: none; width: 100%;
+    text-align: left; font-family: inherit;
+  }
   .work-tile-icon {
     width: 38px; height: 38px; border-radius: 8px; background: var(--teal);
     color: #fff; font-size: 16px; font-weight: 700; display: flex;
@@ -109,17 +113,25 @@
   .role-coordinator  { background: #F3E5F5; color: #6A1B9A; }
   .role-presenter    { background: #FFF3E0; color: #B85C00; }
   .role-organizer    { background: #E8F5E9; color: #1B7A2E; }
+  .work-tile-chevron { font-size: 14px; color: var(--muted); flex-shrink: 0; transition: transform .15s; }
+  .work-tile.open .work-tile-chevron { transform: rotate(90deg); }
 
-  .action-row { display: flex; gap: 8px; flex-wrap: wrap; }
-  .btn-action {
-    flex: 1 1 auto; min-width: 120px; padding: 10px 14px; font-size: 13px; font-weight: 600;
-    border: none; border-radius: 7px; cursor: pointer; font-family: inherit;
-    text-decoration: none; text-align: center; display: inline-block;
-    transition: opacity .15s;
+  .action-column { display: none; flex-direction: column; border-top: 1px solid var(--border); }
+  .work-tile.open .action-column { display: flex; }
+  .action-item {
+    display: flex; align-items: center; gap: 14px; padding: 12px 16px;
+    text-decoration: none; border-bottom: 1px solid var(--border);
+    transition: background .15s;
   }
-  .btn-action:hover { opacity: .85; }
-  .btn-action-primary { background: var(--teal); color: #fff; }
-  .btn-action-secondary { background: #fff; color: var(--teal); border: 1px solid var(--teal); }
+  .action-item:last-child { border-bottom: none; }
+  .action-item:hover { background: var(--teal-light); }
+  .action-label {
+    flex-shrink: 0; min-width: 140px; padding: 8px 14px; font-size: 13px; font-weight: 600;
+    border-radius: 7px; text-align: center;
+  }
+  .action-label-primary { background: var(--teal); color: #fff; }
+  .action-label-secondary { background: #fff; color: var(--teal); border: 1px solid var(--teal); }
+  .action-desc { font-size: 13px; color: var(--muted); }
 
   .get-started-tile {
     display: block; text-decoration: none;
@@ -352,35 +364,44 @@ async function loadWorkList() {
     if (isPresenter) pills.push('<span class="role-pill role-presenter">Presenter</span>');
     if (isOrganizer) pills.push('<span class="role-pill role-organizer">Organizer</span>');
 
+    // { label, desc, href, primary }
     const actions = [];
     if (isCurator) {
-      actions.push(`<a class="btn-action btn-action-primary" href="event.html?${params}">Create Event</a>`);
-      actions.push(`<a class="btn-action btn-action-secondary" href="cards.html?${params}">Review Cards</a>`);
-      actions.push(`<a class="btn-action btn-action-secondary" href="station.html?${params}">Station Profile</a>`);
-      actions.push(`<a class="btn-action btn-action-secondary" href="bulk-upload.html?${params}">Bulk Upload</a>`);
-      actions.push(`<a class="btn-action btn-action-secondary" href="enroll.html?${params}">Enroll Contributor</a>`);
+      actions.push({ label: 'Create Event',       desc: 'Create a new event',                                            href: `event.html?${params}`,       primary: true  });
+      actions.push({ label: 'Review Cards',        desc: 'Evaluate potential presenters and check for completeness',     href: `cards.html?${params}`,       primary: false });
+      actions.push({ label: 'Station Profile',     desc: 'Select colors and skin of this station',                       href: `station.html?${params}`,     primary: false });
+      actions.push({ label: 'Bulk Upload',         desc: 'Upload multiple .onda files to your station at once',          href: `bulk-upload.html?${params}`, primary: false });
+      actions.push({ label: 'Enroll Contributor',  desc: 'Add a contributor and assign their station directly',          href: `enroll.html?${params}`,      primary: false });
     } else if (isCoordinator) {
-      actions.push(`<a class="btn-action btn-action-primary" href="cards.html?${params}">Review Cards</a>`);
+      actions.push({ label: 'Review Cards',        desc: 'Evaluate potential presenters and check for completeness',     href: `cards.html?${params}`,       primary: true  });
     }
-    if (isPresenter) actions.push(`<a class="btn-action btn-action-primary" href="../nile-tile-create/?${params}">Add Tile</a>`);
-    if (isOrganizer) actions.push(`<a class="btn-action btn-action-primary" href="../nile-session-update/?${params}">Manage Sessions</a>`);
-    if (presOrgId) actions.push(`<a class="btn-action btn-action-secondary" href="../nile-presentation/?${presParams}">Manage Presentations</a>`);
-    actions.push(`<a class="btn-action btn-action-secondary" href="../nile-profile-edit/?${params}">Edit Profile</a>`);
+    if (isPresenter) actions.push({ label: 'Add Tile',              desc: 'Fill in your talk details — goes live on the browse page as soon as you submit', href: `../nile-tile-create/?${params}`,   primary: true });
+    if (isOrganizer) actions.push({ label: 'Manage Sessions',       desc: 'Update details on a session you’re organizing',                              href: `../nile-session-update/?${params}`, primary: true });
+    if (presOrgId)   actions.push({ label: 'Manage Presentations',  desc: 'Review, edit, and publish this station’s presentation records',              href: `../nile-presentation/?${presParams}`, primary: false });
+    actions.push({ label: 'Edit Profile', desc: 'Your name and LinkedIn — shown on your talk tiles', href: `../nile-profile-edit/?${params}`, primary: false });
+
+    const actionRows = actions.map(a => `
+      <a class="action-item" href="${a.href}">
+        <span class="action-label ${a.primary ? 'action-label-primary' : 'action-label-secondary'}">${a.label}</span>
+        <span class="action-desc">${a.desc}</span>
+      </a>`).join('');
 
     const initial = (org.name || org.l1 || '?').charAt(0).toUpperCase();
     const tile = document.createElement('div');
     tile.className = 'work-tile';
     tile.innerHTML = `
-      <div class="work-tile-head">
+      <button class="work-tile-head" type="button" onclick="this.closest('.work-tile').classList.toggle('open')">
         <div class="work-tile-icon">${initial}</div>
         <div class="work-tile-text">
           <div class="work-tile-name">${org.name}</div>
           <div class="work-tile-meta">${org.l1} · ${org.l2} · ${org.l3}</div>
           <div class="role-pills">${pills.join('')}</div>
         </div>
-      </div>
-      <div class="action-row">${actions.join('')}</div>
+        <span class="work-tile-chevron">▶</span>
+      </button>
+      <div class="action-column">${actionRows}</div>
     `;
+    if (entries.length === 1) tile.classList.add('open');
     list.appendChild(tile);
   });
 }
