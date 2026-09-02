@@ -26,6 +26,7 @@
   header { background: var(--teal); padding: 16px 24px; display: flex; align-items: center; gap: 12px; }
   .wordmark { font-size: 18px; font-weight: 700; color: #fff; letter-spacing: .03em; }
   .header-sub { font-size: 12px; color: rgba(255,255,255,.75); margin-top: 1px; }
+  .back-link { color: rgba(255,255,255,0.75); text-decoration: none; font-size: 13px; font-weight: 600; }
   .wrap { max-width: 580px; margin: 0 auto; padding: 32px 20px 0; }
   .card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 24px; margin-bottom: 20px; }
   .card-title { font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: .1em; color: var(--teal); margin-bottom: 16px; }
@@ -116,6 +117,7 @@
 <body>
 
 <header>
+  <a class="back-link" id="back-link" href="../nile-admin/login.html">← Hub</a>
   <div>
     <div class="wordmark">ONDA Nile</div>
     <div class="header-sub" id="header-sub">Manage Presentations</div>
@@ -290,6 +292,9 @@ if (!TOKEN || (MODE === 'curator' && !ORG_ID) || (MODE === 'presenter' && !PHONE
     document.getElementById('header-sub').textContent = 'My Presentations';
     document.getElementById('f-status-hint').style.display = 'block';
   }
+  const hubParams = new URLSearchParams({ token: TOKEN });
+  if (PHONE) hubParams.set('phone', PHONE);
+  document.getElementById('back-link').href = `../nile-admin/login.html?${hubParams}`;
   loadRecords();
 }
 
