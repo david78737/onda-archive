@@ -578,6 +578,7 @@
       if (!r.ok) throw new Error(await r.text());
       document.getElementById('phone-display').textContent = phone;
       document.getElementById('otp-card').style.display = 'block';
+      setTimeout(() => document.getElementById('otp').focus(), 50);
       showMsg('msg-send', 'ok', 'Code sent.');
     } catch (e) {
       showMsg('msg-send', 'err', 'Could not send code: ' + e.message);
