@@ -328,8 +328,9 @@ function renderRecordGroup(containerId, rows, emptyText) {
     const summaryHtml = r.summary
       ? `<div class="r-summary">${r.summary}</div>`
       : `<div class="r-summary r-summary-empty">No summary yet</div>`;
+    const explainerPlayerUrl = 'https://default-dev-51573d-xrxm-29on-xlyt.n7e.xano.io/index.html?src=' + encodeURIComponent(r.onda_url || '');
     const linkBadges = [
-      r.onda_url ? `<a class="r-link-badge" href="${r.onda_url}" target="_blank" rel="noopener" onclick="event.stopPropagation()">🎧 Explainer</a>` : '',
+      r.onda_url ? `<a class="r-link-badge" href="${explainerPlayerUrl}" target="_blank" rel="noopener" onclick="event.stopPropagation()">🎧 Explainer</a>` : '',
       r.youtube  ? `<a class="r-link-badge" href="https://www.youtube.com/watch?v=${r.youtube}" target="_blank" rel="noopener" onclick="event.stopPropagation()">▶ YouTube</a>` : '',
     ].join('');
     const linksHtml = linkBadges ? `<div class="r-links">${linkBadges}</div>` : '';
