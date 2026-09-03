@@ -171,14 +171,6 @@
   }
   .otp-row button:hover { background: var(--teal-dark); }
 
-  /* Skin presets */
-  .skin-grid {
-    display: grid;
-    grid-template-columns: repeat(5, 1fr);
-    gap: 8px;
-    margin-bottom: 20px;
-  }
-
   /* Custom skin: labeled color pickers, control on the left, description on the right */
   .color-control-row {
     display: flex; align-items: center; gap: 14px;
@@ -192,59 +184,6 @@
   .color-control-text { flex: 1; min-width: 0; }
   .color-control-label { font-size: 14px; font-weight: 600; color: var(--ink); }
   .color-control-desc { font-size: 12px; color: var(--muted); margin-top: 1px; }
-  .skin-opt { position: relative; }
-  .skin-opt input[type="radio"] { position: absolute; opacity: 0; width: 0; height: 0; }
-  .skin-opt label {
-    display: block;
-    cursor: pointer;
-    border-radius: 8px;
-    border: 2px solid var(--border);
-    overflow: hidden;
-    transition: border-color 0.15s;
-    margin-bottom: 0;
-  }
-  .skin-opt input:checked + label { border-color: var(--teal); }
-  .skin-swatch {
-    height: 40px;
-    display: flex;
-    gap: 3px;
-    padding: 6px;
-  }
-  .skin-dot { flex: 1; border-radius: 3px; }
-  .skin-name {
-    font-size: 9px;
-    font-weight: 700;
-    text-align: center;
-    padding: 3px 0 4px;
-    color: var(--ink);
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-  }
-
-  .skin-classic   .skin-swatch { background: #0D1F1E; }
-  .skin-classic   .d1 { background: #009688; }
-  .skin-classic   .d2 { background: #00BCD4; }
-  .skin-classic   .d3 { background: #152322; }
-
-  .skin-professional .skin-swatch { background: #F3F6F9; }
-  .skin-professional .d1 { background: #0A66C2; }
-  .skin-professional .d2 { background: #00BCD4; }
-  .skin-professional .d3 { background: #FFFFFF; }
-
-  .skin-academic  .skin-swatch { background: #F8F5EE; }
-  .skin-academic  .d1 { background: #2C3E50; }
-  .skin-academic  .d2 { background: #8B6F47; }
-  .skin-academic  .d3 { background: #F0EBE0; }
-
-  .skin-vibrant   .skin-swatch { background: #1A0533; }
-  .skin-vibrant   .d1 { background: #7C3AED; }
-  .skin-vibrant   .d2 { background: #F59E0B; }
-  .skin-vibrant   .d3 { background: #2D1052; }
-
-  .skin-minimal   .skin-swatch { background: #FAFAFA; }
-  .skin-minimal   .d1 { background: #111111; }
-  .skin-minimal   .d2 { background: #666666; }
-  .skin-minimal   .d3 { background: #EEEEEE; }
 
   /* Badge preview */
   .badge-preview-wrap {
@@ -327,7 +266,6 @@
 
   @media (max-width: 400px) {
     .field-row { grid-template-columns: 1fr; }
-    .skin-grid { grid-template-columns: repeat(3, 1fr); }
   }
 </style>
 </head>
@@ -432,54 +370,9 @@
     <div class="section-card">
       <div class="section-label">Visual Identity</div>
       <div class="section-title">Station color theme</div>
-      <div class="section-desc">Choose the palette for your station archive and tile badge.</div>
+      <div class="section-desc">Set your own colors and font for your station archive and tile badge.</div>
 
-      <div class="skin-grid">
-        <div class="skin-opt skin-classic">
-          <input type="radio" name="skin" id="skin-classic" value="classic" checked>
-          <label for="skin-classic">
-            <div class="skin-swatch"><div class="skin-dot d1"></div><div class="skin-dot d2"></div><div class="skin-dot d3"></div></div>
-            <div class="skin-name">Classic</div>
-          </label>
-        </div>
-        <div class="skin-opt skin-professional">
-          <input type="radio" name="skin" id="skin-professional" value="professional">
-          <label for="skin-professional">
-            <div class="skin-swatch"><div class="skin-dot d1"></div><div class="skin-dot d2"></div><div class="skin-dot d3"></div></div>
-            <div class="skin-name">Pro</div>
-          </label>
-        </div>
-        <div class="skin-opt skin-academic">
-          <input type="radio" name="skin" id="skin-academic" value="academic">
-          <label for="skin-academic">
-            <div class="skin-swatch"><div class="skin-dot d1"></div><div class="skin-dot d2"></div><div class="skin-dot d3"></div></div>
-            <div class="skin-name">Academic</div>
-          </label>
-        </div>
-        <div class="skin-opt skin-vibrant">
-          <input type="radio" name="skin" id="skin-vibrant" value="vibrant">
-          <label for="skin-vibrant">
-            <div class="skin-swatch"><div class="skin-dot d1"></div><div class="skin-dot d2"></div><div class="skin-dot d3"></div></div>
-            <div class="skin-name">Vibrant</div>
-          </label>
-        </div>
-        <div class="skin-opt skin-minimal">
-          <input type="radio" name="skin" id="skin-minimal" value="minimal">
-          <label for="skin-minimal">
-            <div class="skin-swatch"><div class="skin-dot d1"></div><div class="skin-dot d2"></div><div class="skin-dot d3"></div></div>
-            <div class="skin-name">Minimal</div>
-          </label>
-        </div>
-        <div class="skin-opt skin-custom">
-          <input type="radio" name="skin" id="skin-custom" value="custom">
-          <label for="skin-custom">
-            <div class="skin-swatch" id="custom-swatch-preview"><div class="skin-dot d1"></div><div class="skin-dot d2"></div><div class="skin-dot d3"></div></div>
-            <div class="skin-name">Custom</div>
-          </label>
-        </div>
-      </div>
-
-      <div id="custom-skin-fields" style="display:none;">
+      <div id="custom-skin-fields">
         <div class="color-control-row">
           <input type="color" id="custom-accent" value="#008B82">
           <div class="color-control-text">
@@ -561,14 +454,6 @@
   let currentOrg  = { l1: '', l2: '', l3: '' };
 
   // Skin palette map for badge preview
-  const SKINS = {
-    classic:      { primary: '#009688', bg: 'rgba(0,150,136,0.2)',  text: '#00E5D4' },
-    professional: { primary: '#0A66C2', bg: 'rgba(10,102,194,0.15)', text: '#4A9EE8' },
-    academic:     { primary: '#2C3E50', bg: 'rgba(44,62,80,0.12)',  text: '#2C3E50' },
-    vibrant:      { primary: '#7C3AED', bg: 'rgba(124,58,237,0.2)', text: '#C084FC' },
-    minimal:      { primary: '#111111', bg: 'rgba(0,0,0,0.08)',     text: '#111111' },
-  };
-
   function dbg(msg) { console.log('[station]', msg); }
 
   function showMsg(id, type, text) {
@@ -588,20 +473,9 @@
 
   // ── Badge live preview ──────────────────────────────────────
   function updateBadge() {
-    const name    = document.getElementById('station-name').value.trim() || 'Your Station Name';
-    const skin    = document.querySelector('input[name="skin"]:checked')?.value || 'classic';
-    let bg, text;
-    if (skin === 'custom') {
-      const accent = document.getElementById('custom-accent').value;
-      bg   = document.getElementById('custom-badge-bg').value;
-      text = document.getElementById('custom-badge-text').value;
-      document.querySelectorAll('#custom-swatch-preview .skin-dot').forEach((d, i) => {
-        d.style.background = [accent, bg, text][i];
-      });
-    } else {
-      const palette = SKINS[skin];
-      bg = palette.bg; text = palette.text;
-    }
+    const name = document.getElementById('station-name').value.trim() || 'Your Station Name';
+    const bg   = document.getElementById('custom-badge-bg').value;
+    const text = document.getElementById('custom-badge-text').value;
 
     document.getElementById('badge-text').textContent = name;
     const badge = document.getElementById('badge-preview');
@@ -629,10 +503,6 @@
   document.getElementById('custom-accent').addEventListener('input', updateBadge);
   document.getElementById('custom-badge-bg').addEventListener('input', updateBadge);
   document.getElementById('custom-badge-text').addEventListener('input', updateBadge);
-  document.querySelectorAll('input[name="skin"]').forEach(r => r.addEventListener('change', () => {
-    document.getElementById('custom-skin-fields').style.display = r.value === 'custom' ? 'block' : 'none';
-    updateBadge();
-  }));
 
   // ── Font selector ─────────────────────────────────────────────
   document.getElementById('custom-font-select').addEventListener('change', (e) => {
@@ -786,11 +656,6 @@
           document.getElementById('custom-font').style.display = 'block';
         }
       }
-      if (d.skin) {
-        const radio = document.querySelector(`input[name="skin"][value="${d.skin}"]`);
-        if (radio) radio.checked = true;
-        document.getElementById('custom-skin-fields').style.display = d.skin === 'custom' ? 'block' : 'none';
-      }
       updateBadge();
     } catch (e) {
       dbg('loadProfile error: ' + e.message);
@@ -806,7 +671,6 @@
     const curatorName = document.getElementById('curator-name').value.trim();
     const linkedin    = document.getElementById('curator-linkedin').value.trim();
     const photo       = document.getElementById('curator-photo').value.trim();
-    const skin        = document.querySelector('input[name="skin"]:checked')?.value || 'classic';
     const customAccent    = document.getElementById('custom-accent').value;
     const customBadgeBg   = document.getElementById('custom-badge-bg').value;
     const customBadgeText = document.getElementById('custom-badge-text').value;
@@ -832,12 +696,12 @@
       curator_name:   curatorName,
       linkedin_url:   linkedin,
       photo_url:      photo || null,
-      skin,
+      skin:             'custom',
       badge_icon_url:   badgeIconUrl,
-      custom_accent:    skin === 'custom' ? customAccent : null,
-      custom_badge_bg:  skin === 'custom' ? customBadgeBg : null,
-      custom_badge_text: skin === 'custom' ? customBadgeText : null,
-      font_family:      skin === 'custom' ? resolvedFont : null,
+      custom_accent:     customAccent,
+      custom_badge_bg:   customBadgeBg,
+      custom_badge_text: customBadgeText,
+      font_family:       resolvedFont,
     };
 
     dbg('POST /nile/station/profile → ' + JSON.stringify(payload, null, 2));
