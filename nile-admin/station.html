@@ -178,6 +178,20 @@
     gap: 8px;
     margin-bottom: 20px;
   }
+
+  /* Custom skin: labeled color pickers, control on the left, description on the right */
+  .color-control-row {
+    display: flex; align-items: center; gap: 14px;
+    padding: 10px 0; border-bottom: 1px solid var(--border);
+  }
+  .color-control-row:last-of-type { border-bottom: none; margin-bottom: 16px; }
+  .color-control-row input[type="color"] {
+    flex-shrink: 0; width: 44px; height: 44px; padding: 0;
+    border: 1px solid var(--border); border-radius: 8px; cursor: pointer;
+  }
+  .color-control-text { flex: 1; min-width: 0; }
+  .color-control-label { font-size: 14px; font-weight: 600; color: var(--ink); }
+  .color-control-desc { font-size: 12px; color: var(--muted); margin-top: 1px; }
   .skin-opt { position: relative; }
   .skin-opt input[type="radio"] { position: absolute; opacity: 0; width: 0; height: 0; }
   .skin-opt label {
@@ -466,22 +480,54 @@
       </div>
 
       <div id="custom-skin-fields" style="display:none;">
-        <div class="field">
-          <label for="custom-color">Brand color</label>
-          <input type="color" id="custom-color" value="#008B82" style="height:44px;padding:4px;cursor:pointer;">
-          <div class="hint">Your organization's own accent color, used across your station page.</div>
+        <div class="color-control-row">
+          <input type="color" id="custom-accent" value="#008B82">
+          <div class="color-control-text">
+            <div class="color-control-label">Accent</div>
+            <div class="color-control-desc">Links, borders, and highlights across your archive page</div>
+          </div>
         </div>
+        <div class="color-control-row">
+          <input type="color" id="custom-badge-bg" value="#00483F">
+          <div class="color-control-text">
+            <div class="color-control-label">Badge background</div>
+            <div class="color-control-desc">The pill behind your station name on every tile</div>
+          </div>
+        </div>
+        <div class="color-control-row">
+          <input type="color" id="custom-badge-text" value="#00B8AC">
+          <div class="color-control-text">
+            <div class="color-control-label">Badge text</div>
+            <div class="color-control-desc">The station name and icon inside that badge</div>
+          </div>
+        </div>
+
         <div class="field">
-          <label for="custom-font">Font <span class="opt">optional</span></label>
-          <input type="text" id="custom-font" placeholder="e.g. Poppins, Merriweather, Roboto Slab">
-          <div class="hint">Any <a href="https://fonts.google.com" target="_blank" rel="noopener">Google Fonts</a> name. Leave blank for the default.</div>
+          <label for="custom-font-select">Font <span class="opt">optional</span></label>
+          <select id="custom-font-select">
+            <option value="">Default (system font)</option>
+            <option value="sans">Sans-serif — Inter</option>
+            <option value="serif">Serif — Merriweather</option>
+            <option value="mono">Monospace — Roboto Mono</option>
+            <option value="__custom__">Custom Google Font…</option>
+          </select>
+          <input type="text" id="custom-font" placeholder="e.g. Poppins, Roboto Slab" style="display:none;margin-top:8px;">
+          <div class="hint">Falls back to the default font automatically if a custom font name can't be found.</div>
         </div>
       </div>
 
       <div class="field">
-        <label for="station-icon">Station icon <span class="opt">optional</span></label>
-        <input type="text" id="station-icon" placeholder="e.g. 🎤 or a single letter like S">
-        <div class="hint">A short symbol or emoji that sits next to your station name in the badge. Leave blank to use ◆.</div>
+        <label>Station icon <span class="opt">optional</span></label>
+        <div style="display:flex;align-items:center;gap:12px;">
+          <div id="icon-preview-wrap" style="width:44px;height:44px;border-radius:8px;border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:20px;color:var(--muted);overflow:hidden;flex-shrink:0;">
+            <img id="icon-preview-img" style="width:100%;height:100%;object-fit:cover;display:none;">
+            <span id="icon-preview-fallback">◆</span>
+          </div>
+          <input type="file" id="station-icon-file" accept="image/*" style="display:none;">
+          <button type="button" class="btn-ghost" id="station-icon-upload-btn" style="margin-top:0;">Upload Icon…</button>
+        </div>
+        <div class="hint" id="station-icon-upload-status"></div>
+        <div class="hint">Replaces the default ◆ with your own logo/icon in the badge.</div>
       </div>
 
       <div class="badge-preview-wrap" style="margin-top:20px;">
@@ -531,45 +577,99 @@
     el.textContent = text;
   }
 
-  function hexToRgba(hex, alpha) {
-    const h = hex.replace('#', '');
-    const r = parseInt(h.substring(0,2), 16), g = parseInt(h.substring(2,4), 16), b = parseInt(h.substring(4,6), 16);
-    return `rgba(${r},${g},${b},${alpha})`;
+  const FONT_CATEGORY_MAP = { sans: 'Inter', serif: 'Merriweather', mono: 'Roboto Mono' };
+  function resolveFontFamily() {
+    const choice = document.getElementById('custom-font-select').value;
+    if (choice === '__custom__') return document.getElementById('custom-font').value.trim() || null;
+    return FONT_CATEGORY_MAP[choice] || null;
   }
+
+  let badgeIconUrl = null; // set by the upload handler below
 
   // ── Badge live preview ──────────────────────────────────────
   function updateBadge() {
     const name    = document.getElementById('station-name').value.trim() || 'Your Station Name';
-    const icon    = document.getElementById('station-icon')?.value.trim() || '◆';
     const skin    = document.querySelector('input[name="skin"]:checked')?.value || 'classic';
-    let palette;
+    let bg, text;
     if (skin === 'custom') {
-      const color = document.getElementById('custom-color').value;
-      palette = { primary: color, bg: hexToRgba(color, 0.15), text: color };
-      document.querySelectorAll('#custom-swatch-preview .skin-dot').forEach(d => d.style.background = color);
+      const accent = document.getElementById('custom-accent').value;
+      bg   = document.getElementById('custom-badge-bg').value;
+      text = document.getElementById('custom-badge-text').value;
+      document.querySelectorAll('#custom-swatch-preview .skin-dot').forEach((d, i) => {
+        d.style.background = [accent, bg, text][i];
+      });
     } else {
-      palette = SKINS[skin];
+      const palette = SKINS[skin];
+      bg = palette.bg; text = palette.text;
     }
 
     document.getElementById('badge-text').textContent = name;
     const badge = document.getElementById('badge-preview');
-    badge.style.background = palette.bg;
-    badge.style.color = palette.text;
+    badge.style.background = bg;
+    badge.style.color = text;
 
-    // Update icon character
+    // Update icon: uploaded image if present, else the default diamond
     const iconNode = badge.childNodes[0];
-    if (iconNode && iconNode.nodeType === Node.TEXT_NODE) {
-      iconNode.textContent = (icon || '◆') + ' ';
+    if (badgeIconUrl) {
+      if (iconNode.tagName !== 'IMG') {
+        const img = document.createElement('img');
+        img.style.cssText = 'width:14px;height:14px;border-radius:3px;object-fit:cover;vertical-align:-2px;margin-right:4px;';
+        badge.insertBefore(img, badge.firstChild);
+      }
+      badge.querySelector('img').src = badgeIconUrl;
+    } else {
+      const existingImg = badge.querySelector('img');
+      if (existingImg) existingImg.remove();
+      if (badge.childNodes[0].nodeType !== Node.TEXT_NODE) {
+        badge.insertBefore(document.createTextNode('◆ '), badge.firstChild);
+      }
     }
   }
-
   document.getElementById('station-name').addEventListener('input', updateBadge);
-  document.getElementById('station-icon').addEventListener('input', updateBadge);
-  document.getElementById('custom-color').addEventListener('input', updateBadge);
+  document.getElementById('custom-accent').addEventListener('input', updateBadge);
+  document.getElementById('custom-badge-bg').addEventListener('input', updateBadge);
+  document.getElementById('custom-badge-text').addEventListener('input', updateBadge);
   document.querySelectorAll('input[name="skin"]').forEach(r => r.addEventListener('change', () => {
     document.getElementById('custom-skin-fields').style.display = r.value === 'custom' ? 'block' : 'none';
     updateBadge();
   }));
+
+  // ── Font selector ─────────────────────────────────────────────
+  document.getElementById('custom-font-select').addEventListener('change', (e) => {
+    const customInput = document.getElementById('custom-font');
+    customInput.style.display = e.target.value === '__custom__' ? 'block' : 'none';
+    if (e.target.value === '__custom__') customInput.focus();
+  });
+
+  // ── Station icon upload — real file picker, hosted by Xano ─────
+  const UPLOAD_URL = 'https://xrxm-29on-xlyt.n7e.xano.io/api:nile/upload-headshot';
+  document.getElementById('station-icon-upload-btn').addEventListener('click', () => {
+    document.getElementById('station-icon-file').click();
+  });
+  document.getElementById('station-icon-file').addEventListener('change', async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const statusEl = document.getElementById('station-icon-upload-status');
+    statusEl.textContent = 'Uploading…';
+    try {
+      const form = new FormData();
+      form.append('content', file);
+      const resp = await fetch(UPLOAD_URL, { method: 'POST', body: form });
+      const data = await resp.json();
+      if (!resp.ok || !data.url) throw new Error(data.message || 'Upload failed.');
+      badgeIconUrl = data.url;
+      document.getElementById('icon-preview-img').src = data.url;
+      document.getElementById('icon-preview-img').style.display = 'block';
+      document.getElementById('icon-preview-fallback').style.display = 'none';
+      statusEl.textContent = 'Uploaded ✓';
+      setTimeout(() => { statusEl.textContent = ''; }, 2500);
+      updateBadge();
+    } catch (err) {
+      statusEl.textContent = err.message;
+    } finally {
+      e.target.value = '';
+    }
+  });
 
   // ── Bootstrap from URL params (coming from register.html picker) ──
   (function bootstrap() {
@@ -667,9 +767,25 @@
       if (d.curator_name) document.getElementById('curator-name').value = d.curator_name;
       if (d.linkedin_url) document.getElementById('curator-linkedin').value = d.linkedin_url;
       if (d.photo_url)    document.getElementById('curator-photo').value = d.photo_url;
-      if (d.badge_icon)   document.getElementById('station-icon').value = d.badge_icon === '◆' ? '' : d.badge_icon;
-      if (d.custom_color) document.getElementById('custom-color').value = d.custom_color;
-      if (d.font_family)  document.getElementById('custom-font').value = d.font_family;
+      if (d.badge_icon_url) {
+        badgeIconUrl = d.badge_icon_url;
+        document.getElementById('icon-preview-img').src = d.badge_icon_url;
+        document.getElementById('icon-preview-img').style.display = 'block';
+        document.getElementById('icon-preview-fallback').style.display = 'none';
+      }
+      if (d.custom_accent)    document.getElementById('custom-accent').value = d.custom_accent;
+      if (d.custom_badge_bg)  document.getElementById('custom-badge-bg').value = d.custom_badge_bg;
+      if (d.custom_badge_text) document.getElementById('custom-badge-text').value = d.custom_badge_text;
+      if (d.font_family) {
+        const knownCategory = Object.keys(FONT_CATEGORY_MAP).find(k => FONT_CATEGORY_MAP[k] === d.font_family);
+        if (knownCategory) {
+          document.getElementById('custom-font-select').value = knownCategory;
+        } else {
+          document.getElementById('custom-font-select').value = '__custom__';
+          document.getElementById('custom-font').value = d.font_family;
+          document.getElementById('custom-font').style.display = 'block';
+        }
+      }
       if (d.skin) {
         const radio = document.querySelector(`input[name="skin"][value="${d.skin}"]`);
         if (radio) radio.checked = true;
@@ -691,9 +807,10 @@
     const linkedin    = document.getElementById('curator-linkedin').value.trim();
     const photo       = document.getElementById('curator-photo').value.trim();
     const skin        = document.querySelector('input[name="skin"]:checked')?.value || 'classic';
-    const icon        = document.getElementById('station-icon').value.trim() || '◆';
-    const customColor = document.getElementById('custom-color').value;
-    const customFont  = document.getElementById('custom-font').value.trim();
+    const customAccent    = document.getElementById('custom-accent').value;
+    const customBadgeBg   = document.getElementById('custom-badge-bg').value;
+    const customBadgeText = document.getElementById('custom-badge-text').value;
+    const resolvedFont    = resolveFontFamily();
 
     // Validation
     if (!stationName) { showMsg('msg-save', 'err', 'Station name is required.'); return; }
@@ -716,9 +833,11 @@
       linkedin_url:   linkedin,
       photo_url:      photo || null,
       skin,
-      badge_icon:     icon,
-      custom_color:   skin === 'custom' ? customColor : null,
-      font_family:    skin === 'custom' && customFont ? customFont : null,
+      badge_icon_url:   badgeIconUrl,
+      custom_accent:    skin === 'custom' ? customAccent : null,
+      custom_badge_bg:  skin === 'custom' ? customBadgeBg : null,
+      custom_badge_text: skin === 'custom' ? customBadgeText : null,
+      font_family:      skin === 'custom' ? resolvedFont : null,
     };
 
     dbg('POST /nile/station/profile → ' + JSON.stringify(payload, null, 2));
