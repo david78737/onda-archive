@@ -356,25 +356,6 @@
   <!-- SCREEN: Profile form -->
   <div id="screen-main" class="screen">
 
-    <!-- Badge live preview -->
-    <div class="section-card">
-      <div class="section-label">Badge preview</div>
-      <div class="section-title" style="margin-bottom:14px;">How your station appears on every tile</div>
-      <div class="badge-preview-wrap">
-        <div class="preview-label">Example tile on ONDA Nile</div>
-        <div class="mock-tile">
-          <div class="mock-tile-title">The Future of Product Development</div>
-          <div class="mock-tile-meta">42 min · Nov 21 2026</div>
-          <div class="mock-tile-footer">
-            <span class="station-badge" id="badge-preview" style="background:rgba(0,139,130,0.2);color:#00B8AC;">
-              ◆ <span id="badge-text">Your Station Name</span>
-            </span>
-          </div>
-        </div>
-      </div>
-      <p class="hint">The badge uses your station name and color theme. Tap on any tile → badge → goes to your station archive.</p>
-    </div>
-
     <!-- Station Identity -->
     <div class="section-card">
       <div class="section-label">Station Identity</div>
@@ -502,6 +483,20 @@
         <input type="text" id="station-icon" placeholder="e.g. 🎤 or a single letter like S">
         <div class="hint">A short symbol or emoji that sits next to your station name in the badge. Leave blank to use ◆.</div>
       </div>
+
+      <div class="badge-preview-wrap" style="margin-top:20px;">
+        <div class="preview-label">Example tile on ONDA Nile</div>
+        <div class="mock-tile">
+          <div class="mock-tile-title">The Future of Product Development</div>
+          <div class="mock-tile-meta">42 min · Nov 21 2026</div>
+          <div class="mock-tile-footer">
+            <span class="station-badge" id="badge-preview" style="background:rgba(0,139,130,0.2);color:#00B8AC;">
+              ◆ <span id="badge-text">Your Station Name</span>
+            </span>
+          </div>
+        </div>
+      </div>
+      <p class="hint">This updates live as you change the theme above. Tap any tile's badge on ONDA Nile → goes to your station archive.</p>
     </div>
 
     <button class="btn-primary" id="btn-save">Save station profile</button>
