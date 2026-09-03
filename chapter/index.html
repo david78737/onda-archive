@@ -391,12 +391,18 @@ window._thumbErr = function(img) {
   img.parentNode.replaceChild(d, img);
 };
 
+function playerUrlFor(url) {
+  return 'https://default-dev-51573d-xrxm-29on-xlyt.n7e.xano.io/index.html?src=' + encodeURIComponent(url);
+}
+
 function openOnda(event, url) {
   const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
-  if (!isIOS) return true;
+  if (!isIOS) return true; // desktop/Android: the <a href> already points at the player
   event.preventDefault();
+  // iOS: try the app first (it needs the raw .onda file, not the player page);
+  // if it's not installed, fall back to the web player, not the raw file/API URL.
   window.location.href = 'ondareplay://open?url=' + encodeURIComponent(url);
-  setTimeout(() => { window.location.href = url; }, 1500);
+  setTimeout(() => { window.location.href = playerUrlFor(url); }, 1500);
   return false;
 }
 
@@ -596,9 +602,9 @@ function render() {
       : `<div class="card-avatar" style="background:${avatarColor(s.presenter||'')}">${initials(s.presenter||'')}</div>`;
 
     const ondaBtn = (!isPending && s.onda_url)
-      ? `<a class="onda-btn" href="${s.onda_url}" target="_blank" rel="noopener"
-             onclick="return openOnda(event,'${s.onda_url}')" title="Open in ONDA Replay">
-           <img src="../img/onda-download.png" alt="Download ONDA">
+      ? `<a class="onda-btn" href="${playerUrlFor(s.onda_url)}" target="_blank" rel="noopener"
+             onclick="return openOnda(event,'${s.onda_url}')" title="Play recording">
+           <img src="../img/onda-download.png" alt="Play recording">
          </a>`
       : `<span class="buy-soon">${isPending ? '⏳ Coming soon' : 'Not yet available'}</span>`;
 
