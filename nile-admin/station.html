@@ -475,6 +475,26 @@
             <div class="skin-name">Minimal</div>
           </label>
         </div>
+        <div class="skin-opt skin-custom">
+          <input type="radio" name="skin" id="skin-custom" value="custom">
+          <label for="skin-custom">
+            <div class="skin-swatch" id="custom-swatch-preview"><div class="skin-dot d1"></div><div class="skin-dot d2"></div><div class="skin-dot d3"></div></div>
+            <div class="skin-name">Custom</div>
+          </label>
+        </div>
+      </div>
+
+      <div id="custom-skin-fields" style="display:none;">
+        <div class="field">
+          <label for="custom-color">Brand color</label>
+          <input type="color" id="custom-color" value="#008B82" style="height:44px;padding:4px;cursor:pointer;">
+          <div class="hint">Your organization's own accent color, used across your station page.</div>
+        </div>
+        <div class="field">
+          <label for="custom-font">Font <span class="opt">optional</span></label>
+          <input type="text" id="custom-font" placeholder="e.g. Poppins, Merriweather, Roboto Slab">
+          <div class="hint">Any <a href="https://fonts.google.com" target="_blank" rel="noopener">Google Fonts</a> name. Leave blank for the default.</div>
+        </div>
       </div>
 
       <div class="field">
@@ -516,12 +536,25 @@
     el.textContent = text;
   }
 
+  function hexToRgba(hex, alpha) {
+    const h = hex.replace('#', '');
+    const r = parseInt(h.substring(0,2), 16), g = parseInt(h.substring(2,4), 16), b = parseInt(h.substring(4,6), 16);
+    return `rgba(${r},${g},${b},${alpha})`;
+  }
+
   // ── Badge live preview ──────────────────────────────────────
   function updateBadge() {
     const name    = document.getElementById('station-name').value.trim() || 'Your Station Name';
     const icon    = document.getElementById('station-icon')?.value.trim() || '◆';
     const skin    = document.querySelector('input[name="skin"]:checked')?.value || 'classic';
-    const palette = SKINS[skin];
+    let palette;
+    if (skin === 'custom') {
+      const color = document.getElementById('custom-color').value;
+      palette = { primary: color, bg: hexToRgba(color, 0.15), text: color };
+      document.querySelectorAll('#custom-swatch-preview .skin-dot').forEach(d => d.style.background = color);
+    } else {
+      palette = SKINS[skin];
+    }
 
     document.getElementById('badge-text').textContent = name;
     const badge = document.getElementById('badge-preview');
@@ -537,7 +570,11 @@
 
   document.getElementById('station-name').addEventListener('input', updateBadge);
   document.getElementById('station-icon').addEventListener('input', updateBadge);
-  document.querySelectorAll('input[name="skin"]').forEach(r => r.addEventListener('change', updateBadge));
+  document.getElementById('custom-color').addEventListener('input', updateBadge);
+  document.querySelectorAll('input[name="skin"]').forEach(r => r.addEventListener('change', () => {
+    document.getElementById('custom-skin-fields').style.display = r.value === 'custom' ? 'block' : 'none';
+    updateBadge();
+  }));
 
   // ── Bootstrap from URL params (coming from register.html picker) ──
   (function bootstrap() {
@@ -636,9 +673,12 @@
       if (d.linkedin_url) document.getElementById('curator-linkedin').value = d.linkedin_url;
       if (d.photo_url)    document.getElementById('curator-photo').value = d.photo_url;
       if (d.badge_icon)   document.getElementById('station-icon').value = d.badge_icon === '◆' ? '' : d.badge_icon;
+      if (d.custom_color) document.getElementById('custom-color').value = d.custom_color;
+      if (d.font_family)  document.getElementById('custom-font').value = d.font_family;
       if (d.skin) {
         const radio = document.querySelector(`input[name="skin"][value="${d.skin}"]`);
         if (radio) radio.checked = true;
+        document.getElementById('custom-skin-fields').style.display = d.skin === 'custom' ? 'block' : 'none';
       }
       updateBadge();
     } catch (e) {
@@ -657,6 +697,8 @@
     const photo       = document.getElementById('curator-photo').value.trim();
     const skin        = document.querySelector('input[name="skin"]:checked')?.value || 'classic';
     const icon        = document.getElementById('station-icon').value.trim() || '◆';
+    const customColor = document.getElementById('custom-color').value;
+    const customFont  = document.getElementById('custom-font').value.trim();
 
     // Validation
     if (!stationName) { showMsg('msg-save', 'err', 'Station name is required.'); return; }
@@ -680,6 +722,8 @@
       photo_url:      photo || null,
       skin,
       badge_icon:     icon,
+      custom_color:   skin === 'custom' ? customColor : null,
+      font_family:    skin === 'custom' && customFont ? customFont : null,
     };
 
     dbg('POST /nile/station/profile → ' + JSON.stringify(payload, null, 2));

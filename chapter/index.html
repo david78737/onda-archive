@@ -28,7 +28,7 @@
   body {
     background: var(--bg);
     color: var(--ink);
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    font-family: var(--font-body, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif);
     font-size: 15px;
     line-height: 1.6;
     min-height: 100vh;
@@ -194,27 +194,31 @@
 
   #status { font-size: 12px; color: var(--muted); padding: 6px 0 8px; }
 
-  /* ── Cards ── */
-  .sessions { display: flex; flex-direction: column; gap: 7px; }
+  /* ── Cards — matrix of tiles ── */
+  .sessions { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 16px; }
   .card {
     background: var(--surface); border: 1px solid var(--border);
-    border-radius: 8px; overflow: hidden; transition: border-color .15s;
+    border-radius: 10px; overflow: hidden; transition: border-color .15s, box-shadow .15s;
   }
-  .card.open { border-color: var(--accent); }
+  .card.open { border-color: var(--accent); grid-column: 1 / -1; box-shadow: 0 4px 20px rgba(0,0,0,.08); }
   .card-header {
-    display: flex; align-items: flex-start; gap: 10px;
-    padding: 13px 14px; cursor: pointer;
+    display: flex; flex-direction: column; align-items: center; text-align: center; gap: 10px;
+    padding: 20px 16px 16px; cursor: pointer; position: relative;
     -webkit-user-select: none; user-select: none;
   }
+  .card.open .card-header { flex-direction: row; text-align: left; padding: 13px 14px; }
   .card-header:hover .card-title { color: var(--ink); }
   .chevron {
-    flex-shrink: 0; margin-top: 4px; width: 15px; height: 15px;
+    flex-shrink: 0; position: absolute; top: 14px; right: 14px; width: 15px; height: 15px;
     color: var(--muted-dim); transition: transform .18s;
   }
-  .card.open .chevron { transform: rotate(90deg); }
-  .card-meta { flex: 1; min-width: 0; }
-  .card-title { font-size: 14px; font-weight: 600; color: var(--ink-mid); margin-bottom: 3px; transition: color .15s; }
-  .card-presenter { font-size: 12px; color: var(--muted); margin-bottom: 6px; display: flex; align-items: center; gap: 8px; }
+  .card.open .chevron { transform: rotate(90deg); position: static; margin-top: 4px; }
+  .card-meta { flex: 1; min-width: 0; width: 100%; }
+  .card-title { font-size: 15px; font-weight: 600; color: var(--ink-mid); margin-bottom: 4px; transition: color .15s; }
+  .card-presenter { font-size: 12px; color: var(--muted); margin-bottom: 6px; display: flex; align-items: center; justify-content: center; gap: 8px; }
+  .card.open .card-presenter { justify-content: flex-start; }
+  .card:not(.open) .badges,
+  .card:not(.open) .card-tags { justify-content: center; }
   .li-link {
     display: inline-flex; align-items: center; gap: 3px;
     font-size: 10px; color: var(--accent); text-decoration: none; opacity: .8;
@@ -243,15 +247,17 @@
   .card-tag.lit { border-color: var(--accent); color: var(--accent); }
 
   .card-avatar {
-    flex-shrink: 0; width: 48px; height: 48px; border-radius: 50%;
+    flex-shrink: 0; width: 72px; height: 72px; border-radius: 50%;
     display: flex; align-items: center; justify-content: center;
-    font-size: 15px; font-weight: 700; color: rgba(255,255,255,.85);
+    font-size: 20px; font-weight: 700; color: rgba(255,255,255,.85);
     align-self: center; letter-spacing: .03em;
   }
   .card-avatar-photo {
-    flex-shrink: 0; width: 48px; height: 48px;
+    flex-shrink: 0; width: 72px; height: 72px;
     border-radius: 50%; object-fit: cover; align-self: center;
   }
+  .card.open .card-avatar,
+  .card.open .card-avatar-photo { width: 48px; height: 48px; font-size: 15px; }
 
   .card-body { display: none; padding: 0 14px 14px 38px; }
   .card.open .card-body { display: block; }
@@ -403,6 +409,17 @@ function applyTheme(org) {
   if (org.bg_color)         r.style.setProperty('--bg',          org.bg_color);
   if (org.surface_color)    r.style.setProperty('--surface',     org.surface_color);
   if (org.header_bg_color)  r.style.setProperty('--header-bg',   org.header_bg_color);
+  if (org.font_family) {
+    const linkId = 'custom-font-link';
+    if (!document.getElementById(linkId)) {
+      const link = document.createElement('link');
+      link.id = linkId;
+      link.rel = 'stylesheet';
+      link.href = 'https://fonts.googleapis.com/css2?family=' + encodeURIComponent(org.font_family).replace(/%20/g, '+') + ':wght@400;600;700&display=swap';
+      document.head.appendChild(link);
+    }
+    r.style.setProperty('--font-body', `"${org.font_family}", -apple-system, BlinkMacSystemFont, sans-serif`);
+  }
 
   const title = org.display_name || [ORG_L1, ORG_L2, ORG_L3].filter(Boolean).join(' › ');
   document.title = 'ONDA Archive — ' + title;
@@ -628,10 +645,11 @@ document.getElementById('search-input').addEventListener('input', e => {
     try {
       const skin = await identityResp.json();
       applyTheme({
-        accent_color:    skin.accent_color,
+        accent_color:    skin.accent_color || skin.custom_color,
         display_name:    skin.wordmark,
         tagline:         skin.tagline,
         logo_url:        skin.logo_url,
+        font_family:     skin.font_family,
       });
     } catch(_) {}
   } else {
