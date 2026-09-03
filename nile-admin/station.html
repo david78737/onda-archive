@@ -197,7 +197,7 @@
     font-weight: 700;
     letter-spacing: 0.1em;
     text-transform: uppercase;
-    color: rgba(255,255,255,0.45);
+    color: #8a9997;
     margin-bottom: 14px;
   }
   .mock-tile {
@@ -216,7 +216,7 @@
   }
   .mock-tile-meta {
     font-size: 11px;
-    color: rgba(255,255,255,0.4);
+    color: #8a9997;
   }
   .mock-tile-footer {
     display: flex;
@@ -374,17 +374,45 @@
 
       <div id="custom-skin-fields">
         <div class="color-control-row">
+          <input type="color" id="custom-page-bg" value="#F1F6F6">
+          <div class="color-control-text">
+            <div class="color-control-label">Page background</div>
+            <div class="color-control-desc">The area behind every tile on your archive page</div>
+          </div>
+        </div>
+        <div class="color-control-row">
+          <input type="color" id="custom-tile-bg" value="#FFFFFF">
+          <div class="color-control-text">
+            <div class="color-control-label">Tile background</div>
+            <div class="color-control-desc">The card behind each session's title and details</div>
+          </div>
+        </div>
+        <div class="color-control-row">
+          <input type="color" id="custom-border" value="#C5DEDD">
+          <div class="color-control-text">
+            <div class="color-control-label">Border</div>
+            <div class="color-control-desc">The outline around each tile</div>
+          </div>
+        </div>
+        <div class="color-control-row">
+          <input type="color" id="custom-text" value="#1C2B2A">
+          <div class="color-control-text">
+            <div class="color-control-label">Title text</div>
+            <div class="color-control-desc">Each session's title, the main text on every tile</div>
+          </div>
+        </div>
+        <div class="color-control-row">
           <input type="color" id="custom-accent" value="#008B82">
           <div class="color-control-text">
             <div class="color-control-label">Accent</div>
-            <div class="color-control-desc">Links, borders, and highlights across your archive page</div>
+            <div class="color-control-desc">Links, tags, and highlights across your archive page</div>
           </div>
         </div>
         <div class="color-control-row">
           <input type="color" id="custom-badge-bg" value="#00483F">
           <div class="color-control-text">
             <div class="color-control-label">Badge background</div>
-            <div class="color-control-desc">The pill behind your station name on every tile</div>
+            <div class="color-control-desc">The small pill behind your station name on every tile</div>
           </div>
         </div>
         <div class="color-control-row">
@@ -423,10 +451,10 @@
         <div class="hint">Replaces the default ◆ with your own logo/icon in the badge.</div>
       </div>
 
-      <div class="badge-preview-wrap" style="margin-top:20px;">
+      <div class="badge-preview-wrap" id="preview-wrap" style="margin-top:20px;">
         <div class="preview-label">Example tile on ONDA Nile</div>
-        <div class="mock-tile">
-          <div class="mock-tile-title">The Future of Product Development</div>
+        <div class="mock-tile" id="preview-tile">
+          <div class="mock-tile-title" id="preview-title">The Future of Product Development</div>
           <div class="mock-tile-meta">42 min · Nov 21 2026</div>
           <div class="mock-tile-footer">
             <span class="station-badge" id="badge-preview" style="background:rgba(0,139,130,0.2);color:#00B8AC;">
@@ -453,7 +481,6 @@
   let authedPhone = '';
   let currentOrg  = { l1: '', l2: '', l3: '' };
 
-  // Skin palette map for badge preview
   function dbg(msg) { console.log('[station]', msg); }
 
   function showMsg(id, type, text) {
@@ -476,6 +503,11 @@
     const name = document.getElementById('station-name').value.trim() || 'Your Station Name';
     const bg   = document.getElementById('custom-badge-bg').value;
     const text = document.getElementById('custom-badge-text').value;
+
+    document.getElementById('preview-wrap').style.background = document.getElementById('custom-page-bg').value;
+    document.getElementById('preview-tile').style.background = document.getElementById('custom-tile-bg').value;
+    document.getElementById('preview-tile').style.border = `1px solid ${document.getElementById('custom-border').value}`;
+    document.getElementById('preview-title').style.color = document.getElementById('custom-text').value;
 
     document.getElementById('badge-text').textContent = name;
     const badge = document.getElementById('badge-preview');
@@ -500,9 +532,8 @@
     }
   }
   document.getElementById('station-name').addEventListener('input', updateBadge);
-  document.getElementById('custom-accent').addEventListener('input', updateBadge);
-  document.getElementById('custom-badge-bg').addEventListener('input', updateBadge);
-  document.getElementById('custom-badge-text').addEventListener('input', updateBadge);
+  ['custom-page-bg', 'custom-tile-bg', 'custom-border', 'custom-text', 'custom-accent', 'custom-badge-bg', 'custom-badge-text']
+    .forEach(id => document.getElementById(id).addEventListener('input', updateBadge));
 
   // ── Font selector ─────────────────────────────────────────────
   document.getElementById('custom-font-select').addEventListener('change', (e) => {
@@ -643,6 +674,10 @@
         document.getElementById('icon-preview-img').style.display = 'block';
         document.getElementById('icon-preview-fallback').style.display = 'none';
       }
+      if (d.custom_page_bg)   document.getElementById('custom-page-bg').value = d.custom_page_bg;
+      if (d.custom_tile_bg)   document.getElementById('custom-tile-bg').value = d.custom_tile_bg;
+      if (d.custom_border)    document.getElementById('custom-border').value = d.custom_border;
+      if (d.custom_text)      document.getElementById('custom-text').value = d.custom_text;
       if (d.custom_accent)    document.getElementById('custom-accent').value = d.custom_accent;
       if (d.custom_badge_bg)  document.getElementById('custom-badge-bg').value = d.custom_badge_bg;
       if (d.custom_badge_text) document.getElementById('custom-badge-text').value = d.custom_badge_text;
@@ -671,6 +706,10 @@
     const curatorName = document.getElementById('curator-name').value.trim();
     const linkedin    = document.getElementById('curator-linkedin').value.trim();
     const photo       = document.getElementById('curator-photo').value.trim();
+    const customPageBg    = document.getElementById('custom-page-bg').value;
+    const customTileBg    = document.getElementById('custom-tile-bg').value;
+    const customBorder    = document.getElementById('custom-border').value;
+    const customText      = document.getElementById('custom-text').value;
     const customAccent    = document.getElementById('custom-accent').value;
     const customBadgeBg   = document.getElementById('custom-badge-bg').value;
     const customBadgeText = document.getElementById('custom-badge-text').value;
@@ -698,6 +737,10 @@
       photo_url:      photo || null,
       skin:             'custom',
       badge_icon_url:   badgeIconUrl,
+      custom_page_bg:    customPageBg,
+      custom_tile_bg:    customTileBg,
+      custom_border:     customBorder,
+      custom_text:       customText,
       custom_accent:     customAccent,
       custom_badge_bg:   customBadgeBg,
       custom_badge_text: customBadgeText,

@@ -409,6 +409,14 @@ function applyTheme(org) {
   if (org.bg_color)         r.style.setProperty('--bg',          org.bg_color);
   if (org.surface_color)    r.style.setProperty('--surface',     org.surface_color);
   if (org.header_bg_color)  r.style.setProperty('--header-bg',   org.header_bg_color);
+  if (org.border_color) {
+    r.style.setProperty('--border',      org.border_color);
+    r.style.setProperty('--border-dim',  org.border_color);
+  }
+  if (org.text_color) {
+    r.style.setProperty('--ink',      org.text_color);
+    r.style.setProperty('--ink-mid',  org.text_color);
+  }
   if (org.font_family) {
     const linkId = 'custom-font-link';
     if (!document.getElementById(linkId)) {
@@ -644,8 +652,13 @@ document.getElementById('search-input').addEventListener('input', e => {
   if (identityResp && identityResp.ok) {
     try {
       const skin = await identityResp.json();
+      const isCustom = skin.skin === 'custom';
       applyTheme({
-        accent_color:    skin.skin === 'custom' ? (skin.custom_accent || skin.accent_color) : skin.accent_color,
+        accent_color:    isCustom ? (skin.custom_accent || skin.accent_color) : skin.accent_color,
+        bg_color:        isCustom ? skin.custom_page_bg : skin.bg_color,
+        surface_color:   isCustom ? skin.custom_tile_bg : skin.surface_color,
+        border_color:    isCustom ? skin.custom_border : null,
+        text_color:      isCustom ? skin.custom_text : null,
         display_name:    skin.wordmark,
         tagline:         skin.tagline,
         logo_url:        skin.logo_url,
