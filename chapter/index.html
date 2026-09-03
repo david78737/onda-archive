@@ -684,7 +684,7 @@ document.getElementById('search-input').addEventListener('input', e => {
         border_color:    isCustom ? skin.custom_border : null,
         display_name:    skin.wordmark,
         tagline:         skin.tagline,
-        logo_url:        skin.logo_url,
+        logo_url:        skin.logo_url || skin.badge_icon_url,
         font_family:     skin.font_family,
       });
     } catch(_) {}
