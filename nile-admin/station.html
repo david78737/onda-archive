@@ -218,6 +218,14 @@
     font-size: 11px;
     color: #8a9997;
   }
+  .mock-tile-tag {
+    display: inline-block;
+    font-size: 10px;
+    font-weight: 600;
+    border-radius: 20px;
+    padding: 2px 9px;
+    width: fit-content;
+  }
   .mock-tile-footer {
     display: flex;
     justify-content: flex-end;
@@ -457,6 +465,7 @@
         <div class="mock-tile" id="preview-tile">
           <div class="mock-tile-title" id="preview-title">The Future of Product Development</div>
           <div class="mock-tile-meta">42 min · Nov 21 2026</div>
+          <span class="mock-tile-tag" id="preview-tag">product</span>
           <div class="mock-tile-footer">
             <span class="station-badge" id="badge-preview" style="background:rgba(0,139,130,0.2);color:#00B8AC;">
               ◆ <span id="badge-text">Your Station Name</span>
@@ -509,6 +518,10 @@
     document.getElementById('preview-tile').style.background = document.getElementById('custom-tile-bg').value;
     document.getElementById('preview-tile').style.border = `1px solid ${document.getElementById('custom-border').value}`;
     document.getElementById('preview-title').style.color = document.getElementById('custom-text').value;
+    const accent = document.getElementById('custom-accent').value;
+    document.getElementById('preview-tag').style.color = accent;
+    document.getElementById('preview-tag').style.border = `1.5px solid ${accent}`;
+    document.getElementById('preview-tag').style.background = accent + '1A';
 
     document.getElementById('badge-text').textContent = name;
     const badge = document.getElementById('badge-preview');
