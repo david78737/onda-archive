@@ -400,22 +400,46 @@ function openOnda(event, url) {
   return false;
 }
 
+// ── Color math: derive text/chip colors instead of storing them ────────────────
+function hexToRgbArr(hex) {
+  const h = hex.replace('#', '');
+  return [parseInt(h.slice(0,2),16), parseInt(h.slice(2,4),16), parseInt(h.slice(4,6),16)];
+}
+function contrastTextColor(bgHex) {
+  const [r,g,b] = hexToRgbArr(bgHex);
+  const yiq = (r*299 + g*587 + b*114) / 1000;
+  return yiq >= 150 ? '#141414' : '#FFFFFF';
+}
+function blendHex(hexA, hexB, ratio) { // ratio = weight of hexB, 0-1
+  const a = hexToRgbArr(hexA), b = hexToRgbArr(hexB);
+  const mixed = a.map((v,i) => Math.round(v*(1-ratio) + b[i]*ratio));
+  return '#' + mixed.map(v => v.toString(16).padStart(2,'0')).join('');
+}
+
 // ── Apply org theme from Xano ──────────────────────────────────────────────────
 function applyTheme(org) {
   if (!org) return;
   const r = document.documentElement;
-  if (org.accent_color)     r.style.setProperty('--accent',      org.accent_color);
-  if (org.accent_color)     r.style.setProperty('--accent-dim',  org.accent_color + '26');
-  if (org.bg_color)         r.style.setProperty('--bg',          org.bg_color);
-  if (org.surface_color)    r.style.setProperty('--surface',     org.surface_color);
-  if (org.header_bg_color)  r.style.setProperty('--header-bg',   org.header_bg_color);
-  if (org.border_color) {
-    r.style.setProperty('--border',      org.border_color);
-    r.style.setProperty('--border-dim',  org.border_color);
+  if (org.accent_color) {
+    r.style.setProperty('--accent',      org.accent_color);
+    r.style.setProperty('--accent-dim',  org.accent_color + '26');
   }
-  if (org.text_color) {
-    r.style.setProperty('--ink',      org.text_color);
-    r.style.setProperty('--ink-mid',  org.text_color);
+  if (org.bg_color)      r.style.setProperty('--bg', org.bg_color);
+  if (org.surface_color && org.border_color) {
+    const surface = org.surface_color, border = org.border_color;
+    const ink = contrastTextColor(surface);
+    const chipBg = blendHex(surface, border, 0.25);
+    r.style.setProperty('--surface',       surface);
+    r.style.setProperty('--surface2',      chipBg);
+    r.style.setProperty('--border',        border);
+    r.style.setProperty('--border-dim',    border);
+    r.style.setProperty('--ink',           ink);
+    r.style.setProperty('--ink-mid',       ink);
+    r.style.setProperty('--muted',         blendHex(ink, surface, 0.45));
+    r.style.setProperty('--muted-dim',     blendHex(ink, chipBg, 0.4));
+    r.style.setProperty('--header-bg',     surface);
+    r.style.setProperty('--header-border', border);
+    r.style.setProperty('--header-ink',    ink);
   }
   if (org.font_family) {
     const linkId = 'custom-font-link';
@@ -658,7 +682,6 @@ document.getElementById('search-input').addEventListener('input', e => {
         bg_color:        isCustom ? skin.custom_page_bg : skin.bg_color,
         surface_color:   isCustom ? skin.custom_tile_bg : skin.surface_color,
         border_color:    isCustom ? skin.custom_border : null,
-        text_color:      isCustom ? skin.custom_text : null,
         display_name:    skin.wordmark,
         tagline:         skin.tagline,
         logo_url:        skin.logo_url,

@@ -430,34 +430,13 @@
           </div>
         </div>
         <div class="color-control-row">
-          <input type="color" id="custom-text" value="#1C2B2A">
-          <div class="color-control-text">
-            <div class="color-control-label">Title text</div>
-            <div class="color-control-desc">Each session's title, the main text on every tile</div>
-          </div>
-        </div>
-        <div class="color-control-row">
           <input type="color" id="custom-accent" value="#008B82">
           <div class="color-control-text">
             <div class="color-control-label">Accent</div>
-            <div class="color-control-desc">Links, tags, and highlights across your archive page</div>
+            <div class="color-control-desc">Links, badge, and highlights across your archive page</div>
           </div>
         </div>
-        <div class="color-control-row">
-          <input type="color" id="custom-badge-bg" value="#00483F">
-          <div class="color-control-text">
-            <div class="color-control-label">Badge background</div>
-            <div class="color-control-desc">The small pill behind your station name on every tile</div>
-          </div>
-        </div>
-        <div class="color-control-row">
-          <input type="color" id="custom-badge-text" value="#00B8AC">
-          <div class="color-control-text">
-            <div class="color-control-label">Badge text</div>
-            <div class="color-control-desc">The station name and icon inside that badge</div>
-          </div>
-        </div>
-
+        <p class="hint" style="margin-top:12px;">Text color is picked automatically — dark or white, whichever actually reads clearly against your background.</p>
       </div>
 
       <div class="badge-preview-wrap" id="preview-wrap" style="margin-top:20px;">
@@ -508,25 +487,44 @@
 
   let badgeIconUrl = null; // set by the upload handler below
 
+  // ── Color math: derive text/chip colors instead of asking for them ──
+  function hexToRgbArr(hex) {
+    const h = hex.replace('#', '');
+    return [parseInt(h.slice(0,2),16), parseInt(h.slice(2,4),16), parseInt(h.slice(4,6),16)];
+  }
+  function contrastTextColor(bgHex) {
+    const [r,g,b] = hexToRgbArr(bgHex);
+    const yiq = (r*299 + g*587 + b*114) / 1000;
+    return yiq >= 150 ? '#141414' : '#FFFFFF';
+  }
+  function blendHex(hexA, hexB, ratio) { // ratio = weight of hexB, 0-1
+    const a = hexToRgbArr(hexA), b = hexToRgbArr(hexB);
+    const mixed = a.map((v,i) => Math.round(v*(1-ratio) + b[i]*ratio));
+    return '#' + mixed.map(v => v.toString(16).padStart(2,'0')).join('');
+  }
+
   // ── Badge live preview ──────────────────────────────────────
   function updateBadge() {
-    const name = document.getElementById('station-name').value.trim() || 'Your Station Name';
-    const bg   = document.getElementById('custom-badge-bg').value;
-    const text = document.getElementById('custom-badge-text').value;
+    const name    = document.getElementById('station-name').value.trim() || 'Your Station Name';
+    const pageBg  = document.getElementById('custom-page-bg').value;
+    const tileBg  = document.getElementById('custom-tile-bg').value;
+    const border  = document.getElementById('custom-border').value;
+    const accent  = document.getElementById('custom-accent').value;
+    const chipBg  = blendHex(tileBg, border, 0.25); // the "sunken" tag/chip shade
 
-    document.getElementById('preview-wrap').style.background = document.getElementById('custom-page-bg').value;
-    document.getElementById('preview-tile').style.background = document.getElementById('custom-tile-bg').value;
-    document.getElementById('preview-tile').style.border = `1px solid ${document.getElementById('custom-border').value}`;
-    document.getElementById('preview-title').style.color = document.getElementById('custom-text').value;
-    const accent = document.getElementById('custom-accent').value;
-    document.getElementById('preview-tag').style.color = accent;
-    document.getElementById('preview-tag').style.border = `1.5px solid ${accent}`;
-    document.getElementById('preview-tag').style.background = accent + '1A';
+    document.getElementById('preview-wrap').style.background = pageBg;
+    document.getElementById('preview-tile').style.background = tileBg;
+    document.getElementById('preview-tile').style.border = `1px solid ${border}`;
+    document.getElementById('preview-title').style.color = contrastTextColor(tileBg);
+
+    document.getElementById('preview-tag').style.background = chipBg;
+    document.getElementById('preview-tag').style.color = contrastTextColor(chipBg);
+    document.getElementById('preview-tag').style.border = 'none';
 
     document.getElementById('badge-text').textContent = name;
     const badge = document.getElementById('badge-preview');
-    badge.style.background = bg;
-    badge.style.color = text;
+    badge.style.background = accent;
+    badge.style.color = contrastTextColor(accent);
 
     // Update icon: uploaded image if present, else the default diamond
     const iconNode = badge.childNodes[0];
@@ -546,7 +544,7 @@
     }
   }
   document.getElementById('station-name').addEventListener('input', updateBadge);
-  ['custom-page-bg', 'custom-tile-bg', 'custom-border', 'custom-text', 'custom-accent', 'custom-badge-bg', 'custom-badge-text']
+  ['custom-page-bg', 'custom-tile-bg', 'custom-border', 'custom-accent']
     .forEach(id => document.getElementById(id).addEventListener('input', updateBadge));
 
   // ── Font selector ─────────────────────────────────────────────
@@ -691,10 +689,7 @@
       if (d.custom_page_bg)   document.getElementById('custom-page-bg').value = d.custom_page_bg;
       if (d.custom_tile_bg)   document.getElementById('custom-tile-bg').value = d.custom_tile_bg;
       if (d.custom_border)    document.getElementById('custom-border').value = d.custom_border;
-      if (d.custom_text)      document.getElementById('custom-text').value = d.custom_text;
       if (d.custom_accent)    document.getElementById('custom-accent').value = d.custom_accent;
-      if (d.custom_badge_bg)  document.getElementById('custom-badge-bg').value = d.custom_badge_bg;
-      if (d.custom_badge_text) document.getElementById('custom-badge-text').value = d.custom_badge_text;
       if (d.font_family) {
         const knownCategory = Object.keys(FONT_CATEGORY_MAP).find(k => FONT_CATEGORY_MAP[k] === d.font_family);
         if (knownCategory) {
@@ -723,10 +718,7 @@
     const customPageBg    = document.getElementById('custom-page-bg').value;
     const customTileBg    = document.getElementById('custom-tile-bg').value;
     const customBorder    = document.getElementById('custom-border').value;
-    const customText      = document.getElementById('custom-text').value;
     const customAccent    = document.getElementById('custom-accent').value;
-    const customBadgeBg   = document.getElementById('custom-badge-bg').value;
-    const customBadgeText = document.getElementById('custom-badge-text').value;
     const resolvedFont    = resolveFontFamily();
 
     // Validation
@@ -754,10 +746,7 @@
       custom_page_bg:    customPageBg,
       custom_tile_bg:    customTileBg,
       custom_border:     customBorder,
-      custom_text:       customText,
       custom_accent:     customAccent,
-      custom_badge_bg:   customBadgeBg,
-      custom_badge_text: customBadgeText,
       font_family:       resolvedFont,
     };
 
