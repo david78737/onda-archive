@@ -363,10 +363,23 @@
 const NILE_API = 'https://xrxm-29on-xlyt.n7e.xano.io/api:onda-nile';
 
 // ── Read URL params ────────────────────────────────────────────────────────────
-const params  = new URLSearchParams(location.search);
-const ORG_L1  = params.get('org_l1') || '';
-const ORG_L2  = params.get('org_l2') || '';
-const ORG_L3  = params.get('org_l3') || '';
+// One ID per station, e.g. ?station=pca — no per-org code needed anywhere on
+// this page. The old ?org_l1=&org_l2=&org_l3= three-part links still work too,
+// so nothing already shared out in the wild breaks.
+const params     = new URLSearchParams(location.search);
+const STATION_ID = params.get('station') || '';
+const ORG_L1     = params.get('org_l1') || '';
+const ORG_L2     = params.get('org_l2') || '';
+const ORG_L3     = params.get('org_l3') || '';
+
+function humanizeStationId(id) {
+  return id.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
+}
+function initialsForStationId(id) {
+  const parts = id.split('-').filter(Boolean);
+  if (parts.length <= 1) return id.slice(0, 4).toUpperCase();
+  return parts.map(p => /^\d+$/.test(p) ? p : p[0].toUpperCase()).join('');
+}
 
 // ── State ─────────────────────────────────────────────────────────────────────
 let allSessions = [];
@@ -459,7 +472,7 @@ function applyTheme(org) {
     r.style.setProperty('--font-body', `"${org.font_family}", -apple-system, BlinkMacSystemFont, sans-serif`);
   }
 
-  const title = org.display_name || [ORG_L1, ORG_L2, ORG_L3].filter(Boolean).join(' › ');
+  const title = org.display_name || (STATION_ID ? humanizeStationId(STATION_ID) : [ORG_L1, ORG_L2, ORG_L3].filter(Boolean).join(' › '));
   document.title = 'ONDA Archive — ' + title;
   document.getElementById('header-title').textContent = title;
   if (org.tagline) document.getElementById('header-tagline').textContent = org.tagline;
@@ -471,17 +484,9 @@ function applyTheme(org) {
     img.alt = title;
     placeholder.parentNode.replaceChild(img, placeholder);
   } else {
-    document.getElementById('logo-placeholder').textContent = getInitials(ORG_L1, ORG_L2, ORG_L3);
+    document.getElementById('logo-placeholder').textContent =
+      STATION_ID ? initialsForStationId(STATION_ID) : (ORG_L1 || 'O')[0].toUpperCase();
   }
-}
-
-const INITIALS_MAP = {
-  'elevate|summit|elevate-summit':  'ES',
-  'productcamp|austin|pca':         'PCA',
-  'toastmasters|austin|chapter-47': 'TM47',
-};
-function getInitials(l1, l2, l3) {
-  return INITIALS_MAP[[l1,l2,l3].join('|')] || (l1||'O')[0].toUpperCase();
 }
 
 // ── Filter ─────────────────────────────────────────────────────────────────────
@@ -567,7 +572,7 @@ function render() {
 
   const container = document.getElementById('sessions');
   if (!rows.length) {
-    const orgName = [ORG_L3, ORG_L2, ORG_L1].find(Boolean) || 'This archive';
+    const orgName = (STATION_ID && humanizeStationId(STATION_ID)) || [ORG_L3, ORG_L2, ORG_L1].find(Boolean) || 'This archive';
     const isFiltered = state.speaker !== 'all' || state.tags.size > 0 || state.query;
     if (isFiltered) {
       container.innerHTML = '<div class="empty">No results — try a different filter or search term.</div>';
@@ -658,17 +663,6 @@ document.getElementById('search-input').addEventListener('input', e => {
 // ── Boot ───────────────────────────────────────────────────────────────────────
 const PRESENTATIONS_API = 'https://xrxm-29on-xlyt.n7e.xano.io/api:presentations/list';
 
-// Map org URL params to the org_l1 display name stored on nile_presentations.
-// Same live table (and same status enum) that ondanile/index.html reads —
-// this page used to read the static ondanile/sessions.json file instead,
-// which never held PCA's real presentations and went stale the moment
-// anything changed in Xano.
-const ORG_NAME_MAP = {
-  'elevate|summit|elevate-summit': 'Elevate Summit',
-  'productcamp|austin|pca':        'ProductCamp Austin',
-  'toastmasters|austin|chapter-47':'Toastmasters',
-};
-
 function normalizePresentation(p) {
   const takeaways = (Array.isArray(p.takeaways) ? p.takeaways : (p.takeaways || '').split('\n'))
     .map(t => String(t).replace(/^→\s*/, '').trim())
@@ -692,24 +686,32 @@ function normalizePresentation(p) {
 
 (async () => {
   // Set default title from URL params while loading
-  const defaultTitle = [ORG_L1, ORG_L2, ORG_L3].filter(Boolean).join(' › ') || 'Chapter Archive';
+  const defaultTitle = STATION_ID
+    ? humanizeStationId(STATION_ID)
+    : [ORG_L1, ORG_L2, ORG_L3].filter(Boolean).join(' › ') || 'Chapter Archive';
   document.getElementById('header-title').textContent = defaultTitle;
   document.title = 'ONDA Archive — ' + defaultTitle;
 
-  const orgKey = [ORG_L1, ORG_L2, ORG_L3].join('|');
-  const orgName = ORG_NAME_MAP[orgKey] || null;
-
   // Fetch live presentations + org identity/skin in parallel — both from Xano.
-  const identityParams = new URLSearchParams({ org_l1: ORG_L1, org_l2: ORG_L2, org_l3: ORG_L3 });
+  // station_id is the one identifier every new organization needs, going
+  // forward — the old three-part org_l1/l2/l3 params still work as a fallback
+  // for any link already shared out before this existed.
+  const identityParams = STATION_ID
+    ? new URLSearchParams({ station_id: STATION_ID })
+    : new URLSearchParams({ org_l1: ORG_L1, org_l2: ORG_L2, org_l3: ORG_L3 });
   const [presResp, identityResp] = await Promise.all([
     fetch(PRESENTATIONS_API).catch(() => null),
     fetch(`https://xrxm-29on-xlyt.n7e.xano.io/api:nile/org/identity?${identityParams}`).catch(() => null),
   ]);
 
-  // Apply org skin if available
+  // Apply org skin if available. Also resolves the effective station_id for
+  // an old-style org_l1/l2/l3 link, straight from the matched record — so
+  // filtering below never needs its own copy of the slug-to-station lookup.
+  let resolvedStationId = STATION_ID || null;
   if (identityResp && identityResp.ok) {
     try {
       const skin = await identityResp.json();
+      if (!resolvedStationId && skin.station_id) resolvedStationId = skin.station_id;
       const isCustom = skin.skin === 'custom';
       applyTheme({
         accent_color:    isCustom ? (skin.custom_accent || skin.accent_color) : skin.accent_color,
@@ -724,7 +726,8 @@ function normalizePresentation(p) {
     } catch(_) {}
   } else {
     document.getElementById('header-title').textContent = defaultTitle;
-    document.getElementById('logo-placeholder').textContent = getInitials(ORG_L1, ORG_L2, ORG_L3);
+    document.getElementById('logo-placeholder').textContent =
+      STATION_ID ? initialsForStationId(STATION_ID) : (ORG_L1 || 'O')[0].toUpperCase();
   }
 
   if (!presResp || !presResp.ok) {
@@ -735,7 +738,7 @@ function normalizePresentation(p) {
 
   const allData = await presResp.json();
   const filtered = allData.filter(p =>
-    p.status === 'published' && (!orgName || p.org_l1 === orgName)
+    p.status === 'published' && (!resolvedStationId || p.station_id === resolvedStationId)
   );
 
   allSessions = filtered.map(normalizePresentation);
