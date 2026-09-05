@@ -381,7 +381,8 @@ async function loadWorkList() {
     const actionsByRole = {};
     if (isCurator) {
       actionsByRole.curator = [
-        { label: 'Create Event',      desc: 'Create a new event',                                        href: `event.html?${params}`,       primary: true  },
+        { label: 'Station Dashboard', desc: 'Every tile under your station, at every status',            href: `dashboard.html?${params}`,   primary: true  },
+        { label: 'Create Event',      desc: 'Create a new event',                                        href: `event.html?${params}`,       primary: false },
         { label: 'Review Cards',      desc: 'Evaluate potential presenters and check for completeness',   href: `cards.html?${params}`,       primary: false },
         { label: 'Station Profile',   desc: 'Select colors and skin of this station',                     href: `station.html?${params}`,     primary: false },
         { label: 'Bulk Upload',       desc: 'Upload multiple .onda files to your station at once',        href: `bulk-upload.html?${params}`, primary: false },

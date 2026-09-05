@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Station Dashboard — ONDA Nile</title>
+<style>
+  :root {
+    --teal: #009688;
+    --teal-dark: #007a70;
+    --teal-light: #E8F8F6;
+    --ink: #1a1a1a;
+    --body: #333;
+    --muted: #666;
+    --border: #CCC;
+    --bg: #F7F9F9;
+    --surface: #FFF;
+    --error: #c0392b;
+    --success: #1a7f4b;
+    --success-bg: #eafaf1;
+    --warn: #B45A00;
+    --warn-bg: #FEF3E6;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--body);
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    font-size: 16px;
+    line-height: 1.6;
+    padding: 0 0 80px;
+  }
+
+  header {
+    background: var(--teal);
+    padding: 16px 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .wordmark { font-size: 18px; font-weight: 700; color: #fff; letter-spacing: .03em; }
+  .header-sub { font-size: 12px; color: rgba(255,255,255,.75); margin-top: 1px; }
+  .back-link { color: rgba(255,255,255,0.75); text-decoration: none; font-size: 13px; font-weight: 600; margin-right: 4px; }
+
+  .wrap { max-width: 780px; margin: 0 auto; padding: 32px 20px 0; }
+
+  .banner {
+    padding: 12px 16px; border-radius: 8px; font-size: 14px;
+    font-weight: 600; margin-bottom: 16px; display: none;
+  }
+  .banner.error { background: #fdecea; color: var(--error); display: block; }
+  .banner.success { background: var(--success-bg); color: var(--success); display: block; }
+
+  .dash-header {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 16px; flex-wrap: wrap; gap: 10px;
+  }
+  .dash-title { font-size: 20px; font-weight: 700; color: var(--ink); }
+  .dash-count { font-size: 13px; color: var(--muted); }
+
+  .refresh-btn {
+    padding: 6px 14px; font-size: 13px; font-weight: 600;
+    background: var(--teal-light); color: var(--teal);
+    border: 1px solid var(--teal); border-radius: 6px; cursor: pointer;
+    font-family: inherit;
+  }
+  .refresh-btn:hover { background: #d0f0ec; }
+
+  .filter-row { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 20px; }
+  .filter-btn {
+    padding: 6px 14px; font-size: 13px; font-weight: 600;
+    border: 1px solid var(--border); border-radius: 20px;
+    background: var(--surface); color: var(--muted); cursor: pointer;
+    font-family: inherit; transition: all .12s;
+  }
+  .filter-btn.active { background: var(--teal); color: #fff; border-color: var(--teal); }
+  .filter-btn:hover:not(.active) { border-color: var(--teal); color: var(--teal); }
+
+  .empty-state { text-align: center; padding: 40px 20px; color: var(--muted); font-size: 14px; }
+
+  .tile-card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 10px; margin-bottom: 14px; overflow: hidden;
+  }
+  .tile-card.status-published { border-left: 4px solid var(--success); }
+  .tile-card.status-draft     { border-left: 4px solid var(--border); }
+  .tile-card.status-pending,
+  .tile-card.status-submitted { border-left: 4px solid var(--warn); }
+  .tile-card.status-archived,
+  .tile-card.status-rejected  { border-left: 4px solid var(--muted); }
+
+  .tc-header { padding: 14px 18px 10px; }
+  .tc-title-row { display: flex; align-items: flex-start; gap: 10px; margin-bottom: 4px; }
+  .tc-title { font-size: 15px; font-weight: 700; color: var(--ink); flex: 1; }
+  .status-pill {
+    font-size: 10px; font-weight: 700; letter-spacing: .06em;
+    text-transform: uppercase; padding: 3px 9px; border-radius: 20px;
+    white-space: nowrap; flex-shrink: 0; background: #f0f0f0; color: var(--muted);
+  }
+  .status-pill.published { background: var(--success-bg); color: var(--success); }
+  .status-pill.draft      { background: #f0f0f0; color: var(--muted); }
+  .status-pill.pending,
+  .status-pill.submitted  { background: var(--warn-bg); color: var(--warn); }
+
+  .tc-meta { font-size: 12px; color: var(--muted); }
+  .tc-tags { display: flex; flex-wrap: wrap; gap: 6px; padding: 0 18px 14px; }
+  .tc-tag {
+    font-size: 11px; font-weight: 600; padding: 3px 9px;
+    background: var(--teal-light); color: var(--teal); border-radius: 20px;
+  }
+  .tc-actions {
+    padding: 10px 18px; border-top: 1px solid #f0f0f0;
+    display: flex; gap: 10px; align-items: center;
+  }
+  .tc-actions a { font-size: 13px; font-weight: 600; color: var(--teal); text-decoration: none; }
+  .tc-actions a:hover { text-decoration: underline; }
+
+  .spinner { display: inline-block; width: 16px; height: 16px; border: 2px solid currentColor;
+    border-top-color: transparent; border-radius: 50%; animation: spin .6s linear infinite;
+    vertical-align: middle; margin-right: 4px; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+</style>
+</head>
+<body>
+
+<header>
+  <div style="display:flex;align-items:center;gap:12px">
+    <a class="back-link" id="back-link" href="login.html">← Hub</a>
+    <div>
+      <div class="wordmark">ONDA Nile · Station Dashboard</div>
+      <div class="header-sub" id="header-sub">Everything under your station, at every status</div>
+    </div>
+  </div>
+</header>
+
+<div class="wrap">
+  <div id="auth-error" class="banner error" style="display:none"></div>
+
+  <div class="dash-header">
+    <div>
+      <div class="dash-title" id="dash-title">Your Station</div>
+      <div class="dash-count" id="dash-count"></div>
+    </div>
+    <button class="refresh-btn" onclick="loadTiles(currentFilter)">↻ Refresh</button>
+  </div>
+
+  <div class="filter-row">
+    <button class="filter-btn active" onclick="loadTiles('')" id="filter-all">All</button>
+    <button class="filter-btn" onclick="loadTiles('published')" id="filter-published">Published</button>
+    <button class="filter-btn" onclick="loadTiles('draft')" id="filter-draft">Draft</button>
+    <button class="filter-btn" onclick="loadTiles('pending')" id="filter-pending">Pending</button>
+    <button class="filter-btn" onclick="loadTiles('archived')" id="filter-archived">Archived</button>
+  </div>
+
+  <div id="tiles-list"></div>
+</div>
+
+<script>
+const NILE_API = 'https://xrxm-29on-xlyt.n7e.xano.io/api:onda-nile';
+const IDENTITY_API = 'https://xrxm-29on-xlyt.n7e.xano.io/api:nile/org/identity';
+
+let authToken   = null;
+let authedPhone = null;
+let stationId   = null;
+let allTiles    = [];
+let currentFilter = '';
+
+(async function bootstrap() {
+  const p = new URLSearchParams(window.location.search);
+  const token = p.get('token');
+  const phone = p.get('phone');
+  const org_l1 = p.get('org_l1');
+  const org_l2 = p.get('org_l2');
+  const org_l3 = p.get('org_l3');
+  const passedStationId = p.get('station_id');
+
+  if (!token || !phone) { window.location.href = 'login.html'; return; }
+  authToken = token;
+  authedPhone = phone;
+  document.getElementById('back-link').href = `login.html?phone=${encodeURIComponent(phone)}&token=${encodeURIComponent(token)}`;
+
+  if (passedStationId) {
+    stationId = passedStationId;
+  } else if (org_l1) {
+    // Resolve station_id from the legacy three-part org params, same fallback
+    // chapter.html uses — keeps this working even before every link that
+    // points here has been updated to pass station_id directly.
+    try {
+      const params = new URLSearchParams({ org_l1, org_l2: org_l2 || '', org_l3: org_l3 || '' });
+      const r = await fetch(`${IDENTITY_API}?${params}`);
+      if (r.ok) { const skin = await r.json(); stationId = skin.station_id || null; }
+    } catch (_) {}
+  }
+
+  if (!stationId) {
+    document.getElementById('auth-error').style.display = 'block';
+    document.getElementById('auth-error').textContent = 'Could not determine which station to load — missing station_id.';
+    return;
+  }
+
+  document.getElementById('dash-title').textContent = stationId;
+  loadTiles('');
+})();
+
+async function loadTiles(statusFilter) {
+  currentFilter = statusFilter;
+  ['all','published','draft','pending','archived'].forEach(f => {
+    const btn = document.getElementById('filter-' + f);
+    if (btn) btn.className = 'filter-btn' + ((f === (statusFilter || 'all')) ? ' active' : '');
+  });
+
+  document.getElementById('tiles-list').innerHTML = '<div class="empty-state"><span class="spinner"></span> Loading…</div>';
+  document.getElementById('auth-error').style.display = 'none';
+
+  try {
+    const params = new URLSearchParams({
+      station_id: stationId, phone: authedPhone, magic_auth_token: authToken,
+    });
+    const r = await fetch(`${NILE_API}/nile/station/tiles?${params}`);
+    if (!r.ok) {
+      const e = await r.json().catch(() => ({}));
+      throw new Error(e.message || 'Not authorized for this station.');
+    }
+    allTiles = await r.json();
+    render(statusFilter);
+  } catch (e) {
+    document.getElementById('auth-error').style.display = 'block';
+    document.getElementById('auth-error').textContent = e.message;
+    document.getElementById('tiles-list').innerHTML = '';
+  }
+}
+
+function render(statusFilter) {
+  const rows = statusFilter ? allTiles.filter(t => t.status === statusFilter) : allTiles;
+  document.getElementById('dash-count').textContent =
+    `${allTiles.length} tile${allTiles.length !== 1 ? 's' : ''} total`;
+
+  const list = document.getElementById('tiles-list');
+  if (!rows.length) {
+    list.innerHTML = '<div class="empty-state">Nothing here yet.</div>';
+    return;
+  }
+
+  list.innerHTML = rows.map(t => {
+    const tags = (Array.isArray(t.tags) ? t.tags : []).map(tag => `<span class="tc-tag">${tag}</span>`).join('');
+    const status = t.status || 'draft';
+    return `
+      <div class="tile-card status-${status}">
+        <div class="tc-header">
+          <div class="tc-title-row">
+            <div class="tc-title">${t.title || '(untitled)'}</div>
+            <span class="status-pill ${status}">${status}</span>
+          </div>
+          <div class="tc-meta">${t.presenter_name || t.presenter || ''}</div>
+        </div>
+        ${tags ? `<div class="tc-tags">${tags}</div>` : ''}
+        <div class="tc-actions">
+          ${t.onda_url ? `<a href="${t.onda_url}" target="_blank" rel="noopener">Open →</a>` : '<span style="color:var(--muted);font-size:13px">No linked file</span>'}
+        </div>
+      </div>`;
+  }).join('');
+}
+</script>
+</body>
+</html>
