@@ -833,15 +833,15 @@ function normalizePresentation(p) {
     ]);
     if (!staticResp.ok) throw new Error(`sessions.json: ${staticResp.status}`);
     const staticSessions = await staticResp.json();
-    // Real, actually-recorded talks use several different status labels
-    // depending on where they came from ("recorded" for PCA, "published"
-    // for the newer Elevate imports) — filtering on status alone missed
-    // 84 real PCA sessions. is_visible + an actual link present is the
-    // one thing genuinely true of every playable talk regardless of label,
-    // and correctly excludes not-yet-recorded ("scheduled") ones, which
-    // have no link at all.
+    // status is a real, deliberate enum (draft → submitted → pending →
+    // approved → scheduled → armed → recorded → published → archived →
+    // rejected) — published is genuinely the correct final state for a
+    // playable talk. It used to miss 84 real PCA sessions that had been
+    // bulk-imported straight to "recorded" and never moved to "published";
+    // fixed at the data level (see maintenance/fix_pca_statuses), not by
+    // working around it here.
     const presSessions = presResp && presResp.ok
-      ? (await presResp.json()).filter(p => p.is_visible === true && p.onda_url).map(normalizePresentation)
+      ? (await presResp.json()).filter(p => p.status === 'published').map(normalizePresentation)
       : [];
     allSessions = [...presSessions, ...staticSessions];
 
