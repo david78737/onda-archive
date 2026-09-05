@@ -656,25 +656,53 @@ document.getElementById('search-input').addEventListener('input', e => {
 });
 
 // ── Boot ───────────────────────────────────────────────────────────────────────
+const PRESENTATIONS_API = 'https://xrxm-29on-xlyt.n7e.xano.io/api:presentations/list';
+
+// Map org URL params to the org_l1 display name stored on nile_presentations.
+// Same live table (and same status enum) that ondanile/index.html reads —
+// this page used to read the static ondanile/sessions.json file instead,
+// which never held PCA's real presentations and went stale the moment
+// anything changed in Xano.
+const ORG_NAME_MAP = {
+  'elevate|summit|elevate-summit': 'Elevate Summit',
+  'productcamp|austin|pca':        'ProductCamp Austin',
+  'toastmasters|austin|chapter-47':'Toastmasters',
+};
+
+function normalizePresentation(p) {
+  const takeaways = (Array.isArray(p.takeaways) ? p.takeaways : (p.takeaways || '').split('\n'))
+    .map(t => String(t).replace(/^→\s*/, '').trim())
+    .filter(Boolean);
+  return {
+    id: 'pres-' + p.id,
+    title: p.title || '',
+    presenter: p.presenter_name || p.presenter || 'Unknown',
+    org: p.org_l1 || 'Unknown',
+    source: p.org_l1 || 'Unknown',
+    tags: Array.isArray(p.tags) ? p.tags : (p.tags ? p.tags.split(',').map(t => t.trim()).filter(Boolean) : []),
+    synopsis: p.summary || '',
+    takeaways,
+    who: p.audience || '',
+    brief: p.brief || '',
+    photo: p.photo_url || p.photo || null,
+    onda_url: p.onda_url || null,
+    status: p.status || null,
+  };
+}
+
 (async () => {
   // Set default title from URL params while loading
   const defaultTitle = [ORG_L1, ORG_L2, ORG_L3].filter(Boolean).join(' › ') || 'Chapter Archive';
   document.getElementById('header-title').textContent = defaultTitle;
   document.title = 'ONDA Archive — ' + defaultTitle;
 
-  // Map org URL params to sessions.json org name
-  const ORG_NAME_MAP = {
-    'elevate|summit|elevate-summit': 'Elevate Summit',
-    'productcamp|austin|pca':        'ProductCamp Austin',
-    'toastmasters|austin|chapter-47':'Toastmasters',
-  };
   const orgKey = [ORG_L1, ORG_L2, ORG_L3].join('|');
   const orgName = ORG_NAME_MAP[orgKey] || null;
 
-  // Fetch sessions.json + org identity in parallel
+  // Fetch live presentations + org identity/skin in parallel — both from Xano.
   const identityParams = new URLSearchParams({ org_l1: ORG_L1, org_l2: ORG_L2, org_l3: ORG_L3 });
-  const [sessResp, identityResp] = await Promise.all([
-    fetch('../ondanile/sessions.json').catch(() => null),
+  const [presResp, identityResp] = await Promise.all([
+    fetch(PRESENTATIONS_API).catch(() => null),
     fetch(`https://xrxm-29on-xlyt.n7e.xano.io/api:nile/org/identity?${identityParams}`).catch(() => null),
   ]);
 
@@ -699,25 +727,18 @@ document.getElementById('search-input').addEventListener('input', e => {
     document.getElementById('logo-placeholder').textContent = getInitials(ORG_L1, ORG_L2, ORG_L3);
   }
 
-  if (!sessResp || !sessResp.ok) {
+  if (!presResp || !presResp.ok) {
     document.getElementById('sessions').innerHTML =
       `<div class="empty">Could not load sessions. Try again shortly.</div>`;
     return;
   }
 
-  const allData = await sessResp.json();
-  const filtered = orgName
-    ? allData.filter(s => (s.org || '').toLowerCase().includes(orgName.toLowerCase()) ||
-                          (s.source || '').toLowerCase().includes(orgName.toLowerCase().split(' ')[0]))
-    : allData;
+  const allData = await presResp.json();
+  const filtered = allData.filter(p =>
+    p.status === 'published' && (!orgName || p.org_l1 === orgName)
+  );
 
-  allSessions = filtered.map(s => ({
-    ...s,
-    presenter: s.presenter || 'Unknown',
-    onda_url: s.onda_url || s.file_url || s.session_url || null,
-    tags: Array.isArray(s.tags) ? s.tags : [],
-    takeaways: Array.isArray(s.takeaways) ? s.takeaways : [],
-  }));
+  allSessions = filtered.map(normalizePresentation);
 
   // Build ranked tag list
   const tagCount = {};
