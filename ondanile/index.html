@@ -808,7 +808,12 @@ function normalizePresentation(p) {
     brief: p.brief || '',
     youtube: p.youtube || null,
     photo: p.photo_url || p.photo || null,
-    photoStyle: 'thumb',
+    // The tall phone-screenshot treatment is only right for PCA's own
+    // presentation-deck images — forcing it onto every /presentations/list
+    // record made ordinary headshot photos (Elevate speakers, etc.) render
+    // as oversized squares instead of the small circular avatar everything
+    // else uses.
+    photoStyle: p.org_l1 === 'ProductCamp Austin' ? 'thumb' : null,
     onda_url: p.onda_url || null,
     deck_url: p.deck_url || null,
     proxy: p.proxy || null,
