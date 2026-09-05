@@ -167,6 +167,10 @@ let stationId   = null;
 let allTiles    = [];
 let currentFilter = '';
 
+function playerUrlFor(url) {
+  return 'https://default-dev-51573d-xrxm-29on-xlyt.n7e.xano.io/index.html?src=' + encodeURIComponent(url);
+}
+
 (async function bootstrap() {
   const p = new URLSearchParams(window.location.search);
   const token = p.get('token');
@@ -257,7 +261,7 @@ function render(statusFilter) {
         </div>
         ${tags ? `<div class="tc-tags">${tags}</div>` : ''}
         <div class="tc-actions">
-          ${t.onda_url ? `<a href="${t.onda_url}" target="_blank" rel="noopener">Open →</a>` : '<span style="color:var(--muted);font-size:13px">No linked file</span>'}
+          ${t.onda_url ? `<a href="${playerUrlFor(t.onda_url)}" target="_blank" rel="noopener">Open →</a>` : '<span style="color:var(--muted);font-size:13px">No linked file</span>'}
         </div>
       </div>`;
   }).join('');
