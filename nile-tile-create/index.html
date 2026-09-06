@@ -21,6 +21,10 @@
   .field input:focus,.field textarea:focus{border-color:#008787;outline:none;}
   .field textarea{min-height:90px;resize:vertical;}
   .field .hint{font-size:12px;color:#999;margin-top:3px;}
+  /* Content type */
+  .type-row{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:24px;}
+  .type-pill{padding:8px 16px;border:1.5px solid #CCC;border-radius:20px;background:#FFF;color:#555;font-size:14px;font-weight:600;cursor:pointer;}
+  .type-pill.active{background:#008787;border-color:#008787;color:#fff;}
   /* Tags */
   .tags-wrap{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px;}
   .tag-pill{display:inline-flex;align-items:center;gap:4px;background:#E0F4F2;border:1px solid #008787;border-radius:4px;padding:3px 8px;font-size:13px;color:#008787;}
@@ -70,9 +74,14 @@
 
   <!-- Create form -->
   <div id="step-form" style="display:none;">
-    <h2>Propose a Presentation</h2>
-    <p class="sub">Fill in your talk details. It will appear on the browse page immediately after you submit.</p>
+    <h2 id="form-title">Propose a Presentation</h2>
+    <p class="sub" id="form-sub">Fill in your talk details. It will appear on the browse page immediately after you submit.</p>
     <div class="org-badge" id="org-badge"></div>
+
+    <div class="field">
+      <label>What is this? <span style="font-weight:400;color:#999">*</span></label>
+      <div class="type-row" id="type-row"></div>
+    </div>
 
     <div class="field">
       <label>Title <span style="font-weight:400;color:#999">*</span></label>
@@ -80,18 +89,18 @@
     </div>
 
     <div class="field">
-      <label>Presenter name <span style="font-weight:400;color:#999">*</span></label>
+      <label id="label-presenter">Presenter name <span style="font-weight:400;color:#999">*</span></label>
       <input id="f-presenter" type="text" placeholder="Your name as it should appear on the tile" />
     </div>
 
-    <div class="field">
+    <div class="field" id="field-event-code">
       <label>Event Code <span style="font-weight:400;color:#999">(optional)</span></label>
       <input id="f-event-code" type="text" placeholder="e.g. EVENT2026 — if this is for a specific event" style="text-transform:uppercase" />
       <div class="hint">Contact the event host for the event code.</div>
     </div>
 
     <div class="field">
-      <label>Synopsis <span style="font-weight:400;color:#999">(1–3 sentences)</span></label>
+      <label id="label-synopsis">Synopsis <span style="font-weight:400;color:#999">(1–3 sentences)</span></label>
       <textarea id="f-synopsis" placeholder="What this talk is about"></textarea>
     </div>
 
@@ -117,18 +126,18 @@
     </div>
 
     <div class="field">
-      <label>Key Takeaways <span style="font-weight:400;color:#999">(optional)</span></label>
+      <label id="label-takeaways">Key Takeaways <span style="font-weight:400;color:#999">(optional)</span></label>
       <ul class="takeaway-list" id="takeaway-list"></ul>
       <button class="btn-add-item" type="button" onclick="addTakeaway()">+ Add Takeaway</button>
     </div>
 
-    <div class="field">
+    <div class="field" id="field-deck">
       <label>Deck / Slides <span style="font-weight:400;color:#999">(optional)</span></label>
       <input id="f-deck" type="url" placeholder="Google Slides, Canva, or PDF link" />
       <div class="hint">A link to your slide deck if you have one.</div>
     </div>
 
-    <div class="field">
+    <div class="field" id="field-youtube">
       <label>YouTube URL <span style="font-weight:400;color:#999">(optional)</span></label>
       <input id="f-youtube" type="url" placeholder="https://youtube.com/watch?v=..." />
       <div class="hint">Link to the recorded session on YouTube, if available.</div>
@@ -146,7 +155,7 @@
       <div class="hint">Link to a .onda file if the recording is ready.</div>
     </div>
 
-    <button class="btn" id="btn-submit" onclick="submitTile()">Submit Presentation</button>
+    <button class="btn" id="btn-submit" onclick="submitTile()">Submit</button>
     <div class="msg" id="msg-submit"></div>
   </div>
 
@@ -178,6 +187,67 @@ if (EVENT_CODE) document.getElementById('f-event-code').value = EVENT_CODE.toUpp
 const LOCKED_TAG = L3 || L1 || null;
 
 let userTags = [];
+
+// ── Content type — same underlying fields for every type, just relabeled
+// and with the talk-only fields hidden when they don't apply. Adding a new
+// type later is just one more entry here, nothing else to touch.
+const CONTENT_TYPES = {
+  presentation: {
+    label: 'Presentation', typeTag: 'presentation',
+    formTitle: 'Propose a Presentation',
+    formSub: 'Fill in your talk details. It will appear on the browse page immediately after you submit.',
+    presenterLabel: 'Presenter name', synopsisLabel: 'Synopsis',
+    takeawaysLabel: 'Key Takeaways', submitLabel: 'Submit Presentation',
+    showTalkFields: true,
+  },
+  help_file: {
+    label: 'Help File', typeTag: 'help-file',
+    formTitle: 'Add a Help File',
+    formSub: 'Fill in the details. It will appear on the browse page immediately after you submit.',
+    presenterLabel: 'Author', synopsisLabel: 'What this covers',
+    takeawaysLabel: 'Key Points', submitLabel: 'Submit Help File',
+    showTalkFields: false,
+  },
+  general_info: {
+    label: 'General Info', typeTag: 'general-info',
+    formTitle: 'Add General Info',
+    formSub: 'Fill in the details. It will appear on the browse page immediately after you submit.',
+    presenterLabel: 'Author', synopsisLabel: 'What this is about',
+    takeawaysLabel: 'Key Points', submitLabel: 'Submit',
+    showTalkFields: false,
+  },
+};
+let currentType = 'presentation';
+
+function renderTypeRow() {
+  const row = document.getElementById('type-row');
+  row.innerHTML = Object.entries(CONTENT_TYPES).map(([key, t]) =>
+    `<button type="button" class="type-pill${key === currentType ? ' active' : ''}" onclick="selectType('${key}')">${t.label}</button>`
+  ).join('');
+}
+
+function selectType(key) {
+  // Swap the locked type tag — remove whichever type tag was there before
+  // (if any), add the new one. The station tag (LOCKED_TAG) is untouched.
+  const prevTag = CONTENT_TYPES[currentType]?.typeTag;
+  if (prevTag) userTags = userTags.filter(t => !(t.locked && t.value === prevTag));
+  currentType = key;
+  const t = CONTENT_TYPES[key];
+  addTagValue(t.typeTag, true);
+
+  document.getElementById('form-title').textContent = t.formTitle;
+  document.getElementById('form-sub').textContent = t.formSub;
+  document.getElementById('label-presenter').firstChild.textContent = t.presenterLabel + ' ';
+  document.getElementById('label-synopsis').firstChild.textContent = t.synopsisLabel + ' ';
+  document.getElementById('label-takeaways').firstChild.textContent = t.takeawaysLabel + ' ';
+  document.getElementById('btn-submit').textContent = t.submitLabel;
+  document.getElementById('field-event-code').style.display = t.showTalkFields ? 'block' : 'none';
+  document.getElementById('field-deck').style.display = t.showTalkFields ? 'block' : 'none';
+  document.getElementById('field-youtube').style.display = t.showTalkFields ? 'block' : 'none';
+
+  renderTypeRow();
+  renderTags();
+}
 
 // ── Skin wordmark ─────────────────────────────────────────────────────────────
 const SKINS = {
@@ -219,6 +289,8 @@ const SKINS = {
 
   // Pre-populate locked tag
   if (LOCKED_TAG) addTagValue(LOCKED_TAG, true);
+  renderTypeRow();
+  selectType(currentType);
 
   document.getElementById('step-form').style.display = 'block';
 })();
