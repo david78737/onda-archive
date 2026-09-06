@@ -738,7 +738,11 @@ function normalizePresentation(p) {
 
   const allData = await presResp.json();
   const filtered = allData.filter(p =>
-    p.status === 'published' && (!resolvedStationId || p.station_id === resolvedStationId)
+    // visibility 'public' or 'chapter' show on the station's own page;
+    // 'private' (curator/admin-only) never does — that's what the Station
+    // Dashboard is for.
+    p.status === 'published' && p.visibility !== 'private' &&
+      (!resolvedStationId || p.station_id === resolvedStationId)
   );
 
   allSessions = filtered.map(normalizePresentation);

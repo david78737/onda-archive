@@ -79,6 +79,12 @@
     <div class="org-badge" id="org-badge"></div>
 
     <div class="field">
+      <label>Who can see this? <span style="font-weight:400;color:#999">*</span></label>
+      <div class="type-row" id="visibility-row"></div>
+      <div class="hint" id="visibility-hint"></div>
+    </div>
+
+    <div class="field">
       <label>What is this? <span style="font-weight:400;color:#999">*</span></label>
       <div class="type-row" id="type-row"></div>
     </div>
@@ -219,6 +225,31 @@ const CONTENT_TYPES = {
 };
 let currentType = 'presentation';
 
+// ── Visibility — who can actually see this tile. Reuses the real,
+// already-existing `visibility` values in the data (public/chapter/private)
+// rather than inventing new ones — the public catalog and station pages
+// were updated alongside this form to actually check this field, since
+// before now nothing did.
+const VISIBILITY_OPTIONS = {
+  public:  { label: 'Public', hint: 'Shows on ONDA Nile’s global directory and this station’s page.' },
+  chapter: { label: 'This Station Only', hint: 'Shows on this station’s own page, not the global directory.' },
+  private: { label: 'Admin Only', hint: 'Only visible to you, the curator, on your Station Dashboard.' },
+};
+let currentVisibility = 'public';
+
+function renderVisibilityRow() {
+  const row = document.getElementById('visibility-row');
+  row.innerHTML = Object.entries(VISIBILITY_OPTIONS).map(([key, v]) =>
+    `<button type="button" class="type-pill${key === currentVisibility ? ' active' : ''}" onclick="selectVisibility('${key}')">${v.label}</button>`
+  ).join('');
+  document.getElementById('visibility-hint').textContent = VISIBILITY_OPTIONS[currentVisibility].hint;
+}
+
+function selectVisibility(key) {
+  currentVisibility = key;
+  renderVisibilityRow();
+}
+
 function renderTypeRow() {
   const row = document.getElementById('type-row');
   row.innerHTML = Object.entries(CONTENT_TYPES).map(([key, t]) =>
@@ -291,6 +322,7 @@ const SKINS = {
   if (LOCKED_TAG) addTagValue(LOCKED_TAG, true);
   renderTypeRow();
   selectType(currentType);
+  renderVisibilityRow();
 
   document.getElementById('step-form').style.display = 'block';
 })();
@@ -393,6 +425,7 @@ async function submitTile() {
         youtube,
         photo,
         onda_url: ondaUrl,
+        visibility: currentVisibility,
       }),
     });
     if (!r.ok) { const e = await r.json(); throw new Error(e.message || 'Submit failed'); }

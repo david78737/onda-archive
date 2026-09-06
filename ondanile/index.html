@@ -846,7 +846,10 @@ function normalizePresentation(p) {
     // fixed at the data level (see maintenance/fix_pca_statuses), not by
     // working around it here.
     const presSessions = presResp && presResp.ok
-      ? (await presResp.json()).filter(p => p.status === 'published').map(normalizePresentation)
+      // visibility 'public' only — 'chapter' (station-page-only) and
+      // 'private' (curator-only, seen on the Station Dashboard instead)
+      // must never reach the global directory.
+      ? (await presResp.json()).filter(p => p.status === 'published' && p.visibility === 'public').map(normalizePresentation)
       : [];
     allSessions = [...presSessions, ...staticSessions];
 
