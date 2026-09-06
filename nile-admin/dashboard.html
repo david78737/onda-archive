@@ -143,7 +143,10 @@
       <div class="dash-title" id="dash-title">Your Station</div>
       <div class="dash-count" id="dash-count"></div>
     </div>
-    <button class="refresh-btn" onclick="loadTiles(currentFilter)">↻ Refresh</button>
+    <div style="display:flex;gap:8px">
+      <a class="refresh-btn" id="new-tile-btn" href="#" style="display:none;text-decoration:none">+ New Tile</a>
+      <button class="refresh-btn" onclick="loadTiles(currentFilter)">↻ Refresh</button>
+    </div>
   </div>
 
   <div class="filter-row">
@@ -185,18 +188,29 @@ function playerUrlFor(url) {
   authedPhone = phone;
   document.getElementById('back-link').href = `login.html?phone=${encodeURIComponent(phone)}&token=${encodeURIComponent(token)}`;
 
-  if (passedStationId) {
-    stationId = passedStationId;
-  } else if (org_l1) {
-    // Resolve station_id from the legacy three-part org params, same fallback
-    // chapter.html uses — keeps this working even before every link that
-    // points here has been updated to pass station_id directly.
-    try {
-      const params = new URLSearchParams({ org_l1, org_l2: org_l2 || '', org_l3: org_l3 || '' });
-      const r = await fetch(`${IDENTITY_API}?${params}`);
-      if (r.ok) { const skin = await r.json(); stationId = skin.station_id || null; }
-    } catch (_) {}
-  }
+  // Always resolve through identity (by station_id when we have it, else the
+  // legacy three-part params) — needed for org_l1/l2/l3 too, which the "New
+  // Tile" link requires and the URL doesn't always carry directly.
+  try {
+    const idParams = passedStationId
+      ? new URLSearchParams({ station_id: passedStationId })
+      : new URLSearchParams({ org_l1: org_l1 || '', org_l2: org_l2 || '', org_l3: org_l3 || '' });
+    const r = await fetch(`${IDENTITY_API}?${idParams}`);
+    if (r.ok) {
+      const skin = await r.json();
+      stationId = skin.station_id || passedStationId || null;
+      if (skin.org_l1) {
+        const newTileParams = new URLSearchParams({
+          org_l1: skin.org_l1, org_l2: skin.org_l2 || '', org_l3: skin.org_l3 || '',
+          phone: authedPhone, token: authToken,
+        });
+        const btn = document.getElementById('new-tile-btn');
+        btn.href = `../nile-tile-create/?${newTileParams}`;
+        btn.style.display = 'inline-block';
+      }
+    }
+  } catch (_) {}
+  if (!stationId) stationId = passedStationId;
 
   if (!stationId) {
     document.getElementById('auth-error').style.display = 'block';
