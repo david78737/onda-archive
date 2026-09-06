@@ -145,16 +145,23 @@
     </div>
     <div style="display:flex;gap:8px">
       <a class="refresh-btn" id="new-tile-btn" href="#" style="display:none;text-decoration:none">+ New Tile</a>
-      <button class="refresh-btn" onclick="loadTiles(currentFilter)">↻ Refresh</button>
+      <button class="refresh-btn" onclick="loadTiles()">↻ Refresh</button>
     </div>
   </div>
 
   <div class="filter-row">
-    <button class="filter-btn active" onclick="loadTiles('')" id="filter-all">All</button>
-    <button class="filter-btn" onclick="loadTiles('published')" id="filter-published">Published</button>
-    <button class="filter-btn" onclick="loadTiles('draft')" id="filter-draft">Draft</button>
-    <button class="filter-btn" onclick="loadTiles('pending')" id="filter-pending">Pending</button>
-    <button class="filter-btn" onclick="loadTiles('archived')" id="filter-archived">Archived</button>
+    <button class="filter-btn active" onclick="setStatusFilter('')" id="filter-all">All</button>
+    <button class="filter-btn" onclick="setStatusFilter('published')" id="filter-published">Published</button>
+    <button class="filter-btn" onclick="setStatusFilter('draft')" id="filter-draft">Draft</button>
+    <button class="filter-btn" onclick="setStatusFilter('pending')" id="filter-pending">Pending</button>
+    <button class="filter-btn" onclick="setStatusFilter('archived')" id="filter-archived">Archived</button>
+  </div>
+
+  <div class="filter-row">
+    <button class="filter-btn active" onclick="setVisibilityFilter('')" id="vis-filter-all">Any Visibility</button>
+    <button class="filter-btn" onclick="setVisibilityFilter('public')" id="vis-filter-public">Public</button>
+    <button class="filter-btn" onclick="setVisibilityFilter('chapter')" id="vis-filter-chapter">This Station Only</button>
+    <button class="filter-btn" onclick="setVisibilityFilter('private')" id="vis-filter-private">Admin Only</button>
   </div>
 
   <div id="tiles-list"></div>
@@ -169,6 +176,7 @@ let authedPhone = null;
 let stationId   = null;
 let allTiles    = [];
 let currentFilter = '';
+let currentVisibilityFilter = '';
 
 function playerUrlFor(url) {
   return 'https://default-dev-51573d-xrxm-29on-xlyt.n7e.xano.io/index.html?src=' + encodeURIComponent(url);
@@ -219,16 +227,30 @@ function playerUrlFor(url) {
   }
 
   document.getElementById('dash-title').textContent = stationId;
-  loadTiles('');
+  loadTiles();
 })();
 
-async function loadTiles(statusFilter) {
-  currentFilter = statusFilter;
-  ['all','published','draft','pending','archived'].forEach(f => {
-    const btn = document.getElementById('filter-' + f);
-    if (btn) btn.className = 'filter-btn' + ((f === (statusFilter || 'all')) ? ' active' : '');
-  });
+const VISIBILITY_LABELS = { public: 'Public', chapter: 'This Station Only', private: 'Admin Only' };
 
+function setStatusFilter(f) {
+  currentFilter = f;
+  ['all','published','draft','pending','archived'].forEach(k => {
+    const btn = document.getElementById('filter-' + k);
+    if (btn) btn.className = 'filter-btn' + ((k === (f || 'all')) ? ' active' : '');
+  });
+  render();
+}
+
+function setVisibilityFilter(f) {
+  currentVisibilityFilter = f;
+  ['all','public','chapter','private'].forEach(k => {
+    const btn = document.getElementById('vis-filter-' + k);
+    if (btn) btn.className = 'filter-btn' + ((k === (f || 'all')) ? ' active' : '');
+  });
+  render();
+}
+
+async function loadTiles() {
   document.getElementById('tiles-list').innerHTML = '<div class="empty-state"><span class="spinner"></span> Loading…</div>';
   document.getElementById('auth-error').style.display = 'none';
 
@@ -242,7 +264,7 @@ async function loadTiles(statusFilter) {
       throw new Error(e.message || 'Not authorized for this station.');
     }
     allTiles = await r.json();
-    render(statusFilter);
+    render();
   } catch (e) {
     document.getElementById('auth-error').style.display = 'block';
     document.getElementById('auth-error').textContent = e.message;
@@ -250,8 +272,11 @@ async function loadTiles(statusFilter) {
   }
 }
 
-function render(statusFilter) {
-  const rows = statusFilter ? allTiles.filter(t => t.status === statusFilter) : allTiles;
+function render() {
+  const rows = allTiles.filter(t =>
+    (!currentFilter || t.status === currentFilter) &&
+    (!currentVisibilityFilter || t.visibility === currentVisibilityFilter)
+  );
   document.getElementById('dash-count').textContent =
     `${allTiles.length} tile${allTiles.length !== 1 ? 's' : ''} total`;
 
@@ -264,12 +289,14 @@ function render(statusFilter) {
   list.innerHTML = rows.map(t => {
     const tags = (Array.isArray(t.tags) ? t.tags : []).map(tag => `<span class="tc-tag">${tag}</span>`).join('');
     const status = t.status || 'draft';
+    const visibility = t.visibility || 'public';
     return `
       <div class="tile-card status-${status}">
         <div class="tc-header">
           <div class="tc-title-row">
             <div class="tc-title">${t.title || '(untitled)'}</div>
             <span class="status-pill ${status}">${status}</span>
+            <span class="status-pill" style="background:var(--teal-light);color:var(--teal)">${VISIBILITY_LABELS[visibility] || visibility}</span>
           </div>
           <div class="tc-meta">${t.presenter_name || t.presenter || ''}</div>
         </div>
