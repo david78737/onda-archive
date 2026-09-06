@@ -458,6 +458,14 @@
     <button class="btn-primary" id="btn-save">Save station profile</button>
     <div id="msg-save" class="msg"></div>
 
+    <div id="embed-section" style="margin-top:28px;padding-top:20px;border-top:1px solid var(--border);display:none;">
+      <div class="field-label" style="margin-bottom:6px;">Embed your archive on your own website</div>
+      <p class="hint" style="margin-bottom:10px;">Paste this into your website's HTML wherever you want your public archive to show up.</p>
+      <textarea id="embed-code" readonly rows="6" style="width:100%;font-family:monospace;font-size:12px;padding:12px;border:1px solid var(--border);border-radius:8px;background:#faf9f5;color:var(--ink);resize:vertical;"></textarea>
+      <button type="button" class="btn-primary" id="btn-copy-embed" style="margin-top:10px;width:auto;padding:10px 20px;">Copy Embed Code</button>
+      <span id="copy-confirm" style="margin-left:10px;font-size:13px;color:var(--teal);display:none;">✓ Copied</span>
+    </div>
+
   </div><!-- /screen-main -->
 
 </div><!-- /wrap -->
@@ -672,6 +680,15 @@
       const d = await r.json();
       dbg('Loaded existing profile: ' + d.station_name);
 
+      // Embed code — always just this fixed template with the station_id
+      // swapped in, so it can be regenerated any time, by the curator or by
+      // an admin supporting them, without anything special being "stored."
+      if (d.station_id) {
+        const embedCode = `<iframe\n  src="https://archive.ondareplay.com/chapter/?station=${d.station_id}"\n  width="100%"\n  height="900"\n  style="border:none;"\n  title="${d.station_name || 'ONDA Archive'}">\n</iframe>`;
+        document.getElementById('embed-code').value = embedCode;
+        document.getElementById('embed-section').style.display = 'block';
+      }
+
       // Populate fields
       if (d.station_name) document.getElementById('station-name').value = d.station_name;
       if (d.city)         document.getElementById('station-city').value = d.city;
@@ -705,6 +722,23 @@
       dbg('loadProfile error: ' + e.message);
     }
   }
+
+  // ── Embed code ───────────────────────────────────────────────
+  document.getElementById('btn-copy-embed').addEventListener('click', async () => {
+    const code = document.getElementById('embed-code').value;
+    try {
+      await navigator.clipboard.writeText(code);
+    } catch (_) {
+      // Clipboard API can be blocked in some contexts — fall back to a
+      // manual select so the user can still copy it themselves.
+      const el = document.getElementById('embed-code');
+      el.focus();
+      el.select();
+    }
+    const confirm = document.getElementById('copy-confirm');
+    confirm.style.display = 'inline';
+    setTimeout(() => { confirm.style.display = 'none'; }, 2000);
+  });
 
   // ── Save ─────────────────────────────────────────────────────
   document.getElementById('btn-save').addEventListener('click', async () => {
