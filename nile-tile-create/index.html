@@ -156,9 +156,9 @@
     </div>
 
     <div class="field">
-      <label>Recording URL <span style="font-weight:400;color:#999">(optional)</span></label>
+      <label id="label-url">Recording URL <span style="font-weight:400;color:#999">(optional)</span></label>
       <input id="f-onda-url" type="url" placeholder="https://..." />
-      <div class="hint">Link to a .onda file if the recording is ready.</div>
+      <div class="hint" id="hint-url">Link to a .onda file if the recording is ready.</div>
     </div>
 
     <button class="btn" id="btn-submit" onclick="submitTile()">Submit</button>
@@ -208,6 +208,7 @@ const CONTENT_TYPES = {
     formSub: 'Fill in your talk details. It will appear on the browse page immediately after you submit.',
     presenterLabel: 'Presenter name', synopsisLabel: 'Synopsis',
     takeawaysLabel: 'Key Takeaways', submitLabel: 'Submit Presentation',
+    urlLabel: 'Recording URL', urlHint: 'Link to a .onda file if the recording is ready.',
     showTalkFields: true,
   },
   help_file: {
@@ -216,6 +217,7 @@ const CONTENT_TYPES = {
     formSub: 'Fill in the details. It will appear on the browse page immediately after you submit.',
     presenterLabel: 'Author', synopsisLabel: 'What this covers',
     takeawaysLabel: 'Key Points', submitLabel: 'Submit Help File',
+    urlLabel: 'Link', urlHint: 'Link to the actual help file, if it lives elsewhere.',
     showTalkFields: false,
   },
   general_info: {
@@ -224,6 +226,16 @@ const CONTENT_TYPES = {
     formSub: 'Fill in the details. It will appear on the browse page immediately after you submit.',
     presenterLabel: 'Author', synopsisLabel: 'What this is about',
     takeawaysLabel: 'Key Points', submitLabel: 'Submit',
+    urlLabel: 'Link', urlHint: 'A link related to this, if there is one.',
+    showTalkFields: false,
+  },
+  article: {
+    label: 'Article', typeTag: 'article',
+    formTitle: 'Reference an Article',
+    formSub: 'Point to a piece that already exists elsewhere — your own site, a magazine, anywhere. This makes it findable and tagged here without moving or copying it.',
+    presenterLabel: 'Author', synopsisLabel: 'What this article is about',
+    takeawaysLabel: 'Key Points', submitLabel: 'Submit Article',
+    urlLabel: 'Article URL', urlHint: 'Link to the article on its original site — this is the whole point of an Article tile.',
     showTalkFields: false,
   },
 };
@@ -275,6 +287,8 @@ function selectType(key) {
   document.getElementById('label-presenter').firstChild.textContent = t.presenterLabel + ' ';
   document.getElementById('label-synopsis').firstChild.textContent = t.synopsisLabel + ' ';
   document.getElementById('label-takeaways').firstChild.textContent = t.takeawaysLabel + ' ';
+  document.getElementById('label-url').firstChild.textContent = t.urlLabel + ' ';
+  document.getElementById('hint-url').textContent = t.urlHint;
   document.getElementById('btn-submit').textContent = t.submitLabel;
   document.getElementById('field-event-code').style.display = t.showTalkFields ? 'block' : 'none';
   document.getElementById('field-deck').style.display = t.showTalkFields ? 'block' : 'none';
