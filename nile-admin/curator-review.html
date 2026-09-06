@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Curator Applications — ONDA Nile</title>
+<style>
+  :root {
+    --teal: #009688;
+    --teal-dark: #007a70;
+    --teal-light: #E8F8F6;
+    --ink: #1a1a1a;
+    --body: #333;
+    --muted: #666;
+    --border: #CCC;
+    --bg: #F7F9F9;
+    --surface: #FFF;
+    --error: #c0392b;
+    --success: #1a7f4b;
+    --success-bg: #eafaf1;
+    --warn: #B45A00;
+    --warn-bg: #FEF3E6;
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: var(--bg); color: var(--body);
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    font-size: 16px; line-height: 1.6; padding: 0 0 80px;
+  }
+  header { background: var(--teal); padding: 16px 24px; display: flex; align-items: center; gap: 12px; }
+  .wordmark { font-size: 18px; font-weight: 700; color: #fff; letter-spacing: .03em; }
+  .header-sub { font-size: 12px; color: rgba(255,255,255,.75); margin-top: 1px; }
+  header a { color: rgba(255,255,255,.8); font-size: 13px; text-decoration: none; margin-left: auto; }
+  header a:hover { color: #fff; }
+
+  .wrap { max-width: 680px; margin: 0 auto; padding: 32px 20px 0; }
+  .banner { padding: 12px 16px; border-radius: 8px; font-size: 14px; font-weight: 600; margin-bottom: 16px; display: none; }
+  .banner.error { background: #fdecea; color: var(--error); display: block; }
+  .banner.success { background: var(--success-bg); color: var(--success); display: block; }
+
+  .page-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
+  .page-title { font-size: 20px; font-weight: 700; color: var(--ink); }
+  .page-count { font-size: 13px; color: var(--muted); margin-bottom: 20px; }
+  .refresh-btn {
+    padding: 6px 14px; font-size: 13px; font-weight: 600;
+    background: var(--teal-light); color: var(--teal);
+    border: 1px solid var(--teal); border-radius: 6px; cursor: pointer; font-family: inherit;
+  }
+  .refresh-btn:hover { background: #d0f0ec; }
+
+  .empty-state { text-align: center; padding: 40px 20px; color: var(--muted); font-size: 14px; }
+
+  .app-card {
+    background: var(--surface); border: 1px solid var(--border); border-radius: 10px;
+    border-left: 4px solid var(--warn); margin-bottom: 16px; overflow: hidden;
+  }
+  .app-header { padding: 16px 20px 12px; border-bottom: 1px solid #f0f0f0; }
+  .app-title-row { display: flex; align-items: flex-start; gap: 10px; margin-bottom: 4px; }
+  .app-title { font-size: 16px; font-weight: 700; color: var(--ink); flex: 1; }
+  .status-pill {
+    font-size: 11px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase;
+    padding: 3px 9px; border-radius: 20px; white-space: nowrap; flex-shrink: 0;
+    background: var(--warn-bg); color: var(--warn);
+  }
+  .app-meta { font-size: 13px; color: var(--muted); }
+  .app-body { padding: 16px 20px; }
+  .app-field { margin-bottom: 14px; }
+  .app-field:last-child { margin-bottom: 0; }
+  .app-field-label {
+    font-size: 11px; font-weight: 700; text-transform: uppercase;
+    letter-spacing: .08em; color: var(--muted); margin-bottom: 4px;
+  }
+  .app-text { font-size: 14px; color: var(--body); }
+  .app-text a { color: var(--teal); font-weight: 600; }
+
+  .app-actions {
+    padding: 14px 20px; border-top: 1px solid #f0f0f0;
+    display: flex; gap: 10px; flex-wrap: wrap; align-items: center;
+  }
+  .btn-approve {
+    padding: 9px 20px; font-size: 14px; font-weight: 600;
+    background: var(--success); color: #fff; border: none;
+    border-radius: 7px; cursor: pointer; font-family: inherit;
+  }
+  .btn-approve:hover { background: #15693c; }
+  .btn-approve:disabled { background: #aaa; cursor: default; }
+  .reviewer-input {
+    padding: 8px 12px; font-size: 13px; border: 1px solid var(--border);
+    border-radius: 6px; font-family: inherit; flex: 1; min-width: 160px;
+  }
+  .action-result {
+    font-size: 13px; font-weight: 600; padding: 8px 12px;
+    border-radius: 6px; display: none; width: 100%;
+  }
+  .action-result.success { background: var(--success-bg); color: var(--success); display: block; }
+  .action-result.error { background: #fdecea; color: var(--error); display: block; }
+
+  .spinner { display: inline-block; width: 16px; height: 16px; border: 2px solid currentColor;
+    border-top-color: transparent; border-radius: 50%; animation: spin .6s linear infinite;
+    vertical-align: middle; margin-right: 4px; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+</style>
+</head>
+<body>
+
+<header>
+  <div>
+    <div class="wordmark">ONDA Nile · Curator Applications</div>
+    <div class="header-sub">Same idea as reviewing a presenter's card — one level up</div>
+  </div>
+  <a href="login.html">← Hub</a>
+</header>
+
+<div class="wrap">
+  <div id="banner" class="banner"></div>
+
+  <div class="page-header">
+    <div>
+      <div class="page-title">Pending Curator Applications</div>
+      <div class="page-count" id="page-count"></div>
+    </div>
+    <button class="refresh-btn" onclick="loadApplications()">↻ Refresh</button>
+  </div>
+
+  <div id="app-list"></div>
+</div>
+
+<script>
+const NILE_AUTH = 'https://xrxm-29on-xlyt.n7e.xano.io/api:nile';
+
+function showBanner(type, msg) {
+  const el = document.getElementById('banner');
+  el.className = 'banner ' + type;
+  el.textContent = msg;
+}
+function hideBanner() {
+  const el = document.getElementById('banner');
+  el.className = 'banner';
+  el.textContent = '';
+}
+
+async function loadApplications() {
+  hideBanner();
+  document.getElementById('app-list').innerHTML = '<div class="empty-state"><span class="spinner"></span> Loading…</div>';
+
+  try {
+    const r = await fetch(`${NILE_AUTH}/org/pending`);
+    if (!r.ok) { const e = await r.json().catch(() => ({})); throw new Error(e.message || 'Failed to load applications'); }
+    const apps = await r.json();
+
+    document.getElementById('page-count').textContent =
+      `${apps.length} station${apps.length !== 1 ? 's' : ''} waiting for review`;
+
+    if (!apps.length) {
+      document.getElementById('app-list').innerHTML = '<div class="empty-state">Nothing waiting for review right now.</div>';
+      return;
+    }
+
+    document.getElementById('app-list').innerHTML = apps.map(renderApp).join('');
+  } catch (e) {
+    showBanner('error', e.message);
+    document.getElementById('app-list').innerHTML = '';
+  }
+}
+
+function renderApp(a) {
+  const location = [a.city, a.region].filter(Boolean).join(', ');
+  const orgLine = [a.org_l1, a.org_l2, a.org_l3].filter(Boolean).join(' · ');
+  const submitted = a.created_at ? new Date(a.created_at).toLocaleDateString() : '';
+  const domId = 'app-' + a.id;
+
+  return `
+    <div class="app-card" id="${domId}">
+      <div class="app-header">
+        <div class="app-title-row">
+          <div class="app-title">${a.station_name || a.org_l1 || '(unnamed station)'}</div>
+          <span class="status-pill">Awaiting Review</span>
+        </div>
+        <div class="app-meta">${orgLine}${location ? ' · ' + location : ''}${submitted ? ' · applied ' + submitted : ''}</div>
+      </div>
+      <div class="app-body">
+        <div class="app-field">
+          <div class="app-field-label">Curator</div>
+          <div class="app-text">${a.curator_name || '<em style="color:var(--muted)">Not provided</em>'}</div>
+        </div>
+        <div class="app-field">
+          <div class="app-field-label">LinkedIn</div>
+          <div class="app-text">${a.linkedin_url
+            ? `<a href="${a.linkedin_url}" target="_blank" rel="noopener">${a.linkedin_url} →</a>`
+            : '<em style="color:var(--muted)">Not provided — do not approve without this</em>'}</div>
+        </div>
+        ${a.description ? `
+        <div class="app-field">
+          <div class="app-field-label">Description</div>
+          <div class="app-text">${a.description}</div>
+        </div>` : ''}
+      </div>
+      <div class="app-actions">
+        <input type="text" class="reviewer-input" id="reviewer-${a.id}" placeholder="Your name (for the record)">
+        <button class="btn-approve" onclick="approveApp(${a.id}, this)">Approve — I checked their LinkedIn</button>
+        <div class="action-result"></div>
+      </div>
+    </div>
+  `;
+}
+
+async function approveApp(id, btn) {
+  const card = document.getElementById('app-' + id);
+  const reviewerInput = document.getElementById('reviewer-' + id);
+  const reviewerName = reviewerInput.value.trim();
+  const resultEl = card.querySelector('.action-result');
+
+  if (!reviewerName) {
+    resultEl.className = 'action-result error';
+    resultEl.textContent = 'Enter your name before approving — this is recorded with the approval.';
+    return;
+  }
+
+  btn.disabled = true;
+  btn.textContent = 'Approving…';
+
+  try {
+    const r = await fetch(`${NILE_AUTH}/org/approve`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id, reviewer_name: reviewerName }),
+    });
+    if (!r.ok) { const e = await r.json().catch(() => ({})); throw new Error(e.message || 'Approve failed'); }
+
+    resultEl.className = 'action-result success';
+    resultEl.textContent = '✓ Approved by ' + reviewerName + ' — station is now live';
+    btn.style.display = 'none';
+    reviewerInput.style.display = 'none';
+    setTimeout(() => { card.remove(); }, 1500);
+  } catch (e) {
+    resultEl.className = 'action-result error';
+    resultEl.textContent = e.message;
+    btn.disabled = false;
+    btn.textContent = 'Approve — I checked their LinkedIn';
+  }
+}
+
+loadApplications();
+</script>
+</body>
+</html>
