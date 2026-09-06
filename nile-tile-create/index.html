@@ -170,7 +170,10 @@
     <div class="check">✓</div>
     <h2>Tile added!</h2>
     <p>Your talk is now visible on the browse page.</p>
-    <a id="browse-link" href="#">View the station →</a>
+    <div style="display:flex;flex-direction:column;gap:10px;align-items:center">
+      <a id="browse-link" href="#">View the station →</a>
+      <a id="dashboard-link" href="#">← Back to Station Dashboard</a>
+    </div>
   </div>
 
 </div>
@@ -185,6 +188,7 @@ const L1      = _p.get('org_l1') || null;
 const L2      = _p.get('org_l2') || null;
 const L3      = _p.get('org_l3') || null;
 const TOKEN   = _p.get('token')  || null;
+const PHONE   = _p.get('phone')  || null;
 const ROLE    = _p.get('role')   || null;
 const EVENT_CODE = _p.get('event_code') || null;
 if (EVENT_CODE) document.getElementById('f-event-code').value = EVENT_CODE.toUpperCase();
@@ -299,6 +303,17 @@ const SKINS = {
   if (L3)   params.set('org_l3', L3);
   document.getElementById('back-link').href = `../ondanile/?${params}`;
   document.getElementById('browse-link').href = `../ondanile/?${params}`;
+
+  // Dashboard needs phone+token too — only meaningful if we actually have
+  // them (we always should, this form is already behind the sign-in gate).
+  if (PHONE && TOKEN) {
+    const dashParams = new URLSearchParams(params);
+    dashParams.set('phone', PHONE);
+    dashParams.set('token', TOKEN);
+    document.getElementById('dashboard-link').href = `../nile-admin/dashboard.html?${dashParams}`;
+  } else {
+    document.getElementById('dashboard-link').style.display = 'none';
+  }
   const signinParams = new URLSearchParams();
   if (SKIN) signinParams.set('skin', SKIN);
   if (L1)   signinParams.set('org_l1', L1);
