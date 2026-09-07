@@ -137,6 +137,13 @@
       <button class="btn-add-item" type="button" onclick="addTakeaway()">+ Add Takeaway</button>
     </div>
 
+    <div class="field">
+      <label id="label-headings">Section Headings <span style="font-weight:400;color:#999">(optional)</span></label>
+      <ul class="takeaway-list" id="heading-list"></ul>
+      <button class="btn-add-item" type="button" onclick="addHeading()">+ Add Heading</button>
+      <div class="hint">The heading markers inside the recording, in order — shown here so someone can see what's covered before they open it, and used inside the player to jump straight to a section.</div>
+    </div>
+
     <div class="field" id="field-deck">
       <label>Deck / Slides <span style="font-weight:400;color:#999">(optional)</span></label>
       <input id="f-deck" type="url" placeholder="Google Slides, Canva, or PDF link" />
@@ -408,6 +415,22 @@ function getTakeaways() {
     .map(t => t.value.trim()).filter(Boolean);
 }
 
+// ── Section Headings ─────────────────────────────────────────────────────────
+// Same list-of-lines shape as Takeaways above — one line per heading marker
+// in the actual recording, in the order they appear.
+function addHeading() {
+  const li = document.createElement('li');
+  li.className = 'takeaway-item';
+  li.innerHTML = `<textarea placeholder="e.g. What you can do"></textarea><button class="takeaway-remove" type="button" onclick="this.closest('li').remove()">×</button>`;
+  document.getElementById('heading-list').appendChild(li);
+  li.querySelector('textarea').focus();
+}
+
+function getHeadings() {
+  return [...document.querySelectorAll('#heading-list textarea')]
+    .map(t => t.value.trim()).filter(Boolean);
+}
+
 // ── Submit ────────────────────────────────────────────────────────────────────
 async function submitTile() {
   const title     = document.getElementById('f-title').value.trim();
@@ -421,6 +444,7 @@ async function submitTile() {
   const deck      = document.getElementById('f-deck').value.trim() || null;
   const youtube   = document.getElementById('f-youtube').value.trim() || null;
   const takeaways = getTakeaways();
+  const headings  = getHeadings();
   const msg       = document.getElementById('msg-submit');
   const btn       = document.getElementById('btn-submit');
 
@@ -450,6 +474,7 @@ async function submitTile() {
         tags: userTags.map(t => t.value),
         brief,
         takeaways,
+        headings,
         deck_url: deck,
         youtube,
         photo,

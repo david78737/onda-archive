@@ -635,6 +635,7 @@ function render() {
       <div class="card-body">
         ${s.synopsis ? `<div class="section-label">Synopsis</div><div class="synopsis">${s.synopsis}</div>` : ''}
         ${(s.takeaways||[]).length ? `<div class="section-label">Key Takeaways</div><ul class="takeaways">${s.takeaways.map(t=>`<li>${t}</li>`).join('')}</ul>` : ''}
+        ${(s.headings||[]).length ? `<div class="section-label">What's Covered</div><ul class="takeaways">${s.headings.map(h=>`<li>${h}</li>`).join('')}</ul>` : ''}
         ${s.who ? `<div class="section-label">Best For</div><div class="who">${s.who}</div>` : ''}
         ${s.brief ? `<div class="brief-row">${s.brief}</div>` : ''}
         <div class="action-row">${ondaBtn}</div>
@@ -667,6 +668,9 @@ function normalizePresentation(p) {
   const takeaways = (Array.isArray(p.takeaways) ? p.takeaways : (p.takeaways || '').split('\n'))
     .map(t => String(t).replace(/^→\s*/, '').trim())
     .filter(Boolean);
+  const headings = (Array.isArray(p.headings) ? p.headings : (p.headings || '').split('\n'))
+    .map(h => String(h).replace(/^→\s*/, '').trim())
+    .filter(Boolean);
   return {
     id: 'pres-' + p.id,
     title: p.title || '',
@@ -676,6 +680,7 @@ function normalizePresentation(p) {
     tags: Array.isArray(p.tags) ? p.tags : (p.tags ? p.tags.split(',').map(t => t.trim()).filter(Boolean) : []),
     synopsis: p.summary || '',
     takeaways,
+    headings,
     who: p.audience || '',
     brief: p.brief || '',
     photo: p.photo_url || p.photo || null,

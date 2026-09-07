@@ -753,6 +753,9 @@ function render() {
         ${Array.isArray(s.takeaways) && s.takeaways.length
           ? `<div class="section-label">Key Takeaways</div><ul class="takeaways">${s.takeaways.map(t => `<li>${t}</li>`).join('')}</ul>`
           : ''}
+        ${Array.isArray(s.headings) && s.headings.length
+          ? `<div class="section-label">What's Covered</div><ul class="takeaways">${s.headings.map(h => `<li>${h}</li>`).join('')}</ul>`
+          : ''}
         ${s.who ? `<div class="section-label">Best For</div><div class="who">${s.who}</div>` : ''}
         ${s.brief ? `<div class="brief-row">${s.brief}</div>` : ''}
         ${s.proxy && s.status !== 'live' ? `<div style="margin-top:12px;font-size:12px;color:#888;">Recording code: <strong style="color:#008787;letter-spacing:.05em;">${s.proxy}</strong></div>` : ''}
@@ -795,6 +798,9 @@ function normalizePresentation(p) {
   const takeaways = (Array.isArray(p.takeaways) ? p.takeaways : (p.takeaways || '').split('\n'))
     .map(t => String(t).replace(/^→\s*/, '').trim())
     .filter(Boolean);
+  const headings = (Array.isArray(p.headings) ? p.headings : (p.headings || '').split('\n'))
+    .map(h => String(h).replace(/^→\s*/, '').trim())
+    .filter(Boolean);
   return {
     id: 'pres-' + p.id,
     title: p.title || '',
@@ -804,6 +810,7 @@ function normalizePresentation(p) {
     tags: Array.isArray(p.tags) ? p.tags : (p.tags ? p.tags.split(',').map(t => t.trim()).filter(Boolean) : []),
     synopsis: p.summary || '',
     takeaways,
+    headings,
     who: p.audience || '',
     brief: p.brief || '',
     youtube: p.youtube || null,
