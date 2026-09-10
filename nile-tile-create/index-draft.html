@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Propose a Presentation — ONDA Nile</title>
+<title>Propose a Presentation — ONDA Nile (draft-assist)</title>
 <style>
   *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
   body{background:#F0F4F4;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:16px;color:#222;min-height:100vh;}
@@ -55,6 +55,14 @@
   #step-success h2{margin-bottom:8px;}
   #step-success p{color:#666;font-size:15px;margin-bottom:24px;}
   #step-success a{color:#008787;text-decoration:none;font-weight:600;}
+  /* Draft-assist panel — the one thing this page adds over the real form */
+  .draft-panel{background:#FFF;border:1.5px dashed #008787;border-radius:8px;padding:16px;margin-bottom:32px;}
+  .draft-panel h3{color:#008787;font-size:15px;margin-bottom:6px;}
+  .draft-panel p{color:#666;font-size:13px;margin-bottom:10px;line-height:1.5;}
+  .draft-panel textarea{width:100%;min-height:120px;font-family:ui-monospace,'SF Mono',Consolas,monospace;font-size:12.5px;padding:10px;border:1px solid #CCC;border-radius:6px;}
+  .draft-btn{margin-top:10px;padding:9px 16px;background:#222;color:#fff;border:none;border-radius:6px;font-size:13px;font-weight:600;cursor:pointer;}
+  .draft-btn:hover{background:#000;}
+  .draft-msg{margin-top:8px;font-size:12.5px;}
 </style>
 </head>
 <body>
@@ -74,6 +82,15 @@
 
   <!-- Create form -->
   <div id="step-form" style="display:none;">
+
+    <div class="draft-panel">
+      <h3>Paste a draft</h3>
+      <p>Paste the JSON draft (title/synopsis/who/takeaways/headings/tags/brief) — every field below fills in at once. Review and edit anything before submitting; nothing here is final until you tap Submit.</p>
+      <textarea id="draft-json" placeholder='{"title": "...", "synopsis": "...", "who": "...", "takeaways": ["...", "..."], "headings": ["...", "..."], "tags": ["...", "..."], "brief": "..."}'></textarea>
+      <button class="draft-btn" type="button" onclick="applyDraft()">Fill form from draft</button>
+      <div class="draft-msg" id="draft-msg"></div>
+    </div>
+
     <h2 id="form-title">Propose a Presentation</h2>
     <p class="sub" id="form-sub">Fill in your talk details. It will appear on the browse page immediately after you submit.</p>
     <div class="org-badge" id="org-badge"></div>
@@ -205,6 +222,40 @@ const LOCKED_TAG = L3 || L1 || null;
 
 let userTags = [];
 
+// ── Draft-assist — the one addition this page makes over the real form.
+// Paste a JSON draft (built by hand, or by Claude reading a transcript) and
+// every matching field below fills in at once. Nothing here calls any AI
+// itself — it's a fill helper, not a generator. Recognized keys: title,
+// synopsis, who, brief, takeaways (array), headings (array), tags (array).
+function applyDraft() {
+  const raw = document.getElementById('draft-json').value.trim();
+  const msg = document.getElementById('draft-msg');
+  if (!raw) { msg.style.color = '#c0392b'; msg.textContent = 'Paste a draft first.'; return; }
+  let d;
+  try { d = JSON.parse(raw); }
+  catch (e) { msg.style.color = '#c0392b'; msg.textContent = 'Not valid JSON — ' + e.message; return; }
+
+  if (d.title)    document.getElementById('f-title').value = d.title;
+  if (d.synopsis) document.getElementById('f-synopsis').value = d.synopsis;
+  if (d.who)      document.getElementById('f-bestfor').value = d.who;
+  if (d.brief)    document.getElementById('f-brief').value = d.brief;
+
+  if (Array.isArray(d.takeaways)) {
+    document.getElementById('takeaway-list').innerHTML = '';
+    d.takeaways.forEach(t => { addTakeaway(); const areas = document.querySelectorAll('#takeaway-list textarea'); areas[areas.length - 1].value = t; });
+  }
+  if (Array.isArray(d.headings)) {
+    document.getElementById('heading-list').innerHTML = '';
+    d.headings.forEach(h => { addHeading(); const areas = document.querySelectorAll('#heading-list textarea'); areas[areas.length - 1].value = h; });
+  }
+  if (Array.isArray(d.tags)) {
+    d.tags.forEach(t => addTagValue(t, false));
+  }
+
+  msg.style.color = '#008787';
+  msg.textContent = 'Filled — review everything below before submitting.';
+}
+
 // ── Content type — same underlying fields for every type, just relabeled
 // and with the talk-only fields hidden when they don't apply. Adding a new
 // type later is just one more entry here, nothing else to touch.
@@ -252,11 +303,7 @@ const CONTENT_TYPES = {
 };
 let currentType = 'presentation';
 
-// ── Visibility — who can actually see this tile. Reuses the real,
-// already-existing `visibility` values in the data (public/chapter/private)
-// rather than inventing new ones — the public catalog and station pages
-// were updated alongside this form to actually check this field, since
-// before now nothing did.
+// ── Visibility — who can actually see this tile.
 const VISIBILITY_OPTIONS = {
   public:  { label: 'Public', hint: 'Shows on ONDA Nile’s global directory and this station’s page.' },
   chapter: { label: 'This Station Only', hint: 'Shows on this station’s own page, not the global directory.' },
@@ -285,8 +332,6 @@ function renderTypeRow() {
 }
 
 function selectType(key) {
-  // Swap the locked type tag — remove whichever type tag was there before
-  // (if any), add the new one. The station tag (LOCKED_TAG) is untouched.
   const prevTag = CONTENT_TYPES[currentType]?.typeTag;
   if (prevTag) userTags = userTags.filter(t => !(t.locked && t.value === prevTag));
   currentType = key;
@@ -331,8 +376,6 @@ const SKINS = {
   document.getElementById('back-link').href = `../ondanile/?${params}`;
   document.getElementById('browse-link').href = `../ondanile/?${params}`;
 
-  // Dashboard needs phone+token too — only meaningful if we actually have
-  // them (we always should, this form is already behind the sign-in gate).
   if (PHONE && TOKEN) {
     const dashParams = new URLSearchParams(params);
     dashParams.set('phone', PHONE);
@@ -356,11 +399,9 @@ const SKINS = {
     return;
   }
 
-  // Show org badge
   const badge = [L1, L2, L3].filter(Boolean).join(' · ');
   document.getElementById('org-badge').textContent = badge;
 
-  // Pre-populate locked tag
   if (LOCKED_TAG) addTagValue(LOCKED_TAG, true);
   renderTypeRow();
   selectType(currentType);
@@ -422,8 +463,6 @@ function getTakeaways() {
 }
 
 // ── Section Headings ─────────────────────────────────────────────────────────
-// Same list-of-lines shape as Takeaways above — one line per heading marker
-// in the actual recording, in the order they appear.
 function addHeading() {
   const li = document.createElement('li');
   li.className = 'takeaway-item';

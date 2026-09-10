@@ -91,9 +91,23 @@
   .tile-card.status-archived,
   .tile-card.status-rejected  { border-left: 4px solid var(--muted); }
 
-  .tc-header { padding: 14px 18px 10px; }
+  .tc-header { padding: 14px 18px 10px; cursor: pointer; }
   .tc-title-row { display: flex; align-items: flex-start; gap: 10px; margin-bottom: 4px; }
   .tc-title { font-size: 15px; font-weight: 700; color: var(--ink); flex: 1; }
+  .tc-chevron { color: var(--muted); font-size: 13px; flex-shrink: 0; transition: transform .15s; margin-top: 2px; }
+  .tile-card.open .tc-chevron { transform: rotate(90deg); }
+
+  .tc-body { display: none; padding: 4px 18px 16px; border-top: 1px solid #f0f0f0; }
+  .tile-card.open .tc-body { display: block; }
+  .tc-body-section { margin-top: 12px; }
+  .tc-body-section:first-child { margin-top: 14px; }
+  .tc-body-label {
+    font-size: 11px; font-weight: 700; letter-spacing: .05em; text-transform: uppercase;
+    color: var(--teal); margin-bottom: 4px;
+  }
+  .tc-body-text { font-size: 14px; color: var(--body); line-height: 1.5; }
+  .tc-body-list { font-size: 14px; color: var(--body); line-height: 1.5; padding-left: 20px; }
+  .tc-body-list li { margin-bottom: 3px; }
   .status-pill {
     font-size: 10px; font-weight: 700; letter-spacing: .06em;
     text-transform: uppercase; padding: 3px 9px; border-radius: 20px;
@@ -272,6 +286,11 @@ async function loadTiles() {
   }
 }
 
+function formatDate(ts) {
+  if (!ts) return null;
+  return new Date(ts).toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' });
+}
+
 function render() {
   const rows = allTiles.filter(t =>
     (!currentFilter || t.status === currentFilter) &&
@@ -286,23 +305,43 @@ function render() {
     return;
   }
 
-  list.innerHTML = rows.map(t => {
+  list.innerHTML = rows.map((t, i) => {
     const tags = (Array.isArray(t.tags) ? t.tags : []).map(tag => `<span class="tc-tag">${tag}</span>`).join('');
     const status = t.status || 'draft';
     const visibility = t.visibility || 'public';
+    const takeaways = Array.isArray(t.takeaways) ? t.takeaways.filter(Boolean) : [];
+    const headings = Array.isArray(t.headings) ? t.headings.filter(Boolean) : [];
+
+    const bodySections = [
+      t.synopsis ? `<div class="tc-body-section"><div class="tc-body-label">Synopsis</div><div class="tc-body-text">${t.synopsis}</div></div>` : '',
+      t.brief ? `<div class="tc-body-section"><div class="tc-body-label">One-liner</div><div class="tc-body-text">${t.brief}</div></div>` : '',
+      t.who ? `<div class="tc-body-section"><div class="tc-body-label">Who it's for</div><div class="tc-body-text">${t.who}</div></div>` : '',
+      takeaways.length ? `<div class="tc-body-section"><div class="tc-body-label">${t.takeaways_label || 'Key Takeaways'}</div><ul class="tc-body-list">${takeaways.map(x => `<li>${x}</li>`).join('')}</ul></div>` : '',
+      headings.length ? `<div class="tc-body-section"><div class="tc-body-label">Section Headings</div><ul class="tc-body-list">${headings.map(x => `<li>${x}</li>`).join('')}</ul></div>` : '',
+    ].filter(Boolean).join('');
+
     return `
-      <div class="tile-card status-${status}">
-        <div class="tc-header">
+      <div class="tile-card status-${status}" id="tile-card-${i}">
+        <div class="tc-header" onclick="document.getElementById('tile-card-${i}').classList.toggle('open')">
           <div class="tc-title-row">
+            <span class="tc-chevron">▶</span>
             <div class="tc-title">${t.title || '(untitled)'}</div>
             <span class="status-pill ${status}">${status}</span>
             <span class="status-pill" style="background:var(--teal-light);color:var(--teal)">${VISIBILITY_LABELS[visibility] || visibility}</span>
           </div>
           <div class="tc-meta">${t.presenter_name || t.presenter || ''}</div>
         </div>
+        ${(() => {
+          const created = formatDate(t.created_at);
+          const updated = formatDate(t.updated_at);
+          const showUpdated = updated && updated !== created;
+          if (!created) return '';
+          return `<div class="tc-meta" style="padding:0 18px;font-size:12px;color:var(--muted)">Created ${created}${showUpdated ? ` · Updated ${updated}` : ''}</div>`;
+        })()}
         ${tags ? `<div class="tc-tags">${tags}</div>` : ''}
+        ${bodySections ? `<div class="tc-body">${bodySections}</div>` : ''}
         <div class="tc-actions">
-          ${t.onda_url ? `<a href="${playerUrlFor(t.onda_url)}" target="_blank" rel="noopener">Open →</a>` : '<span style="color:var(--muted);font-size:13px">No linked file</span>'}
+          ${t.onda_url ? `<a href="${playerUrlFor(t.onda_url)}" target="_blank" rel="noopener" onclick="event.stopPropagation()">Watch ONDA Viewer</a>` : '<span style="color:var(--muted);font-size:13px">No linked file</span>'}
         </div>
       </div>`;
   }).join('');
