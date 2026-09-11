@@ -151,6 +151,9 @@
 
 <div class="wrap">
   <div id="auth-error" class="banner error" style="display:none"></div>
+  <div id="auth-error-signin" style="display:none;margin:-10px 0 16px;">
+    <a href="signin.html" style="font-size:13px;font-weight:600;color:var(--teal);text-decoration:none;">→ Sign in again</a>
+  </div>
 
   <div class="dash-header">
     <div>
@@ -267,6 +270,7 @@ function setVisibilityFilter(f) {
 async function loadTiles() {
   document.getElementById('tiles-list').innerHTML = '<div class="empty-state"><span class="spinner"></span> Loading…</div>';
   document.getElementById('auth-error').style.display = 'none';
+  document.getElementById('auth-error-signin').style.display = 'none';
 
   try {
     const params = new URLSearchParams({
@@ -282,6 +286,9 @@ async function loadTiles() {
   } catch (e) {
     document.getElementById('auth-error').style.display = 'block';
     document.getElementById('auth-error').textContent = e.message;
+    // Any failure to load here is plausibly the token — offer a way back
+    // in rather than a dead end (this page previously had none at all).
+    document.getElementById('auth-error-signin').style.display = 'block';
     document.getElementById('tiles-list').innerHTML = '';
   }
 }
