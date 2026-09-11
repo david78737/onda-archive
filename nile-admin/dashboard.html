@@ -318,8 +318,15 @@ function render() {
     const visibility = t.visibility || 'public';
     const takeaways = Array.isArray(t.takeaways) ? t.takeaways.filter(Boolean) : [];
     const headings = Array.isArray(t.headings) ? t.headings.filter(Boolean) : [];
+    const titleSuggestions = Array.isArray(t.title_suggestions) ? t.title_suggestions.filter(Boolean) : [];
 
     const bodySections = [
+      // Suggestions only — the submitted title is never changed on its own.
+      // Each pill swaps it in only if this specific one is tapped.
+      // Passes id + index, not the title text itself — avoids any risk of a
+      // title containing a quote character breaking the onclick attribute.
+      // swapTitle() looks the real string up from allTiles by index instead.
+      titleSuggestions.length ? `<div class="tc-body-section"><div class="tc-body-label">Suggested Titles — tap to use</div><div class="tc-tags">${titleSuggestions.map((s, idx) => `<span class="tc-tag" style="cursor:pointer;" onclick="event.stopPropagation();swapTitle(${t.id}, ${idx})">${s}</span>`).join('')}</div></div>` : '',
       t.synopsis ? `<div class="tc-body-section"><div class="tc-body-label">Synopsis</div><div class="tc-body-text">${t.synopsis}</div></div>` : '',
       t.brief ? `<div class="tc-body-section"><div class="tc-body-label">One-liner</div><div class="tc-body-text">${t.brief}</div></div>` : '',
       t.who ? `<div class="tc-body-section"><div class="tc-body-label">Who it's for</div><div class="tc-body-text">${t.who}</div></div>` : '',
@@ -353,6 +360,29 @@ function render() {
         </div>
       </div>`;
   }).join('');
+}
+
+// Swaps a suggested title in for the current one — only fires for the
+// specific tile+suggestion actually tapped, leaving the original title
+// (and every other tile) completely untouched otherwise.
+async function swapTitle(id, suggestionIndex) {
+  const tile = allTiles.find(t => t.id === id);
+  const newTitle = tile?.title_suggestions?.[suggestionIndex];
+  if (!newTitle) return;
+  try {
+    const r = await fetch(`${NILE_API}/nile/tile/update`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id, magic_auth_token: authToken, title: newTitle }),
+    });
+    if (!r.ok) {
+      const e = await r.json().catch(() => ({}));
+      throw new Error(e.message || 'Could not update the title.');
+    }
+    await loadTiles();
+  } catch (e) {
+    alert(e.message);
+  }
 }
 
 // Runs the AI draft-generation function for one submitted tile — reads its
