@@ -349,9 +349,38 @@ function render() {
         ${bodySections ? `<div class="tc-body">${bodySections}</div>` : ''}
         <div class="tc-actions">
           ${t.onda_url ? `<a href="${playerUrlFor(t.onda_url)}" target="_blank" rel="noopener" onclick="event.stopPropagation()">Watch ONDA Viewer</a>` : '<span style="color:var(--muted);font-size:13px">No linked file</span>'}
+          ${status === 'submitted' ? `<a href="#" id="draft-btn-${t.id}" onclick="event.stopPropagation();event.preventDefault();generateDraft(${t.id})" style="margin-left:auto;">${t.synopsis ? 'Regenerate Draft' : 'Generate Draft'}</a>` : ''}
         </div>
       </div>`;
   }).join('');
+}
+
+// Runs the AI draft-generation function for one submitted tile — reads its
+// transcript, writes synopsis/who/takeaways/headings/tags back onto the
+// same row. Was previously a manual run in Xano's own debug panel; this is
+// the real button that was always the intended way to trigger it.
+async function generateDraft(id) {
+  const btn = document.getElementById('draft-btn-' + id);
+  if (!btn) return;
+  const original = btn.textContent;
+  btn.textContent = 'Generating…';
+  btn.style.pointerEvents = 'none';
+  try {
+    const r = await fetch(`${NILE_API}/nile/tile/generate-draft`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id, phone: authedPhone, magic_auth_token: authToken }),
+    });
+    if (!r.ok) {
+      const e = await r.json().catch(() => ({}));
+      throw new Error(e.message || 'Draft generation failed.');
+    }
+    await loadTiles();
+  } catch (e) {
+    btn.textContent = original;
+    btn.style.pointerEvents = '';
+    alert(e.message);
+  }
 }
 </script>
 </body>
