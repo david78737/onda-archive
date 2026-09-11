@@ -131,6 +131,17 @@
   .tc-actions a { font-size: 13px; font-weight: 600; color: var(--teal); text-decoration: none; }
   .tc-actions a:hover { text-decoration: underline; }
 
+  .prompt-tuner {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 10px; margin-bottom: 20px; overflow: hidden;
+  }
+  .prompt-tuner-header {
+    padding: 12px 16px; cursor: pointer; display: flex; align-items: center; gap: 8px;
+  }
+  .prompt-tuner-body { display: none; padding: 0 16px 16px; }
+  .prompt-tuner-body.open { display: block; }
+  #prompt-tuner-chevron.open { transform: rotate(90deg); }
+
   .spinner { display: inline-block; width: 16px; height: 16px; border: 2px solid currentColor;
     border-top-color: transparent; border-radius: 50%; animation: spin .6s linear infinite;
     vertical-align: middle; margin-right: 4px; }
@@ -179,6 +190,21 @@
     <button class="filter-btn" onclick="setVisibilityFilter('public')" id="vis-filter-public">Public</button>
     <button class="filter-btn" onclick="setVisibilityFilter('chapter')" id="vis-filter-chapter">This Station Only</button>
     <button class="filter-btn" onclick="setVisibilityFilter('private')" id="vis-filter-private">Admin Only</button>
+  </div>
+
+  <div class="prompt-tuner">
+    <div class="prompt-tuner-header" onclick="document.getElementById('prompt-tuner-body').classList.toggle('open');document.getElementById('prompt-tuner-chevron').classList.toggle('open')">
+      <span class="tc-chevron" id="prompt-tuner-chevron">▶</span>
+      <span style="font-weight:700;font-size:14px;">Tune how AI drafts your sessions</span>
+    </div>
+    <div id="prompt-tuner-body" class="prompt-tuner-body">
+      <p style="font-size:13px;color:var(--muted);margin-bottom:10px;">
+        Say what you'd like different about the synopsis, takeaways, or tone Generate Draft produces — plain language is fine. This becomes your own saved version, used automatically on every future draft for this station.
+      </p>
+      <textarea id="prompt-feedback" placeholder="e.g. the takeaways felt too long, make it sound less formal" style="width:100%;min-height:70px;padding:10px;border:1px solid var(--border);border-radius:6px;font-family:inherit;font-size:14px;"></textarea>
+      <button class="refresh-btn" style="margin-top:8px;" onclick="refinePrompt()" id="refine-btn">Refine My Prompt</button>
+      <div id="refine-result" style="margin-top:10px;font-size:13px;"></div>
+    </div>
   </div>
 
   <div id="tiles-list"></div>
@@ -360,6 +386,42 @@ function render() {
         </div>
       </div>`;
   }).join('');
+}
+
+// Sends plain-language feedback to Xano, which asks Claude to rewrite the
+// actual generation prompt and saves it as this Curator's own version for
+// this station — every future Generate Draft call picks it up automatically
+// (generate_session_draft checks prompt_templates before falling back to
+// the hardcoded default), no separate step needed after this one.
+async function refinePrompt() {
+  const feedback = document.getElementById('prompt-feedback').value.trim();
+  const result = document.getElementById('refine-result');
+  if (!feedback) { result.style.color = 'var(--error)'; result.textContent = 'Type what you\'d like different first.'; return; }
+  const btn = document.getElementById('refine-btn');
+  btn.disabled = true;
+  btn.textContent = 'Refining…';
+  result.textContent = '';
+  try {
+    const r = await fetch(`${NILE_API}/nile/tile/refine-prompt`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ phone: authedPhone, magic_auth_token: authToken, station_id: stationId, feedback }),
+    });
+    if (!r.ok) {
+      const e = await r.json().catch(() => ({}));
+      throw new Error(e.message || 'Could not refine the prompt.');
+    }
+    const data = await r.json();
+    result.style.color = 'var(--success)';
+    result.innerHTML = 'Saved — every future draft on this station will use:<br><em style="color:var(--body)">' + (data.prompt_text || '') + '</em>';
+    document.getElementById('prompt-feedback').value = '';
+  } catch (e) {
+    result.style.color = 'var(--error)';
+    result.textContent = e.message;
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Refine My Prompt';
+  }
 }
 
 // Swaps a suggested title in for the current one — only fires for the
