@@ -384,9 +384,9 @@ function render() {
       return `<span class="tc-tag${isHidden ? ' hidden-tag' : ''}">${tag}<span class="tc-tag-x" onclick="event.stopPropagation();toggleTagHidden(${t.id}, ${tagIdx}, ${!isHidden})" title="${isHidden ? 'Restore tag' : 'Hide tag'}">×</span></span>`;
     }).join('');
     const status = t.status || 'draft';
-    const visibility = t.visibility || 'public';
-    const stationApproved = visibility === 'chapter' || visibility === 'public';
-    const nileApproved = visibility === 'public';
+    const visibility = t.visibility || 'private';
+    const stationApproved = !!t.curator_approved_station;
+    const nileApproved = !!t.curator_approved_nile;
     const takeaways = Array.isArray(t.takeaways) ? t.takeaways.filter(Boolean) : [];
     const headings = Array.isArray(t.headings) ? t.headings.filter(Boolean) : [];
     const titleSuggestions = Array.isArray(t.title_suggestions) ? t.title_suggestions.filter(Boolean) : [];
@@ -542,18 +542,15 @@ function updateTileStatus(id, newStatus) {
 // visibility is a single private -> chapter -> public scale under the hood;
 // these two pills present it as two independent approval steps. Clicking an
 // active pill turns that level off; clicking an inactive one turns it on.
-// Turning "Approved for Nile" on always implies station approval too.
-// Turning it off only steps back down to chapter (station-only), not
-// all the way to private — station approval isn't lost by pulling back
-// from Nile-wide visibility.
+// This is the Curator's own half of a two-key approval — the Contributor
+// casts the other half from their own portal. visibility only actually
+// advances to chapter/public once BOTH sides have approved that level;
+// the server derives it, this just casts the Curator's vote. A tile can
+// sit at "pending" with this pill lit while the Contributor's half is
+// still outstanding — that's expected, not a bug.
 function toggleApproval(id, level, isCurrentlyActive) {
-  let visibility;
-  if (level === 'station') {
-    visibility = isCurrentlyActive ? 'private' : 'chapter';
-  } else {
-    visibility = isCurrentlyActive ? 'chapter' : 'public';
-  }
-  patchTile(id, { visibility });
+  const field = level === 'station' ? 'curator_approved_station' : 'curator_approved_nile';
+  patchTile(id, { [field]: !isCurrentlyActive });
 }
 
 // Soft hide/restore — the tag is never removed from the real tags array,
