@@ -84,10 +84,12 @@
     background: var(--surface); border: 1px solid var(--border);
     border-radius: 10px; margin-bottom: 14px; overflow: hidden;
   }
-  /* Whichever card is expanded gets a visibly different background — with
+  /* The selected tile (not just the currently-expanded one) gets a visibly
+     different background — persists even if you collapse it to scroll,
+     and only moves when a different tile is actually selected. With
      several submitted tiles in a list, it's otherwise easy to lose track
-     of which one you're actually working on while scrolling. */
-  .tile-card.open { background: var(--teal-light); }
+     of which one you're actually working on. */
+  .tile-card.selected { background: var(--teal-light); }
   .tile-card.status-published { border-left: 4px solid var(--success); }
   .tile-card.status-draft     { border-left: 4px solid var(--border); }
   .tile-card.status-pending,
@@ -225,6 +227,10 @@ let stationId   = null;
 let allTiles    = [];
 let currentFilter = '';
 let currentVisibilityFilter = '';
+// The tile currently being worked on — persists across collapsing a card
+// and across re-renders (Generate Draft, Refine Prompt, etc. all reload
+// the list), and only changes when a different tile is actually selected.
+let selectedTileId = null;
 
 function playerUrlFor(url) {
   return 'https://default-dev-51573d-xrxm-29on-xlyt.n7e.xano.io/index.html?src=' + encodeURIComponent(url);
@@ -366,8 +372,8 @@ function render() {
     ].filter(Boolean).join('');
 
     return `
-      <div class="tile-card status-${status}" id="tile-card-${i}">
-        <div class="tc-header" onclick="document.getElementById('tile-card-${i}').classList.toggle('open')">
+      <div class="tile-card status-${status}${t.id === selectedTileId ? ' selected' : ''}" id="tile-card-${i}" data-tile-id="${t.id}">
+        <div class="tc-header" onclick="selectTile(${t.id}, ${i})">
           <div class="tc-title-row">
             <span class="tc-chevron">▶</span>
             <div class="tc-title">${t.title || '(untitled)'}</div>
@@ -391,6 +397,24 @@ function render() {
         </div>
       </div>`;
   }).join('');
+}
+
+// Expands/collapses the tapped card as before, and separately marks it as
+// the persistently-selected tile — the two are independent now. Selecting
+// a different tile removes the highlight from whichever one had it,
+// wherever that card currently is in the DOM (found by data-tile-id, not
+// by loop index, since filtering can change which index maps to which
+// tile between renders).
+function selectTile(id, i) {
+  document.getElementById('tile-card-' + i).classList.toggle('open');
+  if (selectedTileId !== id) {
+    if (selectedTileId !== null) {
+      const prev = document.querySelector(`.tile-card[data-tile-id="${selectedTileId}"]`);
+      if (prev) prev.classList.remove('selected');
+    }
+    selectedTileId = id;
+    document.getElementById('tile-card-' + i).classList.add('selected');
+  }
 }
 
 // Sends plain-language feedback to Xano, which asks Claude to rewrite the
