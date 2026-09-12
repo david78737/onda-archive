@@ -504,7 +504,7 @@ async function swapTitle(id, suggestionIndex) {
     const r = await fetch(`${NILE_API}/nile/tile/update`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ id, magic_auth_token: authToken, title: newTitle }),
+      body: JSON.stringify({ id, phone: authedPhone, magic_auth_token: authToken, title: newTitle }),
     });
     if (!r.ok) {
       const e = await r.json().catch(() => ({}));
@@ -523,7 +523,7 @@ async function patchTile(id, fields) {
     const r = await fetch(`${NILE_API}/nile/tile/update`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ id, magic_auth_token: authToken, ...fields }),
+      body: JSON.stringify({ id, phone: authedPhone, magic_auth_token: authToken, ...fields }),
     });
     if (!r.ok) {
       const e = await r.json().catch(() => ({}));
