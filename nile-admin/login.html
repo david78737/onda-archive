@@ -403,7 +403,7 @@ async function loadWorkList() {
       const presenterParams = new URLSearchParams({ phone: authedPhone, token: authToken });
       actionsByRole.presenter = [
         { label: 'Propose a Presentation', desc: 'Fill in your talk details — goes live on the browse page as soon as you submit', href: `../nile-tile-create/?${params}`, primary: true },
-        { label: 'My Presentations', desc: 'Edit your own submissions — a curator approves or rejects, but only you edit the content', href: `../nile-presentation/?${presenterParams}`, primary: false },
+        { label: 'My Presentations', desc: 'See your own submissions and approve where each one is allowed to appear — a curator can never publish further than you\'ve agreed to', href: `../nile-presentation/?${presenterParams}`, primary: false },
       ];
     }
     if (isOrganizer) {

@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Manage Presentations — ONDA Nile</title>
+<title>My Presentations — ONDA Nile</title>
 <style>
   :root {
     --teal: #009688;
@@ -16,6 +16,10 @@
     --bg: #F7F9F9;
     --surface: #FFF;
     --error: #c0392b;
+    --success: #1a7f4b;
+    --success-bg: #eafaf1;
+    --warn: #B45A00;
+    --warn-bg: #FEF3E6;
   }
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
   body {
@@ -26,571 +30,185 @@
   header { background: var(--teal); padding: 16px 24px; display: flex; align-items: center; gap: 12px; }
   .wordmark { font-size: 18px; font-weight: 700; color: #fff; letter-spacing: .03em; }
   .header-sub { font-size: 12px; color: rgba(255,255,255,.75); margin-top: 1px; }
-  .back-link { color: rgba(255,255,255,0.75); text-decoration: none; font-size: 13px; font-weight: 600; }
-  .wrap { max-width: 580px; margin: 0 auto; padding: 32px 20px 0; }
-  .card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 24px; margin-bottom: 20px; }
-  .card-title { font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: .1em; color: var(--teal); margin-bottom: 16px; }
-  .field { margin-bottom: 16px; }
-  .field:last-child { margin-bottom: 0; }
-  label { display: block; font-size: 14px; font-weight: 600; color: var(--ink); margin-bottom: 5px; }
-  label .optional { font-weight: 400; color: var(--muted); font-size: 12px; }
-  input[type="text"], input[type="url"], textarea, select {
-    width: 100%; padding: 11px 13px; font-size: 15px;
-    border: 1px solid var(--border); border-radius: 7px;
-    color: var(--ink); background: var(--surface);
-    transition: border-color .15s; font-family: inherit;
+  header a { color: rgba(255,255,255,.8); font-size: 13px; text-decoration: none; margin-left: auto; }
+  header a:hover { color: #fff; }
+
+  .wrap { max-width: 720px; margin: 0 auto; padding: 32px 20px 0; }
+  .banner { padding: 12px 16px; border-radius: 8px; font-size: 14px; font-weight: 600; margin-bottom: 16px; display: none; }
+  .banner.error { background: #fdecea; color: var(--error); display: block; }
+
+  .page-title { font-size: 20px; font-weight: 700; color: var(--ink); margin-bottom: 4px; }
+  .page-sub { font-size: 14px; color: var(--muted); margin-bottom: 24px; }
+  .empty-state { text-align: center; padding: 40px 20px; color: var(--muted); font-size: 14px; }
+
+  .p-card {
+    background: var(--surface); border: 1px solid var(--border); border-radius: 10px;
+    margin-bottom: 16px; overflow: hidden;
   }
-  input:focus, textarea:focus, select:focus { border-color: var(--teal); outline: none; }
-  textarea { min-height: 90px; resize: vertical; }
-  .hint { font-size: 12px; color: var(--muted); margin-top: 4px; }
-  .readonly-note { font-size: 13px; color: var(--muted); background: var(--bg); border-radius: 6px; padding: 8px 12px; }
-
-  .tag-pills { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
-  .tag-pill { display: inline-flex; align-items: center; gap: 4px; background: var(--teal-light); border: 1px solid var(--teal); border-radius: 4px; padding: 3px 8px; font-size: 13px; color: var(--teal); }
-  .tag-pill button { background: none; border: none; color: var(--teal); cursor: pointer; font-size: 15px; line-height: 1; padding: 0; }
-  .tag-input-row { display: flex; gap: 8px; margin-top: 8px; }
-  .tag-input-row input { flex: 1; }
-  .tag-add { padding: 8px 14px; background: var(--teal); color: #fff; border: none; border-radius: 7px; font-size: 14px; cursor: pointer; white-space: nowrap; font-family: inherit; }
-  .tag-add:hover { background: var(--teal-dark); }
-
-  .record-list { display: flex; flex-direction: column; gap: 8px; }
-  .record-btn { width: 100%; display: flex; align-items: flex-start; gap: 12px; text-align: left; padding: 12px 14px; background: var(--surface); border: 1px solid var(--border); border-radius: 7px; font-size: 14px; cursor: pointer; font-family: inherit; color: var(--ink); transition: border-color .15s, background .15s; }
-  .record-btn:hover { border-color: var(--teal); background: var(--teal-light); }
-  .r-thumb { flex-shrink: 0; width: 90px; height: 140px; border-radius: 5px; object-fit: contain; background: var(--bg); border: 1px solid var(--border); }
-  .r-thumb-empty { flex-shrink: 0; width: 90px; height: 140px; border-radius: 5px; background: var(--bg); border: 1px solid var(--border); }
-  .r-body { flex: 1; min-width: 0; }
-  .record-btn .r-title { font-weight: 600; }
-  .record-btn .r-meta { font-size: 12px; color: var(--muted); margin-top: 2px; }
-  .r-summary { font-size: 13px; color: var(--ink); margin-top: 6px; line-height: 1.4; }
-  .r-summary-empty { color: #bbb; font-style: italic; }
-  .r-audience { font-size: 12px; color: var(--muted); margin-top: 4px; }
-  .r-links { display: flex; gap: 8px; margin-top: 6px; flex-wrap: wrap; }
-  .r-link-badge {
-    font-size: 12px; font-weight: 700; color: #fff; text-decoration: none;
-    background: var(--teal); border: 1.5px solid var(--teal-dark); border-radius: 20px; padding: 4px 12px;
-    display: inline-flex; align-items: center; gap: 4px;
+  .p-header { padding: 16px 20px 12px; }
+  .p-title-row { display: flex; align-items: flex-start; gap: 8px; flex-wrap: wrap; }
+  .p-title { font-size: 16px; font-weight: 700; color: var(--ink); flex: 1; min-width: 160px; }
+  .p-meta { font-size: 12px; color: var(--muted); margin-top: 2px; }
+  .status-pill {
+    font-size: 11px; font-weight: 700; letter-spacing: .05em; text-transform: uppercase;
+    padding: 3px 9px; border-radius: 20px; white-space: nowrap; flex-shrink: 0;
+    background: #f0f0f0; color: var(--muted);
   }
-  .r-link-badge:hover { background: var(--teal-dark); }
-  .r-tags { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 6px; }
-  .r-tag { font-size: 12px; font-weight: 600; background: #fff; color: var(--teal-dark); border: 1.5px solid var(--teal); border-radius: 20px; padding: 8px 14px; display: inline-block; line-height: 1; }
-  .status-pill { display: inline-block; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .04em; border-radius: 4px; padding: 1px 6px; margin-left: 6px; }
-  .status-published { background: var(--teal-light); color: var(--teal); }
-  .status-approved  { background: #E8F5E9; color: #1B7A2E; }
-  .status-proposed  { background: #FDF2E3; color: #B8760B; }
-  .status-rejected  { background: #FBE9E7; color: var(--error); }
+  .status-pill.published { background: var(--success-bg); color: var(--success); }
+  .status-pill.pending, .status-pill.submitted { background: var(--warn-bg); color: var(--warn); }
 
-  .btn-primary { width: 100%; padding: 14px; background: var(--teal); color: #fff; font-size: 16px; font-weight: 700; border: none; border-radius: 8px; cursor: pointer; font-family: inherit; transition: background .15s; }
-  .btn-primary:hover { background: var(--teal-dark); }
-  .btn-primary:disabled { background: #AAA; cursor: default; }
-  .btn-ghost { width: 100%; padding: 12px; background: none; color: var(--muted); font-size: 14px; border: 1px solid var(--border); border-radius: 8px; cursor: pointer; font-family: inherit; margin-top: 10px; transition: color .15s, border-color .15s; }
-  .btn-ghost:hover { color: var(--teal); border-color: var(--teal); }
+  .p-tags { display: flex; flex-wrap: wrap; gap: 6px; padding: 8px 20px 0; }
+  .p-tag {
+    font-size: 11px; font-weight: 600; padding: 3px 9px;
+    background: var(--teal-light); color: var(--teal); border-radius: 20px;
+    border: 2px solid var(--teal);
+  }
+  .p-tag.hidden-tag { background: #f0f0f0; color: var(--muted); border-color: #ddd; text-decoration: line-through; }
 
-  .msg { margin-top: 12px; font-size: 14px; display: none; }
-  .msg.ok  { color: var(--teal); }
-  .msg.err { color: var(--error); }
-  .msg.show { display: block; }
+  .p-synopsis { padding: 12px 20px 0; font-size: 14px; color: var(--body); }
 
-  .screen { display: none; }
-  .screen.active { display: block; }
+  .p-approvals { padding: 14px 20px 16px; border-top: 1px solid #f0f0f0; margin-top: 12px; }
+  .p-approvals-label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); margin-bottom: 8px; }
+  .p-approve-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 8px; }
+  .p-approve-row:last-child { margin-bottom: 0; }
+  .p-approve-pill {
+    font-size: 12px; font-weight: 700; padding: 5px 14px; border-radius: 20px;
+    cursor: pointer; border: 2px solid var(--border); background: transparent; color: var(--muted);
+    font-family: inherit;
+  }
+  .p-approve-pill.active { border-color: var(--success); color: var(--success); background: var(--success-bg); }
+  .p-curator-note { font-size: 12px; color: var(--muted); }
+  .p-curator-note.approved { color: var(--success); font-weight: 600; }
 
-  .photo-row { display: flex; gap: 14px; align-items: flex-start; }
-  .photo-preview { width: 110px; height: 170px; border-radius: 6px; background: var(--teal-light); border: 2px solid var(--border); flex-shrink: 0; overflow: hidden; display: flex; align-items: center; justify-content: center; font-size: 11px; color: var(--muted); }
-  .photo-preview img { width: 100%; height: 100%; object-fit: contain; }
-  .photo-controls { flex: 1; }
-
-  /* ── Editor: desktop two-column layout (this tool is PC/Mac only) ── */
-  .edit-header { padding: 16px 24px 4px; display: flex; align-items: center; gap: 16px; }
-  .edit-header .btn-ghost { width: auto; margin-top: 0; padding: 8px 16px; }
-  .edit-title { font-size: 19px; font-weight: 700; color: var(--ink); }
-  .edit-layout { display: flex; gap: 24px; padding: 12px 24px 24px; align-items: flex-start; height: calc(100vh - 76px); box-sizing: border-box; }
-  .edit-left { width: 340px; flex-shrink: 0; height: 100%; overflow-y: auto; padding-right: 4px; }
-  .edit-right { flex: 1; min-width: 0; height: 100%; overflow-y: auto; padding-right: 4px; }
-  .edit-left .photo-row { flex-direction: column; }
-  .edit-left .photo-preview { width: 100%; height: 320px; }
-
-  .save-row { display: flex; gap: 10px; }
-  .btn-save { flex: 1; padding: 14px; background: var(--teal-light); color: var(--teal); font-size: 16px; font-weight: 700; border: 2px solid var(--teal); border-radius: 8px; cursor: pointer; font-family: inherit; transition: background .15s; }
-  .btn-save:hover { background: #C8EFEB; }
-  .btn-save:disabled { opacity: .5; cursor: default; }
-  .btn-save-close { flex: 2; padding: 14px; background: var(--teal); color: #fff; font-size: 16px; font-weight: 700; border: none; border-radius: 8px; cursor: pointer; font-family: inherit; transition: background .15s; }
-  .btn-save-close:hover { background: var(--teal-dark); }
-  .btn-save-close:disabled { background: #AAA; cursor: default; }
-
-  .saved-banner { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%); background: var(--teal); color: #fff; padding: 12px 24px; border-radius: 8px; font-size: 15px; font-weight: 600; box-shadow: 0 4px 16px rgba(0,150,136,.3); opacity: 0; transition: opacity .25s; pointer-events: none; }
-  .saved-banner.show { opacity: 1; }
-
-  .draft-banner { background: #FDF2E3; border: 1px solid #F0C070; color: #8a5a00; font-size: 13px; padding: 10px 14px; border-radius: 8px; margin-bottom: 20px; }
+  .spinner { display: inline-block; width: 16px; height: 16px; border: 2px solid currentColor;
+    border-top-color: transparent; border-radius: 50%; animation: spin .6s linear infinite;
+    vertical-align: middle; margin-right: 4px; }
+  @keyframes spin { to { transform: rotate(360deg); } }
 </style>
 </head>
 <body>
 
 <header>
-  <a class="back-link" id="back-link" href="../nile-admin/login.html">← Hub</a>
   <div>
-    <div class="wordmark">ONDA Nile</div>
-    <div class="header-sub" id="header-sub">Manage Presentations</div>
+    <div class="wordmark">ONDA Nile · My Presentations</div>
+    <div class="header-sub">Your own submissions, across every station</div>
   </div>
+  <a href="#" id="back-link">← Hub</a>
 </header>
 
-<!-- ── Error: missing/invalid link ── -->
-<div class="screen active" id="screen-error" style="display:none;">
-  <div class="wrap">
-    <div class="card">
-      <div class="card-title">Invalid Link</div>
-      <p style="font-size:14px;color:#555;">This page needs a valid token and organization — please sign in again.</p>
-      <button class="btn-ghost" onclick="window.location.href='../nile-admin/login.html'">← Sign in</button>
-    </div>
-  </div>
+<div class="wrap">
+  <div id="banner" class="banner"></div>
+  <div class="page-title">My Archive</div>
+  <div class="page-sub">A curator generates a draft and approves it for their side — nothing goes further than a station, or out onto Nile, until you approve that same level too.</div>
+  <div id="list"></div>
 </div>
-
-<!-- ── Screen 1: Record list ── -->
-<div class="screen" id="screen-list">
-  <div class="wrap">
-    <div class="draft-banner">This is a first draft — fields and layout are expected to change.</div>
-    <div class="card">
-      <div class="card-title">Pending Review</div>
-      <div class="record-list" id="record-list-pending"></div>
-    </div>
-    <div class="card">
-      <div class="card-title">Published</div>
-      <div class="record-list" id="record-list-published"></div>
-    </div>
-    <button class="btn-primary" id="new-record-btn">+ New Presentation</button>
-  </div>
-</div>
-
-<!-- ── Screen 2: Edit form ── -->
-<div class="screen" id="screen-edit">
-  <div class="edit-header">
-    <button class="btn-ghost" id="back-to-list">← Back to list</button>
-    <div class="edit-title" id="edit-title">Editing</div>
-  </div>
-  <div class="edit-layout">
-    <div class="edit-left">
-      <div class="card">
-        <div class="card-title">Presentation Info</div>
-        <div class="field">
-          <label>Photo</label>
-          <div class="photo-row">
-            <a class="photo-preview" id="photo-preview" href="#" target="_blank" rel="noopener" title="Open full image in a new tab"><span id="photo-empty">none</span><img id="photo-img" src="" alt="" style="display:none;"></a>
-            <div class="photo-controls">
-              <input type="file" id="f-photo-file" accept="image/*" style="display:none;">
-              <button type="button" class="btn-ghost" id="f-photo-upload-btn">Choose Photo…</button>
-              <div class="hint" id="f-photo-upload-status"></div>
-              <input type="url" id="f-photo" placeholder="or paste an image URL directly">
-            </div>
-          </div>
-        </div>
-        <div class="field">
-          <label>Title</label>
-          <input type="text" id="f-title" placeholder="What this presentation is called">
-        </div>
-        <div class="field">
-          <label>Event Code <span class="optional">optional</span></label>
-          <input type="text" id="f-event-code" placeholder="e.g. EVENT2026" style="text-transform:uppercase">
-          <div class="hint">Contact the event host for the event code.</div>
-        </div>
-        <div class="field">
-          <label>Presenter</label>
-          <div class="readonly-note" id="f-presenter-display">—</div>
-          <div class="hint">Set automatically from your account, not editable here.</div>
-        </div>
-        <div class="field">
-          <label>Status</label>
-          <select id="f-status">
-            <option value="proposed">Proposed (draft, hidden)</option>
-            <option value="submitted">Submitted (awaiting curator review)</option>
-            <option value="approved">Approved</option>
-            <option value="scheduled">Scheduled</option>
-            <option value="recorded">Recorded</option>
-            <option value="published">Published (live on ONDA Nile)</option>
-            <option value="rejected">Rejected</option>
-          </select>
-          <div class="hint" id="f-status-hint" style="display:none;">Set by your curator during review — not editable here.</div>
-        </div>
-      </div>
-    </div>
-
-    <div class="edit-right">
-      <div class="card">
-        <div class="card-title">Tags</div>
-        <div class="tag-pills" id="tag-pills"></div>
-        <div class="tag-input-row">
-          <input type="text" id="tag-input" placeholder="add a tag…">
-          <button class="tag-add" id="tag-add-btn">Add</button>
-        </div>
-      </div>
-
-      <div class="card">
-        <div class="card-title">Content</div>
-        <div class="field">
-          <label>Summary <span class="optional">2–3 sentences</span></label>
-          <textarea id="f-summary" placeholder="What this presentation is about…"></textarea>
-        </div>
-        <div class="field">
-          <label>Audience <span class="optional">who this is for</span></label>
-          <textarea id="f-audience" style="min-height:60px;" placeholder="Who should see this…"></textarea>
-        </div>
-        <div class="field">
-          <label style="display:flex;align-items:center;gap:6px;">
-            <input type="text" id="f-takeaways-label" value="Key Takeaways"
-                   title="Rename this section — e.g. 'Numbered Controls' for a help screen"
-                   style="font-size:14px;font-weight:600;color:var(--ink);border:none;border-bottom:1px dashed var(--border);background:transparent;padding:0 2px 2px;width:auto;max-width:240px;">
-            <span class="optional">one per line</span>
-          </label>
-          <textarea id="f-takeaways" style="min-height:110px;" placeholder="One takeaway per line…"></textarea>
-        </div>
-      </div>
-
-      <div class="card">
-        <div class="card-title">Links <span class="optional" style="text-transform:none;letter-spacing:0;">optional</span></div>
-        <div class="field">
-          <label>.onda file URL</label>
-          <input type="url" id="f-onda-url">
-          <div class="hint">An explainer for this presentation — a Storyboard you made and shared, the .onda equivalent of a YouTube preview. Paste the share link — any extra wrapping gets cleaned up automatically.</div>
-        </div>
-        <div class="field"><label>Deck URL</label><input type="url" id="f-deck-url"></div>
-        <div class="field">
-          <label>YouTube</label>
-          <input type="text" id="f-youtube" placeholder="Paste the video's URL, or just the ID">
-          <div class="hint">Paste the whole YouTube link — the ID gets pulled out automatically.</div>
-        </div>
-      </div>
-
-      <div class="save-row">
-        <button type="button" class="btn-save" id="save-btn">Save</button>
-        <button type="button" class="btn-save-close" id="save-close-btn">Save &amp; Close</button>
-      </div>
-      <div class="msg" id="save-msg"></div>
-    </div>
-  </div>
-</div>
-
-<div class="saved-banner" id="saved-banner">Saved ✓</div>
 
 <script>
-const API = 'https://xrxm-29on-xlyt.n7e.xano.io/api:presentations';
+const NILE_API = 'https://xrxm-29on-xlyt.n7e.xano.io/api:onda-nile';
 
-const _p = new URLSearchParams(location.search);
-const TOKEN  = _p.get('token')  || null;
-const ORG_ID = _p.get('org_id') || null;
-const PHONE  = _p.get('phone')  || null;
-// Presenter mode: scoped to this person's own submissions, no org context
-// needed. Curator mode (the default, org_id present): review-only — a
-// curator approves/rejects via Card Review, they don't edit content here.
-const MODE = ORG_ID ? 'curator' : 'presenter';
+const params = new URLSearchParams(location.search);
+const PHONE = params.get('phone');
+const TOKEN = params.get('token');
 
-let records = [];
-let currentRecord = null;
-let currentTags = [];
+let myTiles = [];
 
-function show(id) {
-  document.querySelectorAll('.screen').forEach(s => { s.style.display = 'none'; s.classList.remove('active'); });
-  const el = document.getElementById(id);
-  el.style.display = 'block';
-  el.classList.add('active');
-  window.scrollTo(0, 0);
+function showBanner(msg) {
+  const el = document.getElementById('banner');
+  el.className = 'banner error';
+  el.textContent = msg;
 }
-function msg(id, text, type) {
-  const el = document.getElementById(id);
-  el.textContent = text;
-  el.className = `msg ${type} show`;
-}
-function clearMsg(id) { document.getElementById(id).className = 'msg'; }
 
-if (!TOKEN || (MODE === 'curator' && !ORG_ID) || (MODE === 'presenter' && !PHONE)) {
-  show('screen-error');
+if (!PHONE || !TOKEN) {
+  showBanner('Missing phone or token — go back to the hub and sign in again.');
 } else {
-  if (MODE === 'presenter') {
-    document.getElementById('header-sub').textContent = 'My Presentations';
-    document.getElementById('f-status-hint').style.display = 'block';
-  }
-  const hubParams = new URLSearchParams({ token: TOKEN });
-  if (PHONE) hubParams.set('phone', PHONE);
-  document.getElementById('back-link').href = `../nile-admin/login.html?${hubParams}`;
-  loadRecords();
+  document.getElementById('back-link').href = `../nile-admin/login.html?phone=${encodeURIComponent(PHONE)}&token=${encodeURIComponent(TOKEN)}`;
+  loadMine();
 }
 
-// ── Screen 1: list ────────────────────────────────────────────────────────────
-function renderRecordGroup(containerId, rows, emptyText) {
-  const list = document.getElementById(containerId);
-  if (!rows.length) {
-    list.innerHTML = `<p style="color:#999;font-size:14px;">${emptyText}</p>`;
-    return;
-  }
-  list.innerHTML = '';
-  rows.forEach(r => {
-    const btn = document.createElement('button');
-    btn.className = 'record-btn';
-    const isApproved = r.status === 'approved' || r.status === 'published';
-    const statusClass = r.status === 'published' ? 'status-published'
-      : isApproved ? 'status-approved'
-      : r.status === 'rejected' ? 'status-rejected'
-      : 'status-proposed';
-    const statusLabel = isApproved ? '✓ Approved' : (r.status || 'proposed');
-    const thumb = r.photo
-      ? `<img class="r-thumb" src="${r.photo}" alt="" loading="lazy">`
-      : `<div class="r-thumb-empty"></div>`;
-    const tagList = r.tags ? String(r.tags).split(',').map(t => t.trim()).filter(Boolean) : [];
-    const tagsHtml = tagList.length
-      ? `<div class="r-tags">${tagList.map(t => `<span class="r-tag">${t}</span>`).join('')}</div>`
-      : '';
-    const summaryHtml = r.summary
-      ? `<div class="r-summary">${r.summary}</div>`
-      : `<div class="r-summary r-summary-empty">No summary yet</div>`;
-    const audienceHtml = r.audience
-      ? `<div class="r-audience">Who this is for: ${r.audience}</div>`
-      : '';
-    const explainerPlayerUrl = 'https://default-dev-51573d-xrxm-29on-xlyt.n7e.xano.io/index.html?src=' + encodeURIComponent(r.onda_url || '');
-    const linkBadges = [
-      r.onda_url ? `<a class="r-link-badge" href="${explainerPlayerUrl}" target="_blank" rel="noopener" onclick="event.stopPropagation()">🎧 Explainer</a>` : '',
-      r.youtube  ? `<a class="r-link-badge" href="https://www.youtube.com/watch?v=${r.youtube}" target="_blank" rel="noopener" onclick="event.stopPropagation()">▶ YouTube</a>` : '',
-    ].join('');
-    const linksHtml = linkBadges ? `<div class="r-links">${linkBadges}</div>` : '';
-    btn.innerHTML = `
-      ${thumb}
-      <div class="r-body">
-        <div class="r-title">${r.title || 'Untitled'}<span class="status-pill ${statusClass}">${statusLabel}</span></div>
-        <div class="r-meta">${r.presenter || ''}</div>
-        ${summaryHtml}
-        ${audienceHtml}
-        ${linksHtml}
-        ${tagsHtml}
-      </div>
-    `;
-    btn.addEventListener('click', () => openEditor(r));
-    list.appendChild(btn);
-  });
-}
-
-async function loadRecords() {
-  show('screen-list');
-  const pendingList = document.getElementById('record-list-pending');
-  const publishedList = document.getElementById('record-list-published');
-  pendingList.innerHTML = '<p style="color:#999;font-size:14px;">Loading…</p>';
-  publishedList.innerHTML = '';
+async function loadMine() {
+  const list = document.getElementById('list');
+  list.innerHTML = '<div class="empty-state"><span class="spinner"></span> Loading…</div>';
   try {
-    const resp = await fetch(`${API}/list`);
-    if (!resp.ok) throw new Error('Could not load presentations.');
-    const all = await resp.json();
-    records = MODE === 'presenter'
-      ? all.filter(r => r.presenter_phone === PHONE)
-      : all.filter(r => String(r.org_id) === String(ORG_ID));
-
-    const published = records.filter(r => r.status === 'published');
-    const pending   = records.filter(r => r.status !== 'published');
-
-    renderRecordGroup('record-list-pending', pending, 'Nothing waiting on review.');
-    renderRecordGroup('record-list-published', published, 'Nothing published yet.');
-  } catch (e) {
-    pendingList.innerHTML = `<p style="color:#c0392b;font-size:14px;">${e.message}</p>`;
-  }
-}
-
-document.getElementById('new-record-btn').addEventListener('click', () => {
-  openEditor({ id: null, org_id: ORG_ID, title: '', status: 'proposed' });
-});
-document.getElementById('back-to-list').addEventListener('click', loadRecords);
-
-// ── Screen 2: edit ────────────────────────────────────────────────────────────
-function openEditor(r) {
-  currentRecord = r;
-  currentTags = r.tags ? String(r.tags).split(',').map(t => t.trim()).filter(Boolean) : [];
-  document.getElementById('edit-title').textContent = r.title ? `Editing: ${r.title}` : 'Editing: New Presentation';
-
-  document.getElementById('f-title').value      = r.title || '';
-  document.getElementById('f-event-code').value = r.event_code || '';
-  document.getElementById('f-presenter-display').textContent = r.presenter || '(will be set from your account on save)';
-  document.getElementById('f-status').value     = r.status || 'proposed';
-  document.getElementById('f-status').disabled  = (MODE === 'presenter');
-  document.getElementById('f-photo').value      = r.photo || '';
-  updatePhotoPreview(r.photo || '');
-  document.getElementById('f-summary').value    = r.summary || '';
-  document.getElementById('f-audience').value   = r.audience || '';
-  document.getElementById('f-takeaways').value  = r.takeaways
-    ? String(r.takeaways).split('\n').map(l => l.replace(/^→\s*/, '').trim()).filter(Boolean).join('\n')
-    : '';
-  document.getElementById('f-takeaways-label').value = r.takeaways_label || 'Key Takeaways';
-  document.getElementById('f-onda-url').value    = r.onda_url || '';
-  document.getElementById('f-deck-url').value    = r.deck_url || '';
-  document.getElementById('f-youtube').value     = r.youtube || '';
-
-  renderTags();
-  clearMsg('save-msg');
-  show('screen-edit');
-}
-
-function updatePhotoPreview(url) {
-  const img = document.getElementById('photo-img');
-  const empty = document.getElementById('photo-empty');
-  const link = document.getElementById('photo-preview');
-  if (url) {
-    img.src = url; img.style.display = 'block'; empty.style.display = 'none';
-    link.href = url; link.style.cursor = 'pointer';
-  } else {
-    img.style.display = 'none'; empty.style.display = 'block';
-    link.removeAttribute('href'); link.style.cursor = 'default';
-  }
-}
-document.getElementById('f-photo').addEventListener('change', e => updatePhotoPreview(e.target.value.trim()));
-
-// ── Photo upload — real file picker, hosted by Xano, no URL to hunt for ──
-const UPLOAD_URL = 'https://xrxm-29on-xlyt.n7e.xano.io/api:nile/upload-headshot';
-document.getElementById('f-photo-upload-btn').addEventListener('click', () => {
-  document.getElementById('f-photo-file').click();
-});
-document.getElementById('f-photo-file').addEventListener('change', async (e) => {
-  const file = e.target.files[0];
-  if (!file) return;
-  const statusEl = document.getElementById('f-photo-upload-status');
-  statusEl.textContent = 'Uploading…';
-  try {
-    const form = new FormData();
-    form.append('content', file);
-    const resp = await fetch(UPLOAD_URL, { method: 'POST', body: form });
-    const data = await resp.json();
-    if (!resp.ok || !data.url) throw new Error(data.message || 'Upload failed.');
-    document.getElementById('f-photo').value = data.url;
-    updatePhotoPreview(data.url);
-    statusEl.textContent = 'Uploaded ✓';
-    setTimeout(() => { statusEl.textContent = ''; }, 2500);
-  } catch (err) {
-    statusEl.textContent = err.message;
-  } finally {
-    e.target.value = '';
-  }
-});
-
-// ── Forgiving link fields — accept whatever gets pasted, clean it up automatically ──
-function extractYoutubeId(raw) {
-  const s = raw.trim();
-  if (!s) return '';
-  if (/^[\w-]{11}$/.test(s)) return s; // already a bare ID
-  const m = s.match(/(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|embed\/|shorts\/))([\w-]{11})/);
-  return m ? m[1] : s; // fall back to whatever was pasted rather than silently blank it
-}
-document.getElementById('f-youtube').addEventListener('blur', e => {
-  e.target.value = extractYoutubeId(e.target.value);
-});
-
-function extractOndaUrl(raw) {
-  const s = raw.trim();
-  if (!s) return '';
-  try {
-    const u = new URL(s);
-    const src = u.searchParams.get('src'); // pasted the wrapping web-player URL instead of the raw file — already decoded by searchParams
-    if (src) return src;
-  } catch (e) { /* not a valid absolute URL — leave as typed */ }
-  return s;
-}
-document.getElementById('f-onda-url').addEventListener('blur', e => {
-  e.target.value = extractOndaUrl(e.target.value);
-});
-
-// ── Tags ──────────────────────────────────────────────────────────────────────
-function renderTags() {
-  const container = document.getElementById('tag-pills');
-  container.innerHTML = '';
-  currentTags.forEach(tag => {
-    const pill = document.createElement('span');
-    pill.className = 'tag-pill';
-    pill.innerHTML = `${tag}<button type="button" aria-label="Remove ${tag}">×</button>`;
-    pill.querySelector('button').addEventListener('click', () => {
-      currentTags = currentTags.filter(t => t !== tag);
-      renderTags();
-    });
-    container.appendChild(pill);
-  });
-}
-document.getElementById('tag-add-btn').addEventListener('click', addTag);
-document.getElementById('tag-input').addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); addTag(); } });
-function addTag() {
-  const input = document.getElementById('tag-input');
-  const tag = input.value.trim().toLowerCase();
-  if (tag && !currentTags.includes(tag)) { currentTags.push(tag); renderTags(); }
-  input.value = '';
-  input.focus();
-}
-
-// ── Save ──────────────────────────────────────────────────────────────────────
-function buildPayload() {
-  const takeawaysRaw = document.getElementById('f-takeaways').value.trim();
-  const takeaways = takeawaysRaw
-    ? takeawaysRaw.split('\n').map(l => l.trim()).filter(Boolean).map(l => `→ ${l}`).join('\n')
-    : '';
-  const payload = {
-    magic_auth_token: TOKEN,
-    title:        document.getElementById('f-title').value.trim(),
-    event_code:   document.getElementById('f-event-code').value.trim().toUpperCase() || null,
-    status:       document.getElementById('f-status').value,
-    photo:        document.getElementById('f-photo').value.trim() || null,
-    tags:         currentTags.join(', '),
-    summary:      document.getElementById('f-summary').value.trim(),
-    audience:     document.getElementById('f-audience').value.trim(),
-    takeaways,
-    takeaways_label: document.getElementById('f-takeaways-label').value.trim() || 'Key Takeaways',
-    onda_url:     document.getElementById('f-onda-url').value.trim() || null,
-    deck_url:     document.getElementById('f-deck-url').value.trim() || null,
-    youtube:      document.getElementById('f-youtube').value.trim() || null,
-  };
-  // A presenter's own edit never touches status — that's the curator's call
-  // (via Card Review), not something the person who wrote the content sets.
-  if (MODE === 'presenter') delete payload.status;
-  return payload;
-}
-
-async function saveRecord() {
-  const payload = buildPayload();
-  let resp;
-  if (currentRecord && currentRecord.id) {
-    resp = await fetch(`${API}/${currentRecord.id}`, {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload),
-    });
-  } else {
-    if (ORG_ID) payload.org_id = ORG_ID;
-    resp = await fetch(`${API}/create`, {
+    const r = await fetch(`${NILE_API}/nile/presenter/my-presentations`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload),
+      body: JSON.stringify({ phone: PHONE, magic_auth_token: TOKEN }),
     });
+    if (!r.ok) {
+      const e = await r.json().catch(() => ({}));
+      throw new Error(e.message || 'Could not load your presentations.');
+    }
+    myTiles = await r.json();
+    render();
+  } catch (e) {
+    showBanner(e.message);
+    list.innerHTML = '';
   }
-  const data = await resp.json();
-  if (!resp.ok) throw new Error(data.message || 'Save failed.');
-  currentRecord = data;
-  return data;
 }
 
-document.getElementById('save-btn').addEventListener('click', async () => {
-  const btn = document.getElementById('save-btn');
-  btn.disabled = true; btn.textContent = 'Saving…';
-  clearMsg('save-msg');
-  try {
-    await saveRecord();
-    const banner = document.getElementById('saved-banner');
-    banner.classList.add('show');
-    setTimeout(() => banner.classList.remove('show'), 2500);
-  } catch (e) {
-    msg('save-msg', e.message, 'err');
-  } finally {
-    btn.disabled = false; btn.textContent = 'Save';
+function render() {
+  const list = document.getElementById('list');
+  if (!myTiles.length) {
+    list.innerHTML = '<div class="empty-state">Nothing submitted yet.</div>';
+    return;
   }
-});
+  list.innerHTML = myTiles.map(t => {
+    const status = t.status || 'draft';
+    const tagsHidden = Array.isArray(t.tags_hidden) ? t.tags_hidden : [];
+    const tags = (Array.isArray(t.tags) ? t.tags : [])
+      .map(tag => `<span class="p-tag${tagsHidden.includes(tag) ? ' hidden-tag' : ''}">${tag}</span>`)
+      .join('');
+    const stationMine = !!t.contributor_approved_station;
+    const nileMine = !!t.contributor_approved_nile;
+    const stationCurator = !!t.curator_approved_station;
+    const nileCurator = !!t.curator_approved_nile;
+    return `
+      <div class="p-card">
+        <div class="p-header">
+          <div class="p-title-row">
+            <div class="p-title">${t.title || '(untitled)'}</div>
+            <span class="status-pill ${status}">${status}</span>
+          </div>
+          <div class="p-meta">${t.station_id || ''}</div>
+        </div>
+        ${tags ? `<div class="p-tags">${tags}</div>` : ''}
+        ${t.synopsis ? `<div class="p-synopsis">${t.synopsis}</div>` : ''}
+        <div class="p-approvals">
+          <div class="p-approvals-label">Approve for release</div>
+          <div class="p-approve-row">
+            <button type="button" class="p-approve-pill${stationMine ? ' active' : ''}" onclick="toggleMine(${t.id}, 'station', ${stationMine})">Approved for this station</button>
+            <span class="p-curator-note${stationCurator ? ' approved' : ''}">${stationCurator ? '✓ Curator has approved' : 'Curator has not approved yet'}</span>
+          </div>
+          <div class="p-approve-row">
+            <button type="button" class="p-approve-pill${nileMine ? ' active' : ''}" onclick="toggleMine(${t.id}, 'nile', ${nileMine})">Approved for Nile</button>
+            <span class="p-curator-note${nileCurator ? ' approved' : ''}">${nileCurator ? '✓ Curator has approved' : 'Curator has not approved yet'}</span>
+          </div>
+        </div>
+      </div>`;
+  }).join('');
+}
 
-document.getElementById('save-close-btn').addEventListener('click', async () => {
-  const btn = document.getElementById('save-close-btn');
-  btn.disabled = true; btn.textContent = 'Saving…';
-  clearMsg('save-msg');
+// This is the Contributor's own half of the same two-key approval the
+// curator casts from Station Dashboard — visibility only actually
+// advances once both sides agree. A curator can never push this further
+// than the contributor has approved.
+async function toggleMine(id, level, isCurrentlyActive) {
+  const field = level === 'station' ? 'contributor_approved_station' : 'contributor_approved_nile';
   try {
-    await saveRecord();
-    await loadRecords();
+    const r = await fetch(`${NILE_API}/nile/tile/update`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id, phone: PHONE, magic_auth_token: TOKEN, [field]: !isCurrentlyActive }),
+    });
+    if (!r.ok) {
+      const e = await r.json().catch(() => ({}));
+      throw new Error(e.message || 'Update failed.');
+    }
+    await loadMine();
   } catch (e) {
-    msg('save-msg', e.message, 'err');
-  } finally {
-    btn.disabled = false; btn.textContent = 'Save & Close';
+    alert(e.message);
   }
-});
+}
 </script>
 </body>
 </html>
