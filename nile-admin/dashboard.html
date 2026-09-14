@@ -158,6 +158,10 @@
     cursor: pointer; border: 2px solid var(--border); background: transparent; color: var(--muted);
   }
   .tc-approve-pill.active { border-color: var(--success); color: var(--success); background: var(--success-bg); }
+  /* Contributor's half of the same approval — read-only here on purpose:
+     only the Contributor's own portal can change it. Dashed border keeps
+     it visually distinct from the Curator's own clickable pill. */
+  .tc-approve-pill.readonly { cursor: default; border-style: dashed; }
   .tc-actions {
     padding: 10px 18px; border-top: 1px solid #f0f0f0;
     display: flex; gap: 10px; align-items: center;
@@ -387,6 +391,8 @@ function render() {
     const visibility = t.visibility || 'private';
     const stationApproved = !!t.curator_approved_station;
     const nileApproved = !!t.curator_approved_nile;
+    const contributorStationApproved = !!t.contributor_approved_station;
+    const contributorNileApproved = !!t.contributor_approved_nile;
     const takeaways = Array.isArray(t.takeaways) ? t.takeaways.filter(Boolean) : [];
     const headings = Array.isArray(t.headings) ? t.headings.filter(Boolean) : [];
     const titleSuggestions = Array.isArray(t.title_suggestions) ? t.title_suggestions.filter(Boolean) : [];
@@ -427,7 +433,9 @@ function render() {
         })()}
         <div class="tc-approvals">
           <button type="button" class="tc-approve-pill${stationApproved ? ' active' : ''}" onclick="event.stopPropagation();toggleApproval(${t.id}, 'station', ${stationApproved})">Approved for this station</button>
+          <span class="tc-approve-pill readonly${contributorStationApproved ? ' active' : ''}">Contributor: ${contributorStationApproved ? 'approved' : 'not yet'} (station)</span>
           <button type="button" class="tc-approve-pill${nileApproved ? ' active' : ''}" onclick="event.stopPropagation();toggleApproval(${t.id}, 'nile', ${nileApproved})">Approved for Nile</button>
+          <span class="tc-approve-pill readonly${contributorNileApproved ? ' active' : ''}">Contributor: ${contributorNileApproved ? 'approved' : 'not yet'} (Nile)</span>
         </div>
         ${tags ? `<div class="tc-tags">${tags}</div>` : ''}
         ${bodySections ? `<div class="tc-body">${bodySections}</div>` : ''}
