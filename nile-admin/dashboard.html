@@ -337,6 +337,12 @@ function setVisibilityFilter(f) {
 }
 
 async function loadTiles() {
+  // Every action on this page (approve, publish, swap a title...) reloads
+  // the whole list from scratch, which used to reset scroll to the top —
+  // meaning the tile someone was actually working on scrolled out of view
+  // after every single tap. Save/restore scroll position around the
+  // reload so they land back where they were, not back at the top.
+  const scrollPos = window.scrollY;
   document.getElementById('tiles-list').innerHTML = '<div class="empty-state"><span class="spinner"></span> Loading…</div>';
   document.getElementById('auth-error').style.display = 'none';
   document.getElementById('auth-error-signin').style.display = 'none';
@@ -352,6 +358,7 @@ async function loadTiles() {
     }
     allTiles = await r.json();
     render();
+    window.scrollTo(0, scrollPos);
   } catch (e) {
     document.getElementById('auth-error').style.display = 'block';
     document.getElementById('auth-error').textContent = e.message;
