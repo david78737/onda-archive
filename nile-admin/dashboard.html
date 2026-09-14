@@ -432,10 +432,10 @@ function render() {
           return `<div class="tc-meta" style="padding:0 18px;font-size:12px;color:var(--muted)">Created ${created}${showUpdated ? ` · Updated ${updated}` : ''}</div>`;
         })()}
         <div class="tc-approvals">
-          <button type="button" class="tc-approve-pill${stationApproved ? ' active' : ''}" onclick="event.stopPropagation();toggleApproval(${t.id}, 'station', ${stationApproved})">Approved for this station</button>
-          <span class="tc-approve-pill readonly${contributorStationApproved ? ' active' : ''}">Contributor: ${contributorStationApproved ? 'approved' : 'not yet'} (station)</span>
-          <button type="button" class="tc-approve-pill${nileApproved ? ' active' : ''}" onclick="event.stopPropagation();toggleApproval(${t.id}, 'nile', ${nileApproved})">Approved for Nile</button>
-          <span class="tc-approve-pill readonly${contributorNileApproved ? ' active' : ''}">Contributor: ${contributorNileApproved ? 'approved' : 'not yet'} (Nile)</span>
+          <button type="button" class="tc-approve-pill${stationApproved ? ' active' : ''}" onclick="event.stopPropagation();toggleApproval(${t.id}, 'station', ${stationApproved})">OK Station</button>
+          <span class="tc-approve-pill readonly${contributorStationApproved ? ' active' : ''}">Contrib: OK Station</span>
+          <button type="button" class="tc-approve-pill${nileApproved ? ' active' : ''}" onclick="event.stopPropagation();toggleApproval(${t.id}, 'nile', ${nileApproved})">OK Nile</button>
+          <span class="tc-approve-pill readonly${contributorNileApproved ? ' active' : ''}">Contrib: OK Nile</span>
         </div>
         ${tags ? `<div class="tc-tags">${tags}</div>` : ''}
         ${bodySections ? `<div class="tc-body">${bodySections}</div>` : ''}
