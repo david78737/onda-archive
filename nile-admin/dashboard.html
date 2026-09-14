@@ -152,7 +152,6 @@
   .tc-status-select.published { background: var(--success-bg); color: var(--success); }
   .tc-status-select.pending, .tc-status-select.submitted { background: var(--warn-bg); color: var(--warn); }
 
-  .tc-approvals { display: flex; gap: 8px; padding: 0 18px 12px; flex-wrap: wrap; }
   .tc-approve-pill {
     font-size: 11px; font-weight: 700; padding: 4px 12px; border-radius: 20px;
     cursor: pointer; border: 2px solid var(--border); background: transparent; color: var(--muted);
@@ -162,6 +161,17 @@
      only the Contributor's own portal can change it. Dashed border keeps
      it visually distinct from the Curator's own clickable pill. */
   .tc-approve-pill.readonly { cursor: default; border-style: dashed; }
+  /* Two grouped columns next to Status/Visibility, by role — not by level —
+     per David's own annotated mockup: everyone reads "who approved what"
+     faster grouped this way than scattered across one row. */
+  .tc-header-controls { display: flex; flex-direction: column; align-items: flex-end; gap: 6px; }
+  .tc-header-controls-top { display: flex; align-items: center; gap: 8px; }
+  .tc-approval-grid { display: flex; gap: 10px; }
+  .tc-approval-col { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; }
+  .tc-approval-col-label {
+    font-size: 10px; font-weight: 700; text-transform: uppercase;
+    letter-spacing: 0.3px; color: var(--muted);
+  }
   .tc-actions {
     padding: 10px 18px; border-top: 1px solid #f0f0f0;
     display: flex; gap: 10px; align-items: center;
@@ -424,10 +434,26 @@ function render() {
           <div class="tc-title-row">
             <span class="tc-chevron">▶</span>
             <div class="tc-title">${t.title || '(untitled)'}</div>
-            <select class="tc-status-select ${status}" onclick="event.stopPropagation()" onchange="event.stopPropagation();updateTileStatus(${t.id}, this.value)">
-              ${STATUS_VALUES.map(v => `<option value="${v}"${v === status ? ' selected' : ''}>${v}</option>`).join('')}
-            </select>
-            <span class="status-pill" style="background:var(--teal-light);color:var(--teal)">${VISIBILITY_LABELS[visibility] || visibility}</span>
+            <div class="tc-header-controls">
+              <div class="tc-header-controls-top">
+                <select class="tc-status-select ${status}" onclick="event.stopPropagation()" onchange="event.stopPropagation();updateTileStatus(${t.id}, this.value)">
+                  ${STATUS_VALUES.map(v => `<option value="${v}"${v === status ? ' selected' : ''}>${v}</option>`).join('')}
+                </select>
+                <span class="status-pill" style="background:var(--teal-light);color:var(--teal)">${VISIBILITY_LABELS[visibility] || visibility}</span>
+              </div>
+              <div class="tc-approval-grid" onclick="event.stopPropagation()">
+                <div class="tc-approval-col">
+                  <div class="tc-approval-col-label">Contributor</div>
+                  <span class="tc-approve-pill readonly${contributorNileApproved ? ' active' : ''}">OK Nile</span>
+                  <span class="tc-approve-pill readonly${contributorStationApproved ? ' active' : ''}">OK Station</span>
+                </div>
+                <div class="tc-approval-col">
+                  <div class="tc-approval-col-label">Curator</div>
+                  <button type="button" class="tc-approve-pill${nileApproved ? ' active' : ''}" onclick="toggleApproval(${t.id}, 'nile', ${nileApproved})">OK Nile</button>
+                  <button type="button" class="tc-approve-pill${stationApproved ? ' active' : ''}" onclick="toggleApproval(${t.id}, 'station', ${stationApproved})">OK Station</button>
+                </div>
+              </div>
+            </div>
           </div>
           <div class="tc-meta">${t.presenter_name || t.presenter || ''}</div>
         </div>
@@ -438,12 +464,6 @@ function render() {
           if (!created) return '';
           return `<div class="tc-meta" style="padding:0 18px;font-size:12px;color:var(--muted)">Created ${created}${showUpdated ? ` · Updated ${updated}` : ''}</div>`;
         })()}
-        <div class="tc-approvals">
-          <button type="button" class="tc-approve-pill${stationApproved ? ' active' : ''}" onclick="event.stopPropagation();toggleApproval(${t.id}, 'station', ${stationApproved})">OK Station</button>
-          <span class="tc-approve-pill readonly${contributorStationApproved ? ' active' : ''}">Contrib: OK Station</span>
-          <button type="button" class="tc-approve-pill${nileApproved ? ' active' : ''}" onclick="event.stopPropagation();toggleApproval(${t.id}, 'nile', ${nileApproved})">OK Nile</button>
-          <span class="tc-approve-pill readonly${contributorNileApproved ? ' active' : ''}">Contrib: OK Nile</span>
-        </div>
         ${tags ? `<div class="tc-tags">${tags}</div>` : ''}
         ${bodySections ? `<div class="tc-body">${bodySections}</div>` : ''}
         <div class="tc-actions">
