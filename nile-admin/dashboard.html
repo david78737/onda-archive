@@ -516,7 +516,11 @@ function showApiError(message) {
 // (and every other tile) completely untouched otherwise.
 async function swapTitle(id, suggestionIndex) {
   const tile = allTiles.find(t => t.id === id);
-  const newTitle = tile?.title_suggestions?.[suggestionIndex];
+  // Must filter the same way the pills were rendered (titleSuggestions in
+  // renderTile) — indexing the raw array here would point at the wrong
+  // title whenever any suggestion came back empty.
+  const suggestions = Array.isArray(tile?.title_suggestions) ? tile.title_suggestions.filter(Boolean) : [];
+  const newTitle = suggestions[suggestionIndex];
   if (!newTitle) return;
   try {
     const r = await fetch(`${NILE_API}/nile/tile/update`, {
