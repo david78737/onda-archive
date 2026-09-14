@@ -493,6 +493,24 @@ async function refinePrompt() {
   }
 }
 
+// phone/token come from the URL only (see bootstrap) — there's no saved
+// session, so a stale link or an expired token both surface as the same
+// kind of Xano error. Catch that case here instead of showing the raw
+// "Missing param: phone" string, which gives someone no idea what to do.
+function showApiError(message) {
+  if (/phone|token/i.test(message || '')) {
+    const relogin = confirm(
+      (message || 'Session error.') +
+      '\n\nYour login may have expired. Log in again to fix this?'
+    );
+    if (relogin) {
+      window.location.href = `login.html?phone=${encodeURIComponent(authedPhone || '')}`;
+    }
+    return;
+  }
+  alert(message);
+}
+
 // Swaps a suggested title in for the current one — only fires for the
 // specific tile+suggestion actually tapped, leaving the original title
 // (and every other tile) completely untouched otherwise.
@@ -512,7 +530,7 @@ async function swapTitle(id, suggestionIndex) {
     }
     await loadTiles();
   } catch (e) {
-    alert(e.message);
+    showApiError(e.message);
   }
 }
 
@@ -531,7 +549,7 @@ async function patchTile(id, fields) {
     }
     await loadTiles();
   } catch (e) {
-    alert(e.message);
+    showApiError(e.message);
   }
 }
 
@@ -590,7 +608,7 @@ async function generateDraft(id) {
   } catch (e) {
     btn.textContent = original;
     btn.style.pointerEvents = '';
-    alert(e.message);
+    showApiError(e.message);
   }
 }
 </script>
