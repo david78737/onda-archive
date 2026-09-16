@@ -125,6 +125,11 @@
   .status-pill.pending,
   .status-pill.submitted  { background: var(--warn-bg); color: var(--warn); }
 
+  .tc-gaps-flag {
+    margin: 6px 18px 0; padding: 6px 10px; border-radius: 6px;
+    background: var(--warn-bg); color: var(--warn); font-size: 12px; font-weight: 600;
+  }
+
   .tc-meta { font-size: 12px; color: var(--muted); }
   .tc-tags { display: flex; flex-wrap: wrap; gap: 6px; padding: 0 18px 14px; }
   .tc-tag {
@@ -231,6 +236,7 @@
     <button class="filter-btn" onclick="setStatusFilter('draft')" id="filter-draft">Draft</button>
     <button class="filter-btn" onclick="setStatusFilter('pending')" id="filter-pending">Pending</button>
     <button class="filter-btn" onclick="setStatusFilter('archived')" id="filter-archived">Archived</button>
+    <button class="filter-btn" onclick="setStatusFilter('needs-attention')" id="filter-needs-attention">⚠ Needs Attention</button>
   </div>
 
   <div class="filter-row">
@@ -330,11 +336,29 @@ const STATUS_VALUES = ['draft', 'submitted', 'pending', 'approved', 'scheduled',
 
 function setStatusFilter(f) {
   currentFilter = f;
-  ['all','published','draft','pending','archived'].forEach(k => {
+  ['all','published','draft','pending','archived','needs-attention'].forEach(k => {
     const btn = document.getElementById('filter-' + k);
     if (btn) btn.className = 'filter-btn' + ((k === (f || 'all')) ? ' active' : '');
   });
   render();
+}
+
+// A tile is only as findable as the fields it's actually missing — this is
+// what lets a Curator see "something's wrong here" without ever having to
+// query the database directly, per the 2026-09-16 "no engineer required"
+// rule. Checks are defensive: a field this endpoint doesn't return on ANY
+// tile is skipped rather than flagged on every tile, so this only gets
+// stricter as more fields come back from the API, never noisier.
+function completenessGaps(t) {
+  const gaps = [];
+  if (!t.title || !t.title.trim()) gaps.push('title');
+  if (!t.onda_url) gaps.push('linked file');
+  if ('onda_file' in t && (!t.onda_file || (t.onda_file.size || 0) < 1000)) gaps.push('real audio (file looks empty)');
+  if (!t.synopsis || !t.synopsis.trim()) gaps.push('synopsis');
+  if (!Array.isArray(t.takeaways) || !t.takeaways.filter(Boolean).length) gaps.push('takeaways');
+  if ('presenter_phone' in t && !t.presenter_phone) gaps.push('presenter phone (won\'t appear in their My Presentations)');
+  if ('transcript' in t && !t.transcript) gaps.push('transcript');
+  return gaps;
 }
 
 function setVisibilityFilter(f) {
@@ -385,16 +409,18 @@ function formatDate(ts) {
 }
 
 function render() {
+  const needsAttention = currentFilter === 'needs-attention';
   const rows = allTiles.filter(t =>
-    (!currentFilter || t.status === currentFilter) &&
+    (needsAttention ? completenessGaps(t).length > 0 : (!currentFilter || t.status === currentFilter)) &&
     (!currentVisibilityFilter || t.visibility === currentVisibilityFilter)
   );
+  if (needsAttention) rows.sort((a, b) => completenessGaps(b).length - completenessGaps(a).length);
   document.getElementById('dash-count').textContent =
     `${allTiles.length} tile${allTiles.length !== 1 ? 's' : ''} total`;
 
   const list = document.getElementById('tiles-list');
   if (!rows.length) {
-    list.innerHTML = '<div class="empty-state">Nothing here yet.</div>';
+    list.innerHTML = `<div class="empty-state">${needsAttention ? 'Nothing missing anything — all clear.' : 'Nothing here yet.'}</div>`;
     return;
   }
 
@@ -413,6 +439,7 @@ function render() {
     const takeaways = Array.isArray(t.takeaways) ? t.takeaways.filter(Boolean) : [];
     const headings = Array.isArray(t.headings) ? t.headings.filter(Boolean) : [];
     const titleSuggestions = Array.isArray(t.title_suggestions) ? t.title_suggestions.filter(Boolean) : [];
+    const gaps = completenessGaps(t);
 
     const bodySections = [
       // Suggestions only — the submitted title is never changed on its own.
@@ -457,6 +484,7 @@ function render() {
           </div>
           <div class="tc-meta">${t.presenter_name || t.presenter || ''}</div>
         </div>
+        ${gaps.length ? `<div class="tc-gaps-flag">⚠ Missing: ${gaps.join(', ')}</div>` : ''}
         ${(() => {
           const created = formatDate(t.created_at);
           const updated = formatDate(t.updated_at);
