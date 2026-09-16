@@ -278,9 +278,9 @@
 
   <div class="filter-row">
     <button class="filter-btn active" onclick="setVisibilityFilter('')" id="vis-filter-all">Any Visibility</button>
-    <button class="filter-btn" onclick="setVisibilityFilter('public')" id="vis-filter-public">Public</button>
-    <button class="filter-btn" onclick="setVisibilityFilter('chapter')" id="vis-filter-chapter">This Station Only</button>
-    <button class="filter-btn" onclick="setVisibilityFilter('private')" id="vis-filter-private">Admin Only</button>
+    <button class="filter-btn" onclick="setVisibilityFilter('public')" id="vis-filter-public">Nile</button>
+    <button class="filter-btn" onclick="setVisibilityFilter('chapter')" id="vis-filter-chapter">Station</button>
+    <button class="filter-btn" onclick="setVisibilityFilter('private')" id="vis-filter-private">Admin</button>
   </div>
 
   <div class="prompt-tuner">
@@ -390,7 +390,7 @@ function playerUrlFor(url) {
   loadTiles();
 })();
 
-const VISIBILITY_LABELS = { public: 'Public', chapter: 'This Station Only', private: 'Admin Only' };
+const VISIBILITY_LABELS = { public: 'Nile', chapter: 'Station', private: 'Admin' };
 const STATUS_VALUES = ['draft', 'submitted', 'pending', 'approved', 'scheduled', 'armed', 'recorded', 'published', 'archived', 'rejected'];
 
 function setStatusFilter(f) {
