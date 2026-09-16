@@ -130,6 +130,43 @@
     background: var(--warn-bg); color: var(--warn); font-size: 12px; font-weight: 600;
   }
 
+  .tc-tagline { font-size: 13px; font-style: italic; color: var(--teal-dark); margin-top: 2px; }
+  .tc-identity { display: flex; align-items: center; gap: 8px; padding: 0 18px 8px; }
+  .tc-sleeve-img { width: 28px; height: 28px; border-radius: 50%; object-fit: cover; flex-shrink: 0; }
+  .tc-sleeve-placeholder {
+    width: 28px; height: 28px; border-radius: 50%; flex-shrink: 0;
+    background: var(--teal-light); color: var(--teal); font-size: 12px; font-weight: 700;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .tc-identity-name { font-size: 13px; font-weight: 600; color: var(--muted); }
+
+  /* Title/heading review pills: tap the pill body to use it (titles only),
+     tap × to grey it out (soft reject, still visible struck-through), tap
+     the × again on a greyed pill to actually delete it from the list. Two
+     steps on purpose — the same "don't silently drop what the AI or
+     Contributor produced" principle as toggleTagHidden, but for candidates
+     you're actively narrowing down rather than content already committed. */
+  .tc-tag.greyed { background: #f0f0f0; color: var(--muted); border-color: #ddd; text-decoration: line-through; }
+  .tc-tag-x.confirm-delete { color: var(--error); opacity: 1; }
+
+  .tc-edit-btn {
+    font-size: 11px; font-weight: 700; color: var(--teal); cursor: pointer;
+    text-transform: uppercase; letter-spacing: .04em; margin-left: 8px;
+  }
+  .tc-edit-btn:hover { text-decoration: underline; }
+  .tc-edit-textarea {
+    width: 100%; min-height: 60px; padding: 8px; border: 1px solid var(--teal);
+    border-radius: 6px; font-family: inherit; font-size: 14px; line-height: 1.5;
+  }
+  .tc-edit-save {
+    margin-top: 6px; padding: 4px 12px; font-size: 12px; font-weight: 700;
+    background: var(--teal); color: #fff; border: none; border-radius: 6px; cursor: pointer;
+  }
+
+  .tc-takeaway-row { display: flex; align-items: flex-start; gap: 8px; margin-bottom: 4px; }
+  .tc-takeaway-row input { margin-top: 3px; flex-shrink: 0; }
+  .tc-takeaway-row.unchecked span { text-decoration: line-through; color: var(--muted); }
+
   .tc-meta { font-size: 12px; color: var(--muted); }
   .tc-tags { display: flex; flex-wrap: wrap; gap: 6px; padding: 0 18px 14px; }
   .tc-tag {
@@ -278,6 +315,28 @@ let currentVisibilityFilter = '';
 // and across re-renders (Generate Draft, Refine Prompt, etc. all reload
 // the list), and only changes when a different tile is actually selected.
 let selectedTileId = null;
+// Which single card is expanded — tracked explicitly (not just a DOM class
+// toggle) so it survives a full render() rebuild. Every review action inside
+// an open card (grey a suggestion, edit a field, check a takeaway) re-runs
+// render(), which used to silently re-collapse every card since .open was
+// never data-driven — made the whole point-and-click review flow unusable,
+// since one click on a title's × would slam the card shut again.
+let openTileId = null;
+
+// Transient, per-tile review state — never sent to the server until a Save
+// or a confirm-delete actually commits something. Reset naturally on a full
+// reload since it's not part of allTiles; that's fine, review state isn't
+// meant to survive walking away mid-session, only the committed result is.
+const uiState = {};
+function getUiState(tileId) {
+  if (!uiState[tileId]) {
+    uiState[tileId] = {
+      greyedTitles: new Set(), greyedHeadings: new Set(),
+      uncheckedTakeaways: new Set(), editingField: null,
+    };
+  }
+  return uiState[tileId];
+}
 
 function playerUrlFor(url) {
   return 'https://default-dev-51573d-xrxm-29on-xlyt.n7e.xano.io/index.html?src=' + encodeURIComponent(url);
@@ -440,27 +499,51 @@ function render() {
     const headings = Array.isArray(t.headings) ? t.headings.filter(Boolean) : [];
     const titleSuggestions = Array.isArray(t.title_suggestions) ? t.title_suggestions.filter(Boolean) : [];
     const gaps = completenessGaps(t);
+    const st = getUiState(t.id);
+
+    // A review pill for a title suggestion or a section heading: plain tap
+    // (title suggestions only) promotes it via useSuggestion; the × greys
+    // it out, and tapping × again on a greyed one deletes it for real.
+    const reviewPill = (text, idx, field, tappable) => {
+      const greyedSet = field === 'headings' ? st.greyedHeadings : st.greyedTitles;
+      const isGreyed = greyedSet.has(idx);
+      const bodyClick = tappable && !isGreyed ? `onclick="event.stopPropagation();useSuggestion(${t.id}, ${idx})" style="cursor:pointer;"` : '';
+      return `<span class="tc-tag${isGreyed ? ' greyed' : ''}" ${bodyClick}>${text}<span class="tc-tag-x${isGreyed ? ' confirm-delete' : ''}" onclick="event.stopPropagation();toggleListItemGrey(${t.id}, '${field}', ${idx})" title="${isGreyed ? 'Delete for good' : 'Reject'}">×</span></span>`;
+    };
+
+    const editableField = (label, field, value) => {
+      if (st.editingField === field) {
+        return `<div class="tc-body-section"><div class="tc-body-label">${label}</div><textarea id="edit-${field}-${t.id}" class="tc-edit-textarea" onclick="event.stopPropagation()">${value || ''}</textarea><br><button class="tc-edit-save" onclick="event.stopPropagation();saveEditField(${t.id}, '${field}')">Save</button> <span class="tc-edit-btn" onclick="event.stopPropagation();cancelEditField(${t.id})">Cancel</span></div>`;
+      }
+      if (!value) return '';
+      return `<div class="tc-body-section"><div class="tc-body-label">${label}<span class="tc-edit-btn" onclick="event.stopPropagation();startEditField(${t.id}, '${field}')">Edit</span></div><div class="tc-body-text">${value}</div></div>`;
+    };
 
     const bodySections = [
-      // Suggestions only — the submitted title is never changed on its own.
-      // Each pill swaps it in only if this specific one is tapped.
-      // Passes id + index, not the title text itself — avoids any risk of a
-      // title containing a quote character breaking the onclick attribute.
-      // swapTitle() looks the real string up from allTiles by index instead.
-      titleSuggestions.length ? `<div class="tc-body-section"><div class="tc-body-label">Suggested Titles — tap to use</div><div class="tc-tags">${titleSuggestions.map((s, idx) => `<span class="tc-tag" style="cursor:pointer;" onclick="event.stopPropagation();swapTitle(${t.id}, ${idx})">${s}</span>`).join('')}</div></div>` : '',
-      t.synopsis ? `<div class="tc-body-section"><div class="tc-body-label">Synopsis</div><div class="tc-body-text">${t.synopsis}</div></div>` : '',
-      t.brief ? `<div class="tc-body-section"><div class="tc-body-label">One-liner</div><div class="tc-body-text">${t.brief}</div></div>` : '',
-      t.who ? `<div class="tc-body-section"><div class="tc-body-label">Who it's for</div><div class="tc-body-text">${t.who}</div></div>` : '',
-      takeaways.length ? `<div class="tc-body-section"><div class="tc-body-label">${t.takeaways_label || 'Key Takeaways'}</div><ul class="tc-body-list">${takeaways.map(x => `<li>${x}</li>`).join('')}</ul></div>` : '',
-      headings.length ? `<div class="tc-body-section"><div class="tc-body-label">Section Headings</div><ul class="tc-body-list">${headings.map(x => `<li>${x}</li>`).join('')}</ul></div>` : '',
+      // Titles: narrow a batch of AI suggestions down to a short list fast —
+      // reject the bad ones with ×, tap a survivor to make it the real title.
+      titleSuggestions.length ? `<div class="tc-body-section"><div class="tc-body-label">Suggested Titles — tap to use, × to reject</div><div class="tc-tags">${titleSuggestions.map((s, idx) => reviewPill(s, idx, 'title_suggestions', true)).join('')}</div></div>` : '',
+      editableField("Who it's for", 'who', t.who),
+      editableField('Synopsis', 'synopsis', t.synopsis),
+      takeaways.length ? `<div class="tc-body-section"><div class="tc-body-label">${t.takeaways_label || 'Key Takeaways'} — uncheck to drop</div>${takeaways.map((x, idx) => {
+        const checked = !st.uncheckedTakeaways.has(idx);
+        return `<div class="tc-takeaway-row${checked ? '' : ' unchecked'}"><input type="checkbox" ${checked ? 'checked' : ''} onclick="event.stopPropagation()" onchange="toggleTakeawayChecked(${t.id}, ${idx}, this.checked)"><span>${x}</span></div>`;
+      }).join('')}${st.uncheckedTakeaways.size ? `<button class="tc-edit-save" onclick="event.stopPropagation();saveTakeaways(${t.id})">Save Takeaways</button>` : ''}</div>` : '',
+      headings.length ? `<div class="tc-body-section"><div class="tc-body-label">Section Headings — × to reject</div><div class="tc-tags">${headings.map((h, idx) => reviewPill(h, idx, 'headings', false)).join('')}</div></div>` : '',
     ].filter(Boolean).join('');
 
+    const sleeveImg = t.photo_url || t.photo;
+    const presenterDisplay = t.presenter_name || t.presenter || '';
+
     return `
-      <div class="tile-card status-${status}${t.id === selectedTileId ? ' selected' : ''}" id="tile-card-${i}" data-tile-id="${t.id}">
+      <div class="tile-card status-${status}${t.id === selectedTileId ? ' selected' : ''}${t.id === openTileId ? ' open' : ''}" id="tile-card-${i}" data-tile-id="${t.id}">
         <div class="tc-header" onclick="selectTile(${t.id}, ${i})">
           <div class="tc-title-row">
             <span class="tc-chevron">▶</span>
-            <div class="tc-title">${t.title || '(untitled)'}</div>
+            <div style="flex:1">
+              <div class="tc-title">${t.title || '(untitled)'}</div>
+              ${t.brief ? `<div class="tc-tagline">${t.brief}</div>` : ''}
+            </div>
             <div class="tc-header-controls">
               <div class="tc-header-controls-top">
                 <select class="tc-status-select ${status}" onclick="event.stopPropagation()" onchange="event.stopPropagation();updateTileStatus(${t.id}, this.value)">
@@ -482,8 +565,8 @@ function render() {
               </div>
             </div>
           </div>
-          <div class="tc-meta">${t.presenter_name || t.presenter || ''}</div>
         </div>
+        ${presenterDisplay || sleeveImg ? `<div class="tc-identity">${sleeveImg ? `<img class="tc-sleeve-img" src="${sleeveImg}">` : (presenterDisplay ? `<span class="tc-sleeve-placeholder">${presenterDisplay.trim().charAt(0).toUpperCase()}</span>` : '')}<span class="tc-identity-name">${presenterDisplay}</span></div>` : ''}
         ${gaps.length ? `<div class="tc-gaps-flag">⚠ Missing: ${gaps.join(', ')}</div>` : ''}
         ${(() => {
           const created = formatDate(t.created_at);
@@ -509,6 +592,7 @@ function render() {
 // by loop index, since filtering can change which index maps to which
 // tile between renders).
 function selectTile(id, i) {
+  openTileId = (openTileId === id) ? null : id;
   document.getElementById('tile-card-' + i).classList.toggle('open');
   if (selectedTileId !== id) {
     if (selectedTileId !== null) {
@@ -649,6 +733,73 @@ function toggleTagHidden(id, tagIdx, shouldHide) {
   const current = Array.isArray(tile?.tags_hidden) ? tile.tags_hidden : [];
   const next = shouldHide ? [...current, tag] : current.filter(x => x !== tag);
   patchTile(id, { tags_hidden: next });
+}
+
+// Shared by title suggestions and section headings: first tap greys the
+// item out (soft, reversible — just local state, nothing saved yet);
+// tapping the × again on an already-greyed item is the real, permanent
+// delete, which patches the trimmed array to the server. field is either
+// 'title_suggestions' or 'headings'.
+function toggleListItemGrey(tileId, field, idx) {
+  const st = getUiState(tileId);
+  const set = field === 'headings' ? st.greyedHeadings : st.greyedTitles;
+  if (set.has(idx)) {
+    // Already greyed — this tap is the confirm-delete.
+    const tile = allTiles.find(t => t.id === tileId);
+    const list = Array.isArray(tile?.[field]) ? tile[field] : [];
+    const next = list.filter((_, i) => i !== idx);
+    set.delete(idx);
+    patchTile(tileId, { [field]: next });
+  } else {
+    set.add(idx);
+    render();
+  }
+}
+
+// Tapping a title suggestion's body (not its ×) promotes it to the real
+// title, same as before — greying out candidates and picking the winner
+// are independent actions on the same pill.
+function useSuggestion(tileId, idx) {
+  swapTitle(tileId, idx);
+}
+
+// Inline edit for a single text field (synopsis, brief, who) — toggles that
+// field's display into a textarea in place, no separate modal. Only one
+// field editable at a time per tile to keep the card from getting
+// confusing mid-review.
+function startEditField(tileId, field) {
+  getUiState(tileId).editingField = field;
+  render();
+}
+
+function cancelEditField(tileId) {
+  getUiState(tileId).editingField = null;
+  render();
+}
+
+function saveEditField(tileId, field) {
+  const textarea = document.getElementById(`edit-${field}-${tileId}`);
+  if (!textarea) return;
+  getUiState(tileId).editingField = null;
+  patchTile(tileId, { [field]: textarea.value });
+}
+
+// Takeaways: checkbox per item, checked = keep. Unchecking is local/visual
+// only until "Save Takeaways" actually commits the trimmed list — avoids a
+// stray click silently shrinking a real field on every toggle.
+function toggleTakeawayChecked(tileId, idx, checked) {
+  const set = getUiState(tileId).uncheckedTakeaways;
+  if (checked) set.delete(idx); else set.add(idx);
+  render();
+}
+
+function saveTakeaways(tileId) {
+  const tile = allTiles.find(t => t.id === tileId);
+  const list = Array.isArray(tile?.takeaways) ? tile.takeaways : [];
+  const unchecked = getUiState(tileId).uncheckedTakeaways;
+  const next = list.filter((_, i) => !unchecked.has(i));
+  unchecked.clear();
+  patchTile(tileId, { takeaways: next });
 }
 
 // Runs the AI draft-generation function for one submitted tile — reads its
