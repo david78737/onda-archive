@@ -283,6 +283,13 @@
     <button class="filter-btn" onclick="setVisibilityFilter('private')" id="vis-filter-private">Admin</button>
   </div>
 
+  <div class="filter-row" style="align-items:center;">
+    <input type="text" id="search-box" placeholder="Find by title, author, or tag…"
+      style="flex:1;min-width:200px;padding:7px 12px;font-size:14px;border:1px solid var(--border);border-radius:20px;font-family:inherit;"
+      oninput="setSearch(this.value)">
+    <button class="filter-btn" onclick="toggleAuthorTitleSort()" id="sort-author-title">Sort: Author, Title</button>
+  </div>
+
   <div class="prompt-tuner">
     <div class="prompt-tuner-header" onclick="document.getElementById('prompt-tuner-body').classList.toggle('open');document.getElementById('prompt-tuner-chevron').classList.toggle('open')">
       <span class="tc-chevron" id="prompt-tuner-chevron">▶</span>
@@ -311,6 +318,19 @@ let stationId   = null;
 let allTiles    = [];
 let currentFilter = '';
 let currentVisibilityFilter = '';
+let currentSearch = '';
+let sortAuthorTitle = false;
+
+function setSearch(v) {
+  currentSearch = v.trim().toLowerCase();
+  render();
+}
+
+function toggleAuthorTitleSort() {
+  sortAuthorTitle = !sortAuthorTitle;
+  document.getElementById('sort-author-title').className = 'filter-btn' + (sortAuthorTitle ? ' active' : '');
+  render();
+}
 // The tile currently being worked on — persists across collapsing a card
 // and across re-renders (Generate Draft, Refine Prompt, etc. all reload
 // the list), and only changes when a different tile is actually selected.
@@ -469,26 +489,48 @@ function formatDate(ts) {
 
 function render() {
   const needsAttention = currentFilter === 'needs-attention';
+  const q = currentSearch;
+  const matchesSearch = (t) => {
+    if (!q) return true;
+    if ((t.title || '').toLowerCase().includes(q)) return true;
+    if ((t.presenter_name || t.presenter || '').toLowerCase().includes(q)) return true;
+    return (Array.isArray(t.tags) ? t.tags : []).some(tag => (tag || '').toLowerCase().includes(q));
+  };
   const rows = allTiles.filter(t =>
     (needsAttention ? completenessGaps(t).length > 0 : (!currentFilter || t.status === currentFilter)) &&
-    (!currentVisibilityFilter || t.visibility === currentVisibilityFilter)
+    (!currentVisibilityFilter || t.visibility === currentVisibilityFilter) &&
+    matchesSearch(t)
   );
-  if (needsAttention) rows.sort((a, b) => completenessGaps(b).length - completenessGaps(a).length);
+  if (needsAttention) {
+    rows.sort((a, b) => completenessGaps(b).length - completenessGaps(a).length);
+  } else if (sortAuthorTitle) {
+    rows.sort((a, b) => {
+      const authorA = (a.presenter_name || a.presenter || '').toLowerCase();
+      const authorB = (b.presenter_name || b.presenter || '').toLowerCase();
+      return authorA.localeCompare(authorB) || (a.title || '').toLowerCase().localeCompare((b.title || '').toLowerCase());
+    });
+  }
   document.getElementById('dash-count').textContent =
     `${allTiles.length} tile${allTiles.length !== 1 ? 's' : ''} total`;
 
   const list = document.getElementById('tiles-list');
   if (!rows.length) {
-    list.innerHTML = `<div class="empty-state">${needsAttention ? 'Nothing missing anything — all clear.' : 'Nothing here yet.'}</div>`;
+    list.innerHTML = `<div class="empty-state">${q ? 'Nothing matches that search.' : (needsAttention ? 'Nothing missing anything — all clear.' : 'Nothing here yet.')}</div>`;
     return;
   }
 
   list.innerHTML = rows.map((t, i) => {
     const tagsHidden = Array.isArray(t.tags_hidden) ? t.tags_hidden : [];
-    const tags = (Array.isArray(t.tags) ? t.tags : []).map((tag, tagIdx) => {
-      const isHidden = tagsHidden.includes(tag);
-      return `<span class="tc-tag${isHidden ? ' hidden-tag' : ''}">${tag}<span class="tc-tag-x" onclick="event.stopPropagation();toggleTagHidden(${t.id}, ${tagIdx}, ${!isHidden})" title="${isHidden ? 'Restore tag' : 'Hide tag'}">×</span></span>`;
-    }).join('');
+    const rawTags = Array.isArray(t.tags) ? t.tags : [];
+    // Sort alphabetically for display/scanning, but the hide/restore click
+    // still needs the tag's real position in the original (unsorted) array.
+    const tags = rawTags
+      .map((tag, tagIdx) => ({ tag, tagIdx }))
+      .sort((a, b) => a.tag.localeCompare(b.tag))
+      .map(({ tag, tagIdx }) => {
+        const isHidden = tagsHidden.includes(tag);
+        return `<span class="tc-tag${isHidden ? ' hidden-tag' : ''}">${tag}<span class="tc-tag-x" onclick="event.stopPropagation();toggleTagHidden(${t.id}, ${tagIdx}, ${!isHidden})" title="${isHidden ? 'Restore tag' : 'Hide tag'}">×</span></span>`;
+      }).join('');
     const status = t.status || 'draft';
     const visibility = t.visibility || 'private';
     const stationApproved = !!t.curator_approved_station;
