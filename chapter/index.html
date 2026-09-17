@@ -665,10 +665,16 @@ document.getElementById('search-input').addEventListener('input', e => {
 const PRESENTATIONS_API = 'https://xrxm-29on-xlyt.n7e.xano.io/api:presentations/list';
 
 function normalizePresentation(p) {
-  const takeaways = (Array.isArray(p.takeaways) ? p.takeaways : (p.takeaways || '').split('\n'))
+  // A tile whose draft hasn't been generated yet stores takeaways/headings
+  // as an empty {} object, not an array or a string — .split() on that
+  // threw and silently killed the ENTIRE archive's render, not just that
+  // one card, since this runs inside a .map() over every session. Only
+  // treat it as text to split when it's actually a string; anything else
+  // (including {}) becomes an empty list instead of crashing.
+  const takeaways = (Array.isArray(p.takeaways) ? p.takeaways : (typeof p.takeaways === 'string' ? p.takeaways.split('\n') : []))
     .map(t => String(t).replace(/^→\s*/, '').trim())
     .filter(Boolean);
-  const headings = (Array.isArray(p.headings) ? p.headings : (p.headings || '').split('\n'))
+  const headings = (Array.isArray(p.headings) ? p.headings : (typeof p.headings === 'string' ? p.headings.split('\n') : []))
     .map(h => String(h).replace(/^→\s*/, '').trim())
     .filter(Boolean);
   return {
