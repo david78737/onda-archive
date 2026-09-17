@@ -669,30 +669,34 @@ async function swapTitle(id, suggestionIndex) {
   const suggestions = Array.isArray(tile?.title_suggestions) ? tile.title_suggestions.filter(Boolean) : [];
   const newTitle = suggestions[suggestionIndex];
   if (!newTitle) return;
-  try {
-    const r = await fetch(`${NILE_API}/nile/tile/update`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ id, phone: authedPhone, magic_auth_token: authToken, title: newTitle }),
-    });
-    if (!r.ok) {
-      const e = await r.json().catch(() => ({}));
-      throw new Error(e.message || 'Could not update the title.');
-    }
-    await loadTiles();
-  } catch (e) {
-    showApiError(e.message);
-  }
+  // Routed through patchTile (not its own fetch) so it gets the same
+  // takeaways/headings/tags safeguard as every other action.
+  await patchTile(id, { title: newTitle });
 }
 
 // Shared helper — the three controls below (status dropdown, approval
 // pills, tag hide/restore) all just patch one field on nile/tile/update.
 async function patchTile(id, fields) {
+  // Confirmed 2026-09-17: tapping ONLY an approval pill (no takeaways in
+  // the request at all) wiped a tile's real takeaways to empty — Xano's
+  // optional JSON inputs don't reliably stay untouched just because a key
+  // was left out of the request, the way text/bool fields do. Rather than
+  // trust that behavior, always resend the tile's current array fields on
+  // every save unless this specific call means to actually change one —
+  // nothing is ever "omitted" from Xano's point of view, so there's no
+  // ambiguity left for it to get wrong.
+  const tile = allTiles.find(t => t.id === id) || {};
+  const arrayGuard = {
+    takeaways: tile.takeaways,
+    headings: tile.headings,
+    tags: tile.tags,
+    tags_hidden: tile.tags_hidden,
+  };
   try {
     const r = await fetch(`${NILE_API}/nile/tile/update`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ id, phone: authedPhone, magic_auth_token: authToken, ...fields }),
+      body: JSON.stringify({ id, phone: authedPhone, magic_auth_token: authToken, ...arrayGuard, ...fields }),
     });
     if (!r.ok) {
       const e = await r.json().catch(() => ({}));
