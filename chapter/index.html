@@ -633,12 +633,12 @@ function render() {
         </div>
       </div>
       <div class="card-body">
+        <div class="action-row">${ondaBtn}</div>
         ${s.synopsis ? `<div class="section-label">Synopsis</div><div class="synopsis">${s.synopsis}</div>` : ''}
         ${(s.takeaways||[]).length ? `<div class="section-label">Key Takeaways</div><ul class="takeaways">${s.takeaways.map(t=>`<li>${t}</li>`).join('')}</ul>` : ''}
         ${(s.headings||[]).length ? `<div class="section-label">What's Covered</div><ul class="takeaways">${s.headings.map(h=>`<li>${h}</li>`).join('')}</ul>` : ''}
         ${s.who ? `<div class="section-label">Best For</div><div class="who">${s.who}</div>` : ''}
         ${s.brief ? `<div class="brief-row">${s.brief}</div>` : ''}
-        <div class="action-row">${ondaBtn}</div>
       </div>`;
 
     card.querySelector('.card-header').addEventListener('click', () => card.classList.toggle('open'));
