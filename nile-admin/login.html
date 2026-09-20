@@ -447,11 +447,25 @@ async function loadWorkList() {
 
 function selectRole(tileIdx, role, pillEl) {
   const tile = document.getElementById(`tile-${tileIdx}`);
+  const actionsCol = document.getElementById(`action-col-${tileIdx}`);
+  const roleKeys = Object.keys(TILE_DATA[tileIdx]);
+
+  // Clicking the already-open role again closes the tile back down,
+  // instead of it staying expanded with no way to collapse it.
+  if (pillEl.classList.contains('active')) {
+    pillEl.classList.remove('active');
+    tile.classList.remove('open');
+    actionsCol.innerHTML = roleKeys.length > 1
+      ? '<div class="role-hint">Tap a role above to see what you can do as that role.</div>'
+      : '';
+    return;
+  }
+
   tile.querySelectorAll('.role-pill').forEach(p => p.classList.remove('active'));
   pillEl.classList.add('active');
   tile.classList.add('open');
   const actions = TILE_DATA[tileIdx][role] || [];
-  document.getElementById(`action-col-${tileIdx}`).innerHTML = actions.map(a => `
+  actionsCol.innerHTML = actions.map(a => `
     <a class="action-item" href="${a.href}">
       <span class="action-label ${a.primary ? 'action-label-primary' : 'action-label-secondary'}">${a.label}</span>
       <span class="action-desc">${a.desc}</span>
