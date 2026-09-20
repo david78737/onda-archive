@@ -67,6 +67,13 @@
 
   .p-synopsis { padding: 12px 20px 0; font-size: 14px; color: var(--body); }
 
+  .p-draft-row { padding: 12px 20px 0; }
+  .p-draft-btn {
+    font-size: 13px; font-weight: 700; padding: 8px 16px; border-radius: 8px;
+    border: none; background: var(--teal); color: #fff; cursor: pointer; font-family: inherit;
+  }
+  .p-draft-btn:disabled { opacity: .6; cursor: default; }
+
   .p-approvals { padding: 14px 20px 16px; border-top: 1px solid #f0f0f0; margin-top: 12px; }
   .p-approvals-label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); margin-bottom: 8px; }
   .p-approve-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 8px; }
@@ -173,6 +180,10 @@ function render() {
         </div>
         ${tags ? `<div class="p-tags">${tags}</div>` : ''}
         ${t.synopsis ? `<div class="p-synopsis">${t.synopsis}</div>` : ''}
+        ${status === 'submitted' ? `
+        <div class="p-draft-row">
+          <button type="button" class="p-draft-btn" id="draft-btn-${t.id}" onclick="generateDraft(${t.id})">${t.synopsis ? 'Regenerate Draft' : 'Generate Draft'}</button>
+        </div>` : ''}
         <div class="p-approvals">
           <div class="p-approvals-label">Approve for release</div>
           <div class="p-approve-row">
@@ -186,6 +197,33 @@ function render() {
         </div>
       </div>`;
   }).join('');
+}
+
+// Same generate-draft call the Curator's Station Dashboard makes — lets
+// the Contributor produce the AI synopsis/tags/takeaways themselves,
+// ahead of a Curator ever looking at it, instead of waiting on them.
+async function generateDraft(id) {
+  const btn = document.getElementById('draft-btn-' + id);
+  if (!btn) return;
+  const original = btn.textContent;
+  btn.textContent = 'Generating…';
+  btn.disabled = true;
+  try {
+    const r = await fetch(`${NILE_API}/nile/tile/generate-draft`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id, phone: PHONE, magic_auth_token: TOKEN }),
+    });
+    if (!r.ok) {
+      const e = await r.json().catch(() => ({}));
+      throw new Error(e.message || 'Draft generation failed.');
+    }
+    await loadMine();
+  } catch (e) {
+    btn.textContent = original;
+    btn.disabled = false;
+    showBanner(e.message);
+  }
 }
 
 // This is the Contributor's own half of the same two-key approval the
