@@ -647,7 +647,11 @@ function render() {
         ${s.brief ? `<div class="brief-row">${s.brief}</div>` : ''}
       </div>`;
 
-    card.querySelector('.card-header').addEventListener('click', () => card.classList.toggle('open'));
+    card.querySelector('.card-header').addEventListener('click', () => {
+      const wasOpen = card.classList.contains('open');
+      container.querySelectorAll('.card.open').forEach(c => c.classList.remove('open'));
+      if (!wasOpen) card.classList.add('open');
+    });
     card.querySelectorAll('.card-tag').forEach(chip => {
       chip.addEventListener('click', e => {
         e.stopPropagation();
