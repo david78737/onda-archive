@@ -33,7 +33,7 @@
   header a { color: rgba(255,255,255,.8); font-size: 13px; text-decoration: none; margin-left: auto; }
   header a:hover { color: #fff; }
 
-  .wrap { max-width: 720px; margin: 0 auto; padding: 32px 20px 0; }
+  .wrap { max-width: 780px; margin: 0 auto; padding: 32px 20px 0; }
   .banner { padding: 12px 16px; border-radius: 8px; font-size: 14px; font-weight: 600; margin-bottom: 16px; display: none; }
   .banner.error { background: #fdecea; color: var(--error); display: block; }
 
@@ -41,51 +41,118 @@
   .page-sub { font-size: 14px; color: var(--muted); margin-bottom: 24px; }
   .empty-state { text-align: center; padding: 40px 20px; color: var(--muted); font-size: 14px; }
 
-  .p-card {
-    background: var(--surface); border: 1px solid var(--border); border-radius: 10px;
-    margin-bottom: 16px; overflow: hidden;
+  /* Everything below this line is the same tile-card review UI the
+     Curator's Station Dashboard uses — same classes, same behavior.
+     Contributors get first crack at their own draft (titles, synopsis,
+     takeaways, headings, tags); a Curator's approval stays read-only
+     here on purpose, same as a Contributor's approval is read-only on
+     the Curator's own dashboard. Neither side can cast the other's vote. */
+  .tile-card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 10px; margin-bottom: 14px; overflow: hidden;
   }
-  .p-header { padding: 16px 20px 12px; }
-  .p-title-row { display: flex; align-items: flex-start; gap: 8px; flex-wrap: wrap; }
-  .p-title { font-size: 16px; font-weight: 700; color: var(--ink); flex: 1; min-width: 160px; }
-  .p-meta { font-size: 12px; color: var(--muted); margin-top: 2px; }
-  .status-pill {
+  .tile-card.selected { border: 2px solid var(--error); }
+  .tile-card.status-published { border-left: 4px solid var(--success); }
+  .tile-card.status-draft     { border-left: 4px solid var(--border); }
+  .tile-card.status-pending,
+  .tile-card.status-submitted { border-left: 4px solid var(--warn); }
+  .tile-card.status-archived,
+  .tile-card.status-rejected  { border-left: 4px solid var(--muted); }
+
+  .tc-header { padding: 14px 18px 10px; cursor: pointer; }
+  .tc-title-row { display: flex; align-items: flex-start; gap: 10px; margin-bottom: 4px; }
+  .tc-title { font-size: 15px; font-weight: 700; color: var(--ink); flex: 1; }
+  .tc-chevron { color: var(--muted); font-size: 13px; flex-shrink: 0; transition: transform .15s; margin-top: 2px; }
+  .tile-card.open .tc-chevron { transform: rotate(90deg); }
+
+  .tc-body { display: none; padding: 4px 18px 16px; border-top: 1px solid #f0f0f0; }
+  .tile-card.open .tc-body { display: block; }
+  .tc-body-section { margin-top: 12px; }
+  .tc-body-section:first-child { margin-top: 14px; }
+  .tc-body-label {
     font-size: 11px; font-weight: 700; letter-spacing: .05em; text-transform: uppercase;
-    padding: 3px 9px; border-radius: 20px; white-space: nowrap; flex-shrink: 0;
-    background: #f0f0f0; color: var(--muted);
+    color: var(--teal); margin-bottom: 4px;
+  }
+  .tc-body-text { font-size: 14px; color: var(--body); line-height: 1.5; }
+  .status-pill {
+    font-size: 10px; font-weight: 700; letter-spacing: .06em;
+    text-transform: uppercase; padding: 3px 9px; border-radius: 20px;
+    white-space: nowrap; flex-shrink: 0; background: #f0f0f0; color: var(--muted);
   }
   .status-pill.published { background: var(--success-bg); color: var(--success); }
-  .status-pill.pending, .status-pill.submitted { background: var(--warn-bg); color: var(--warn); }
+  .status-pill.pending,
+  .status-pill.submitted  { background: var(--warn-bg); color: var(--warn); }
 
-  .p-tags { display: flex; flex-wrap: wrap; gap: 6px; padding: 8px 20px 0; }
-  .p-tag {
+  .tc-gaps-flag {
+    margin: 6px 18px 0; padding: 6px 10px; border-radius: 6px;
+    background: var(--warn-bg); color: var(--warn); font-size: 12px; font-weight: 600;
+  }
+
+  .tc-identity { display: flex; align-items: center; gap: 8px; padding: 0 18px 8px; }
+  .tc-sleeve-img { width: 28px; height: 28px; border-radius: 50%; object-fit: cover; flex-shrink: 0; }
+  .tc-sleeve-placeholder {
+    width: 28px; height: 28px; border-radius: 50%; flex-shrink: 0;
+    background: var(--teal-light); color: var(--teal); font-size: 12px; font-weight: 700;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .tc-identity-name { font-size: 13px; font-weight: 600; color: var(--muted); }
+
+  .tc-tag.greyed { background: #f0f0f0; color: var(--muted); border-color: #ddd; text-decoration: line-through; }
+  .tc-tag-x.confirm-delete { color: var(--error); opacity: 1; }
+
+  .tc-edit-btn {
+    font-size: 11px; font-weight: 700; color: var(--teal); cursor: pointer;
+    text-transform: uppercase; letter-spacing: .04em; margin-left: 8px;
+  }
+  .tc-edit-btn:hover { text-decoration: underline; }
+  .tc-edit-textarea {
+    width: 100%; min-height: 60px; padding: 8px; border: 1px solid var(--teal);
+    border-radius: 6px; font-family: inherit; font-size: 14px; line-height: 1.5;
+  }
+  .tc-edit-save {
+    margin-top: 6px; padding: 4px 12px; font-size: 12px; font-weight: 700;
+    background: var(--teal); color: #fff; border: none; border-radius: 6px; cursor: pointer;
+  }
+
+  .tc-takeaway-row { display: flex; align-items: flex-start; gap: 8px; margin-bottom: 4px; }
+  .tc-takeaway-row input { margin-top: 3px; flex-shrink: 0; }
+  .tc-takeaway-row.unchecked span { text-decoration: line-through; color: var(--muted); }
+
+  .tc-meta { font-size: 12px; color: var(--muted); }
+  .tc-tags { display: flex; flex-wrap: wrap; gap: 6px; padding: 0 18px 14px; }
+  .tc-tag {
     font-size: 11px; font-weight: 600; padding: 3px 9px;
     background: var(--teal-light); color: var(--teal); border-radius: 20px;
     border: 2px solid var(--teal);
+    display: inline-flex; align-items: center; gap: 5px;
   }
-  .p-tag.hidden-tag { background: #f0f0f0; color: var(--muted); border-color: #ddd; text-decoration: line-through; }
-
-  .p-synopsis { padding: 12px 20px 0; font-size: 14px; color: var(--body); }
-
-  .p-draft-row { padding: 12px 20px 0; }
-  .p-draft-btn {
-    font-size: 13px; font-weight: 700; padding: 8px 16px; border-radius: 8px;
-    border: none; background: var(--teal); color: #fff; cursor: pointer; font-family: inherit;
+  .tc-tag.hidden-tag {
+    background: #f0f0f0; color: var(--muted); border-color: #ddd;
+    text-decoration: line-through;
   }
-  .p-draft-btn:disabled { opacity: .6; cursor: default; }
+  .tc-tag-x { cursor: pointer; font-weight: 700; line-height: 1; opacity: .6; }
+  .tc-tag-x:hover { opacity: 1; }
 
-  .p-approvals { padding: 14px 20px 16px; border-top: 1px solid #f0f0f0; margin-top: 12px; }
-  .p-approvals-label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); margin-bottom: 8px; }
-  .p-approve-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 8px; }
-  .p-approve-row:last-child { margin-bottom: 0; }
-  .p-approve-pill {
-    font-size: 12px; font-weight: 700; padding: 5px 14px; border-radius: 20px;
+  .tc-approve-pill {
+    font-size: 11px; font-weight: 700; padding: 4px 12px; border-radius: 20px;
     cursor: pointer; border: 2px solid var(--border); background: transparent; color: var(--muted);
-    font-family: inherit;
   }
-  .p-approve-pill.active { border-color: var(--success); color: var(--success); background: var(--success-bg); }
-  .p-curator-note { font-size: 12px; color: var(--muted); }
-  .p-curator-note.approved { color: var(--success); font-weight: 600; }
+  .tc-approve-pill.active { border-color: var(--success); color: var(--success); background: var(--success-bg); }
+  .tc-approve-pill.readonly { cursor: default; border-style: dashed; }
+  .tc-header-controls { display: flex; flex-direction: column; align-items: flex-end; gap: 6px; }
+  .tc-header-controls-top { display: flex; align-items: center; gap: 8px; }
+  .tc-approval-grid { display: flex; gap: 10px; }
+  .tc-approval-col { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; }
+  .tc-approval-col-label {
+    font-size: 10px; font-weight: 700; text-transform: uppercase;
+    letter-spacing: 0.3px; color: var(--muted);
+  }
+  .tc-actions {
+    padding: 10px 18px; border-top: 1px solid #f0f0f0;
+    display: flex; gap: 10px; align-items: center;
+  }
+  .tc-actions a { font-size: 13px; font-weight: 600; color: var(--teal); text-decoration: none; }
+  .tc-actions a:hover { text-decoration: underline; }
 
   .spinner { display: inline-block; width: 16px; height: 16px; border: 2px solid currentColor;
     border-top-color: transparent; border-radius: 50%; animation: spin .6s linear infinite;
@@ -106,7 +173,7 @@
 <div class="wrap">
   <div id="banner" class="banner"></div>
   <div class="page-title">My Archive</div>
-  <div class="page-sub">A curator generates a draft and approves it for their side — nothing goes further than a station, or out onto Nile, until you approve that same level too.</div>
+  <div class="page-sub">Take the first pass yourself — pick a title, write the synopsis, decide what stays. A Curator reviews and can refine it further from there, but nothing goes further than a station, or out onto Nile, until you approve that same level too.</div>
   <div id="list"></div>
 </div>
 
@@ -118,11 +185,42 @@ const PHONE = params.get('phone');
 const TOKEN = params.get('token');
 
 let myTiles = [];
+let selectedTileId = null;
+let openTileId = null;
+
+// Transient, per-tile review state — never sent to the server until a Save
+// or a confirm-delete actually commits something. Matches the Curator
+// dashboard's own uiState exactly.
+const uiState = {};
+function getUiState(tileId) {
+  if (!uiState[tileId]) {
+    uiState[tileId] = {
+      greyedTitles: new Set(), greyedHeadings: new Set(),
+      uncheckedTakeaways: new Set(), editingField: null,
+    };
+  }
+  return uiState[tileId];
+}
+
+function playerUrlFor(url) {
+  return 'https://default-dev-51573d-xrxm-29on-xlyt.n7e.xano.io/index.html?src=' + encodeURIComponent(url);
+}
+
+const VISIBILITY_LABELS = { public: 'Nile', chapter: 'Station', private: 'Admin' };
 
 function showBanner(msg) {
   const el = document.getElementById('banner');
   el.className = 'banner error';
   el.textContent = msg;
+}
+
+function completenessGaps(t) {
+  const gaps = [];
+  if (!t.title || !t.title.trim()) gaps.push('title');
+  if (!t.onda_url) gaps.push('linked file');
+  if (!t.synopsis || !t.synopsis.trim()) gaps.push('synopsis');
+  if (!Array.isArray(t.takeaways) || !t.takeaways.filter(Boolean).length) gaps.push('takeaways');
+  return gaps;
 }
 
 if (!PHONE || !TOKEN) {
@@ -133,6 +231,7 @@ if (!PHONE || !TOKEN) {
 }
 
 async function loadMine() {
+  const scrollPos = window.scrollY;
   const list = document.getElementById('list');
   list.innerHTML = '<div class="empty-state"><span class="spinner"></span> Loading…</div>';
   try {
@@ -147,10 +246,16 @@ async function loadMine() {
     }
     myTiles = await r.json();
     render();
+    window.scrollTo(0, scrollPos);
   } catch (e) {
     showBanner(e.message);
     list.innerHTML = '';
   }
+}
+
+function formatDate(ts) {
+  if (!ts) return null;
+  return new Date(ts).toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' });
 }
 
 function render() {
@@ -159,44 +264,235 @@ function render() {
     list.innerHTML = '<div class="empty-state">Nothing submitted yet.</div>';
     return;
   }
-  list.innerHTML = myTiles.map(t => {
-    const status = t.status || 'draft';
+
+  list.innerHTML = myTiles.map((t, i) => {
     const tagsHidden = Array.isArray(t.tags_hidden) ? t.tags_hidden : [];
-    const tags = (Array.isArray(t.tags) ? t.tags : [])
-      .map(tag => `<span class="p-tag${tagsHidden.includes(tag) ? ' hidden-tag' : ''}">${tag}</span>`)
-      .join('');
-    const stationMine = !!t.contributor_approved_station;
-    const nileMine = !!t.contributor_approved_nile;
+    const rawTags = Array.isArray(t.tags) ? t.tags : [];
+    const tags = rawTags
+      .map((tag, tagIdx) => ({ tag, tagIdx }))
+      .sort((a, b) => a.tag.localeCompare(b.tag))
+      .map(({ tag, tagIdx }) => {
+        const isHidden = tagsHidden.includes(tag);
+        return `<span class="tc-tag${isHidden ? ' hidden-tag' : ''}">${tag}<span class="tc-tag-x" onclick="event.stopPropagation();toggleTagHidden(${t.id}, ${tagIdx}, ${!isHidden})" title="${isHidden ? 'Restore tag' : 'Hide tag'}">×</span></span>`;
+      }).join('');
+    const status = t.status || 'draft';
+    const visibility = t.visibility || 'private';
     const stationCurator = !!t.curator_approved_station;
     const nileCurator = !!t.curator_approved_nile;
+    const stationMine = !!t.contributor_approved_station;
+    const nileMine = !!t.contributor_approved_nile;
+    const takeaways = Array.isArray(t.takeaways) ? t.takeaways.filter(Boolean) : [];
+    const headings = Array.isArray(t.headings) ? t.headings.filter(Boolean) : [];
+    const titleSuggestions = Array.isArray(t.title_suggestions) ? t.title_suggestions.filter(Boolean) : [];
+    const gaps = completenessGaps(t);
+    const st = getUiState(t.id);
+
+    const reviewPill = (text, idx, field, tappable) => {
+      const greyedSet = field === 'headings' ? st.greyedHeadings : st.greyedTitles;
+      const isGreyed = greyedSet.has(idx);
+      const bodyClick = tappable && !isGreyed ? `onclick="event.stopPropagation();useSuggestion(${t.id}, ${idx})" style="cursor:pointer;"` : '';
+      return `<span class="tc-tag${isGreyed ? ' greyed' : ''}" ${bodyClick}>${text}<span class="tc-tag-x${isGreyed ? ' confirm-delete' : ''}" onclick="event.stopPropagation();toggleListItemGrey(${t.id}, '${field}', ${idx})" title="${isGreyed ? 'Delete for good' : 'Reject'}">×</span></span>`;
+    };
+
+    const editableField = (label, field, value) => {
+      if (st.editingField === field) {
+        return `<div class="tc-body-section"><div class="tc-body-label">${label}</div><textarea id="edit-${field}-${t.id}" class="tc-edit-textarea" onclick="event.stopPropagation()">${value || ''}</textarea><br><button class="tc-edit-save" onclick="event.stopPropagation();saveEditField(${t.id}, '${field}')">Save</button> <span class="tc-edit-btn" onclick="event.stopPropagation();cancelEditField(${t.id})">Cancel</span></div>`;
+      }
+      if (!value) return '';
+      return `<div class="tc-body-section"><div class="tc-body-label">${label}<span class="tc-edit-btn" onclick="event.stopPropagation();startEditField(${t.id}, '${field}')">Edit</span></div><div class="tc-body-text">${value}</div></div>`;
+    };
+
+    const bodySections = [
+      titleSuggestions.length ? `<div class="tc-body-section"><div class="tc-body-label">Suggested Titles — tap to use, × to reject</div><div class="tc-tags">${titleSuggestions.map((s, idx) => reviewPill(s, idx, 'title_suggestions', true)).join('')}</div></div>` : '',
+      editableField("Who it's for", 'who', t.who),
+      editableField('Synopsis', 'synopsis', t.synopsis),
+      takeaways.length ? `<div class="tc-body-section"><div class="tc-body-label">Key Takeaways — uncheck to drop</div>${takeaways.map((x, idx) => {
+        const checked = !st.uncheckedTakeaways.has(idx);
+        return `<div class="tc-takeaway-row${checked ? '' : ' unchecked'}"><input type="checkbox" ${checked ? 'checked' : ''} onclick="event.stopPropagation()" onchange="toggleTakeawayChecked(${t.id}, ${idx}, this.checked)"><span>${x}</span></div>`;
+      }).join('')}${st.uncheckedTakeaways.size ? `<button class="tc-edit-save" onclick="event.stopPropagation();saveTakeaways(${t.id})">Save Takeaways</button>` : ''}</div>` : '',
+      headings.length ? `<div class="tc-body-section"><div class="tc-body-label">Section Headings — × to reject</div><div class="tc-tags">${headings.map((h, idx) => reviewPill(h, idx, 'headings', false)).join('')}</div></div>` : '',
+    ].filter(Boolean).join('');
+
+    const sleeveImg = t.photo_url || t.photo;
+    const presenterDisplay = t.presenter_name || t.presenter || '';
+
     return `
-      <div class="p-card">
-        <div class="p-header">
-          <div class="p-title-row">
-            <div class="p-title">${t.title || '(untitled)'}</div>
-            <span class="status-pill ${status}">${status}</span>
+      <div class="tile-card status-${status}${t.id === selectedTileId ? ' selected' : ''}${t.id === openTileId ? ' open' : ''}" id="tile-card-${i}" data-tile-id="${t.id}">
+        <div class="tc-header" onclick="selectTile(${t.id}, ${i})">
+          <div class="tc-title-row">
+            <span class="tc-chevron">▶</span>
+            <div style="flex:1">
+              <div class="tc-title">${t.title || '(untitled)'}</div>
+              ${t.brief ? `<div style="font-size:13px;font-style:italic;color:var(--teal-dark);margin-top:2px;">${t.brief}</div>` : ''}
+            </div>
+            <div class="tc-header-controls">
+              <div class="tc-header-controls-top">
+                <span class="status-pill ${status}">${status}</span>
+                <span class="status-pill" style="background:var(--teal-light);color:var(--teal)">${VISIBILITY_LABELS[visibility] || visibility}</span>
+              </div>
+              <div class="tc-approval-grid" onclick="event.stopPropagation()">
+                <div class="tc-approval-col">
+                  <div class="tc-approval-col-label">Contributor (you)</div>
+                  <button type="button" class="tc-approve-pill${nileMine ? ' active' : ''}" onclick="toggleMine(${t.id}, 'nile', ${nileMine})">OK Nile</button>
+                  <button type="button" class="tc-approve-pill${stationMine ? ' active' : ''}" onclick="toggleMine(${t.id}, 'station', ${stationMine})">OK Station</button>
+                </div>
+                <div class="tc-approval-col">
+                  <div class="tc-approval-col-label">Curator</div>
+                  <span class="tc-approve-pill readonly${nileCurator ? ' active' : ''}">OK Nile</span>
+                  <span class="tc-approve-pill readonly${stationCurator ? ' active' : ''}">OK Station</span>
+                </div>
+              </div>
+            </div>
           </div>
-          <div class="p-meta">${t.station_id || ''}</div>
         </div>
-        ${tags ? `<div class="p-tags">${tags}</div>` : ''}
-        ${t.synopsis ? `<div class="p-synopsis">${t.synopsis}</div>` : ''}
-        ${status === 'submitted' ? `
-        <div class="p-draft-row">
-          <button type="button" class="p-draft-btn" id="draft-btn-${t.id}" onclick="generateDraft(${t.id})">${t.synopsis ? 'Regenerate Draft' : 'Generate Draft'}</button>
-        </div>` : ''}
-        <div class="p-approvals">
-          <div class="p-approvals-label">Approve for release</div>
-          <div class="p-approve-row">
-            <button type="button" class="p-approve-pill${stationMine ? ' active' : ''}" onclick="toggleMine(${t.id}, 'station', ${stationMine})">Approved for this station</button>
-            <span class="p-curator-note${stationCurator ? ' approved' : ''}">${stationCurator ? '✓ Curator has approved' : 'Curator has not approved yet'}</span>
-          </div>
-          <div class="p-approve-row">
-            <button type="button" class="p-approve-pill${nileMine ? ' active' : ''}" onclick="toggleMine(${t.id}, 'nile', ${nileMine})">Approved for Nile</button>
-            <span class="p-curator-note${nileCurator ? ' approved' : ''}">${nileCurator ? '✓ Curator has approved' : 'Curator has not approved yet'}</span>
-          </div>
+        ${presenterDisplay || sleeveImg ? `<div class="tc-identity">${sleeveImg ? `<img class="tc-sleeve-img" src="${sleeveImg}">` : (presenterDisplay ? `<span class="tc-sleeve-placeholder">${presenterDisplay.trim().charAt(0).toUpperCase()}</span>` : '')}<span class="tc-identity-name">${presenterDisplay}</span></div>` : ''}
+        ${gaps.length ? `<div class="tc-gaps-flag">⚠ Missing: ${gaps.join(', ')}</div>` : ''}
+        ${(() => {
+          const created = formatDate(t.created_at);
+          const updated = formatDate(t.updated_at);
+          const showUpdated = updated && updated !== created;
+          if (!created) return '';
+          return `<div class="tc-meta" style="padding:0 18px;font-size:12px;color:var(--muted)">Created ${created}${showUpdated ? ` · Updated ${updated}` : ''}</div>`;
+        })()}
+        ${tags ? `<div class="tc-tags">${tags}</div>` : ''}
+        ${bodySections ? `<div class="tc-body">${bodySections}</div>` : ''}
+        <div class="tc-actions">
+          ${t.onda_url ? `<a href="${playerUrlFor(t.onda_url)}" target="_blank" rel="noopener" onclick="event.stopPropagation()">Watch ONDA Viewer</a>` : '<span style="color:var(--muted);font-size:13px">No linked file</span>'}
+          ${status === 'submitted' ? `<a href="#" id="draft-btn-${t.id}" onclick="event.stopPropagation();event.preventDefault();generateDraft(${t.id})" style="margin-left:auto;">${t.synopsis ? 'Regenerate Draft' : 'Generate Draft'}</a>` : ''}
         </div>
       </div>`;
   }).join('');
+}
+
+function selectTile(id, i) {
+  openTileId = (openTileId === id) ? null : id;
+  document.getElementById('tile-card-' + i).classList.toggle('open');
+  if (selectedTileId !== id) {
+    if (selectedTileId !== null) {
+      const prev = document.querySelector(`.tile-card[data-tile-id="${selectedTileId}"]`);
+      if (prev) prev.classList.remove('selected');
+    }
+    selectedTileId = id;
+    document.getElementById('tile-card-' + i).classList.add('selected');
+  }
+}
+
+function showApiError(message) {
+  if (/phone|token/i.test(message || '')) {
+    const relogin = confirm(
+      (message || 'Session error.') +
+      '\n\nYour login may have expired. Log in again to fix this?'
+    );
+    if (relogin) window.location.href = `../nile-admin/login.html?phone=${encodeURIComponent(PHONE || '')}`;
+    return;
+  }
+  alert(message);
+}
+
+async function swapTitle(id, suggestionIndex) {
+  const tile = myTiles.find(t => t.id === id);
+  const suggestions = Array.isArray(tile?.title_suggestions) ? tile.title_suggestions.filter(Boolean) : [];
+  const newTitle = suggestions[suggestionIndex];
+  if (!newTitle) return;
+  await patchTile(id, { title: newTitle });
+}
+
+// Same arrayGuard technique the Curator dashboard uses — Xano's optional
+// JSON inputs don't reliably stay untouched just because a key is left out
+// of the request, so every save always resends the tile's current array
+// fields rather than trusting omission to mean "leave it alone."
+async function patchTile(id, fields) {
+  const tile = myTiles.find(t => t.id === id) || {};
+  const arrayGuard = {
+    takeaways: tile.takeaways,
+    headings: tile.headings,
+    tags: tile.tags,
+    tags_hidden: tile.tags_hidden,
+  };
+  try {
+    const r = await fetch(`${NILE_API}/nile/tile/update`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id, phone: PHONE, magic_auth_token: TOKEN, ...arrayGuard, ...fields }),
+    });
+    if (!r.ok) {
+      const e = await r.json().catch(() => ({}));
+      throw new Error(e.message || 'Update failed.');
+    }
+    await loadMine();
+  } catch (e) {
+    showApiError(e.message);
+  }
+}
+
+// This is the Contributor's own half of the same two-key approval the
+// curator casts from Station Dashboard — visibility only actually
+// advances once both sides agree. A curator can never push this further
+// than the contributor has approved, and a contributor can never push it
+// further than the curator has approved either — this is that vote.
+function toggleMine(id, level, isCurrentlyActive) {
+  const field = level === 'station' ? 'contributor_approved_station' : 'contributor_approved_nile';
+  patchTile(id, { [field]: !isCurrentlyActive });
+}
+
+function toggleTagHidden(id, tagIdx, shouldHide) {
+  const tile = myTiles.find(t => t.id === id);
+  const tag = tile?.tags?.[tagIdx];
+  if (tag === undefined) return;
+  const current = Array.isArray(tile?.tags_hidden) ? tile.tags_hidden : [];
+  const next = shouldHide ? [...current, tag] : current.filter(x => x !== tag);
+  patchTile(id, { tags_hidden: next });
+}
+
+function toggleListItemGrey(tileId, field, idx) {
+  const st = getUiState(tileId);
+  const set = field === 'headings' ? st.greyedHeadings : st.greyedTitles;
+  if (set.has(idx)) {
+    const tile = myTiles.find(t => t.id === tileId);
+    const list = Array.isArray(tile?.[field]) ? tile[field] : [];
+    const next = list.filter((_, i) => i !== idx);
+    set.delete(idx);
+    patchTile(tileId, { [field]: next });
+  } else {
+    set.add(idx);
+    render();
+  }
+}
+
+function useSuggestion(tileId, idx) {
+  swapTitle(tileId, idx);
+}
+
+function startEditField(tileId, field) {
+  getUiState(tileId).editingField = field;
+  render();
+}
+
+function cancelEditField(tileId) {
+  getUiState(tileId).editingField = null;
+  render();
+}
+
+function saveEditField(tileId, field) {
+  const textarea = document.getElementById(`edit-${field}-${tileId}`);
+  if (!textarea) return;
+  getUiState(tileId).editingField = null;
+  patchTile(tileId, { [field]: textarea.value });
+}
+
+function toggleTakeawayChecked(tileId, idx, checked) {
+  const set = getUiState(tileId).uncheckedTakeaways;
+  if (checked) set.delete(idx); else set.add(idx);
+  render();
+}
+
+function saveTakeaways(tileId) {
+  const tile = myTiles.find(t => t.id === tileId);
+  const list = Array.isArray(tile?.takeaways) ? tile.takeaways : [];
+  const unchecked = getUiState(tileId).uncheckedTakeaways;
+  const next = list.filter((_, i) => !unchecked.has(i));
+  unchecked.clear();
+  patchTile(tileId, { takeaways: next });
 }
 
 // Same generate-draft call the Curator's Station Dashboard makes — lets
@@ -207,7 +503,7 @@ async function generateDraft(id) {
   if (!btn) return;
   const original = btn.textContent;
   btn.textContent = 'Generating…';
-  btn.disabled = true;
+  btn.style.pointerEvents = 'none';
   try {
     const r = await fetch(`${NILE_API}/nile/tile/generate-draft`, {
       method: 'POST',
@@ -221,30 +517,8 @@ async function generateDraft(id) {
     await loadMine();
   } catch (e) {
     btn.textContent = original;
-    btn.disabled = false;
-    showBanner(e.message);
-  }
-}
-
-// This is the Contributor's own half of the same two-key approval the
-// curator casts from Station Dashboard — visibility only actually
-// advances once both sides agree. A curator can never push this further
-// than the contributor has approved.
-async function toggleMine(id, level, isCurrentlyActive) {
-  const field = level === 'station' ? 'contributor_approved_station' : 'contributor_approved_nile';
-  try {
-    const r = await fetch(`${NILE_API}/nile/tile/update`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ id, phone: PHONE, magic_auth_token: TOKEN, [field]: !isCurrentlyActive }),
-    });
-    if (!r.ok) {
-      const e = await r.json().catch(() => ({}));
-      throw new Error(e.message || 'Update failed.');
-    }
-    await loadMine();
-  } catch (e) {
-    alert(e.message);
+    btn.style.pointerEvents = '';
+    showApiError(e.message);
   }
 }
 </script>
