@@ -191,8 +191,8 @@
   .topics-toggle {
     display: flex; align-items: center; justify-content: space-between; gap: 6px;
     background: var(--surface); border: 1px solid var(--border);
-    color: var(--ink-mid); border-radius: 4px; padding: 7px 8px;
-    font-size: 11px; cursor: pointer; width: 100%; font-family: inherit;
+    color: var(--ink-mid); border-radius: 4px; padding: 9px 8px;
+    font-size: 15px; cursor: pointer; width: 100%; font-family: inherit;
     transition: background .12s, color .12s, border-color .12s;
   }
   .topics-toggle:hover { background: var(--surface2); color: var(--ink); }
@@ -202,12 +202,15 @@
     border-radius: 10px; padding: 1px 7px; flex-shrink: 0;
   }
   .tag-drawer-backdrop {
-    position: fixed; inset: 0; background: rgba(0,0,0,.45);
+    /* top is set from JS to the real header+search-bar height at open time —
+       keeps both fully visible and tappable instead of dimming/covering them. */
+    position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0,0,0,.45);
     opacity: 0; pointer-events: none; transition: opacity .2s; z-index: 999;
   }
   .tag-drawer-backdrop.open { opacity: 1; pointer-events: auto; }
   .tag-drawer {
-    position: fixed; top: 0; right: 0; height: 100%; width: min(320px, 85vw);
+    position: fixed; top: 0; right: 0; bottom: 0; width: min(320px, 85vw);
     background: var(--surface); border-left: 1px solid var(--border);
     z-index: 1000; transform: translateX(100%); transition: transform .25s;
     display: flex; flex-direction: column;
@@ -599,8 +602,18 @@ function buildSpeakerFilters() {
 
 // ── Topics drawer ────────────────────────────────────────────────────────────
 function openTagDrawer() {
-  document.getElementById('tag-drawer').classList.add('open');
-  document.getElementById('tag-drawer-backdrop').classList.add('open');
+  // Computed fresh each open (not a fixed CSS value) so the header+search-bar
+  // stay fully visible and tappable even when the header wraps to two lines
+  // on a narrow screen — a hardcoded pixel offset would break in that case.
+  const headerH = document.querySelector('header').offsetHeight;
+  const searchH = document.querySelector('.search-bar').offsetHeight;
+  const topOffset = headerH + searchH + 'px';
+  const drawer = document.getElementById('tag-drawer');
+  const backdrop = document.getElementById('tag-drawer-backdrop');
+  drawer.style.top = topOffset;
+  backdrop.style.top = topOffset;
+  drawer.classList.add('open');
+  backdrop.classList.add('open');
 }
 function closeTagDrawer() {
   document.getElementById('tag-drawer').classList.remove('open');
