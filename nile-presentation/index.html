@@ -38,7 +38,18 @@
   .banner.error { background: #fdecea; color: var(--error); display: block; }
 
   .page-title { font-size: 20px; font-weight: 700; color: var(--ink); margin-bottom: 4px; }
-  .page-sub { font-size: 14px; color: var(--muted); margin-bottom: 24px; }
+  .page-sub { font-size: 14px; color: var(--muted); margin-bottom: 16px; }
+  .filter-row { display: flex; gap: 8px; align-items: center; margin-bottom: 20px; }
+  .search-box {
+    flex: 1; min-width: 160px; padding: 7px 12px; font-size: 14px;
+    border: 1px solid var(--border); border-radius: 20px; font-family: inherit;
+  }
+  .sort-btn {
+    padding: 6px 14px; font-size: 13px; font-weight: 600; white-space: nowrap;
+    border: 1px solid var(--border); border-radius: 20px; background: #fff;
+    color: var(--muted); font-family: inherit; cursor: pointer;
+  }
+  .sort-btn:hover { border-color: var(--teal); color: var(--teal); }
   .empty-state { text-align: center; padding: 40px 20px; color: var(--muted); font-size: 14px; }
 
   /* Everything below this line is the same tile-card review UI the
@@ -175,6 +186,10 @@
   <div id="banner" class="banner"></div>
   <div class="page-title">My Archive</div>
   <div class="page-sub">Take the first pass yourself — pick a title, write the synopsis, decide what stays. A Curator reviews and can refine it further from there, but nothing goes further than a station, or out onto Nile, until you approve that same level too.</div>
+  <div class="filter-row">
+    <input type="text" id="search-box" class="search-box" placeholder="Find by title or tag…" oninput="setSearch(this.value)">
+    <button type="button" class="sort-btn" id="sort-btn" onclick="toggleSort()">Sort: Newest</button>
+  </div>
   <div id="list"></div>
 </div>
 
@@ -188,6 +203,19 @@ const TOKEN = params.get('token');
 let myTiles = [];
 let selectedTileId = null;
 let openTileId = null;
+let currentSearch = '';
+let sortAZ = false; // false = newest first (default), true = title A-Z
+
+function setSearch(v) {
+  currentSearch = v.trim().toLowerCase();
+  render();
+}
+
+function toggleSort() {
+  sortAZ = !sortAZ;
+  document.getElementById('sort-btn').textContent = sortAZ ? 'Sort: A–Z' : 'Sort: Newest';
+  render();
+}
 
 // Transient, per-tile review state — never sent to the server until a Save
 // or a confirm-delete actually commits something. Matches the Curator
@@ -266,7 +294,22 @@ function render() {
     return;
   }
 
-  list.innerHTML = myTiles.map((t, i) => {
+  const q = currentSearch;
+  const rows = myTiles.filter(t => {
+    if (!q) return true;
+    const hay = [t.title, ...(Array.isArray(t.tags) ? t.tags : [])].join(' ').toLowerCase();
+    return hay.includes(q);
+  });
+  rows.sort((a, b) => sortAZ
+    ? (a.title || '').toLowerCase().localeCompare((b.title || '').toLowerCase())
+    : new Date(b.created_at || 0) - new Date(a.created_at || 0));
+
+  if (!rows.length) {
+    list.innerHTML = '<div class="empty-state">Nothing matches that search.</div>';
+    return;
+  }
+
+  list.innerHTML = rows.map((t, i) => {
     const tagsHidden = Array.isArray(t.tags_hidden) ? t.tags_hidden : [];
     const rawTags = Array.isArray(t.tags) ? t.tags : [];
     const tags = rawTags
