@@ -379,7 +379,7 @@
 
 <div class="search-bar">
   <div class="search-bar-inner">
-    <input type="search" id="search-input" placeholder="Search sessions, speakers, topics…" autocomplete="off">
+    <input type="search" id="search-input" placeholder="Search sessions, speakers, tags…" autocomplete="off">
   </div>
 </div>
 
@@ -392,9 +392,9 @@
       </div>
     </div>
     <div class="filter-group">
-      <div class="filter-label">Topics</div>
+      <div class="filter-label">Tags</div>
       <button type="button" class="topics-toggle" id="topics-toggle" onclick="openTagDrawer()">
-        <span>Filter by topic</span>
+        <span>Filter by tag</span>
         <span class="count" id="topics-toggle-count" hidden></span>
       </button>
     </div>
@@ -408,7 +408,7 @@
 <div class="tag-drawer-backdrop" id="tag-drawer-backdrop" onclick="closeTagDrawer()"></div>
 <div class="tag-drawer" id="tag-drawer">
   <div class="tag-drawer-header">
-    <h2>Topics</h2>
+    <h2>Tags</h2>
     <button type="button" class="tag-drawer-close" onclick="closeTagDrawer()" aria-label="Close">×</button>
   </div>
   <div class="tag-list" id="tag-list"></div>
