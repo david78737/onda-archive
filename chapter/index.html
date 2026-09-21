@@ -495,8 +495,15 @@ function applyTheme(org) {
 }
 
 // ── Filter ─────────────────────────────────────────────────────────────────────
+// A tile tagged "how-to" is a station's own orientation piece — it always
+// floats to the top of whatever's currently visible, lead-in style, rather
+// than sorting wherever the API happened to return it. Still subject to the
+// same filters as everything else: pick an unrelated tag and it drops out
+// like any other tile that doesn't match.
+const PIN_TAG = 'how-to';
+
 function filtered() {
-  return allSessions.filter(s => {
+  const rows = allSessions.filter(s => {
     if (state.speaker !== 'all' && s.presenter !== state.speaker) return false;
     if (state.tags.size > 0 && ![...state.tags].every(t => (s.tags||[]).includes(t))) return false;
     if (state.query) {
@@ -506,6 +513,12 @@ function filtered() {
     }
     return true;
   });
+  rows.sort((a, b) => {
+    const aPinned = (a.tags||[]).includes(PIN_TAG);
+    const bPinned = (b.tags||[]).includes(PIN_TAG);
+    return aPinned === bPinned ? 0 : (aPinned ? -1 : 1);
+  });
+  return rows;
 }
 
 // ── Speaker filter buttons ─────────────────────────────────────────────────────
