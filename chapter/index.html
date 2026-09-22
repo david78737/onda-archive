@@ -192,6 +192,11 @@
      the two is ever visible at once (toggled via [hidden]), swapped by
      whichever button opened the drawer. */
   .contributor-panel { flex: 1; display: flex; flex-direction: column; padding: 12px 16px 0; overflow: hidden; }
+  /* .tag-list and .contributor-panel both set their own `display`, which
+     overrides the browser's default [hidden]{display:none} — without this,
+     setting .hidden on either one stopped actually hiding it, and both
+     panels rendered stacked together instead of one-at-a-time. */
+  .tag-list[hidden], .contributor-panel[hidden] { display: none; }
   .drawer-search {
     width: 100%; background: var(--surface2); border: 1px solid var(--border);
     color: var(--ink); font-size: 15px; border-radius: 5px; padding: 8px 10px;
