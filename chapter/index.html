@@ -249,6 +249,8 @@
   .card-meta { flex: 1; min-width: 0; width: 100%; }
   .card-title { font-size: 15px; font-weight: 600; color: var(--ink-mid); margin-bottom: 4px; transition: color .15s; }
   .card-presenter { font-size: 12px; color: var(--muted); margin-bottom: 6px; display: flex; align-items: center; gap: 8px; }
+  .card-presenter-name { cursor: pointer; }
+  .card-presenter-name:hover { color: var(--accent); text-decoration: underline; }
   .li-link {
     display: inline-flex; align-items: center; gap: 3px;
     font-size: 10px; color: var(--accent); text-decoration: none; opacity: .8;
@@ -758,7 +760,7 @@ function render() {
         ${visual}
         <div class="card-meta">
           <div class="card-title">${s.title}</div>
-          <div class="card-presenter"><span>${s.presenter}</span>${liHtml}</div>
+          <div class="card-presenter"><span class="card-presenter-name">${s.presenter}</span>${liHtml}</div>
           <div class="badges">${statusBadge}</div>
           <div class="card-tags">${tags}</div>
         </div>
@@ -777,6 +779,14 @@ function render() {
       container.querySelectorAll('.card.open').forEach(c => c.classList.remove('open'));
       if (!wasOpen) card.classList.add('open');
     });
+    const presenterNameEl = card.querySelector('.card-presenter-name');
+    if (presenterNameEl && s.presenter) {
+      presenterNameEl.addEventListener('click', e => {
+        e.stopPropagation();
+        state.speaker = s.presenter;
+        render();
+      });
+    }
     card.querySelectorAll('.card-tag').forEach(chip => {
       chip.addEventListener('click', e => {
         e.stopPropagation();
