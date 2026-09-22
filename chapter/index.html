@@ -595,24 +595,42 @@ function renderContributorList(query) {
     .sort((a, b) => a.localeCompare(b));
   const matches = q ? names.filter(n => n.toLowerCase().includes(q)) : names;
   const list = document.getElementById('contributor-list');
+  list.innerHTML = '';
 
-  let html = '';
   if (!q) {
-    html += `<button type="button" class="tag-btn${state.speaker === 'all' ? ' active' : ''}" onclick="selectContributor('all')"><span>All</span></button>`;
+    list.appendChild(makeContributorBtn('all', 'All', null, state.speaker === 'all'));
   }
   let lastLetter = null;
   matches.forEach(name => {
     const letter = name[0].toUpperCase();
     if (letter !== lastLetter) {
-      html += `<div class="az-heading">${letter}</div>`;
+      const heading = document.createElement('div');
+      heading.className = 'az-heading';
+      heading.textContent = letter;
+      list.appendChild(heading);
       lastLetter = letter;
     }
     const count = allSessions.filter(s => s.presenter === name).length;
-    const active = state.speaker === name;
-    html += `<button type="button" class="tag-btn${active ? ' active' : ''}" onclick="selectContributor(${JSON.stringify(name)})"><span>${name}</span><span class="tag-count">${count}</span></button>`;
+    list.appendChild(makeContributorBtn(name, name, count, state.speaker === name));
   });
-  if (!matches.length) html += '<div class="drawer-empty">No matches.</div>';
-  list.innerHTML = html;
+  if (!matches.length) {
+    const empty = document.createElement('div');
+    empty.className = 'drawer-empty';
+    empty.textContent = 'No matches.';
+    list.appendChild(empty);
+  }
+}
+// Real DOM element + addEventListener, same as makeTagBtn — the previous
+// version built this as an HTML string with an inline onclick attribute,
+// and JSON.stringify(name)'s double quotes collided with the double-quoted
+// HTML attribute wrapping it, silently breaking the click on every name.
+function makeContributorBtn(value, label, count, isActive) {
+  const btn = document.createElement('button');
+  btn.type = 'button';
+  btn.className = 'tag-btn' + (isActive ? ' active' : '');
+  btn.innerHTML = `<span>${label}</span>` + (count !== null ? `<span class="tag-count">${count}</span>` : '');
+  btn.addEventListener('click', () => selectContributor(value));
+  return btn;
 }
 function selectContributor(name) {
   state.speaker = name;
