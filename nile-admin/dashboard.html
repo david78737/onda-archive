@@ -307,6 +307,7 @@
   </div>
 
   <div id="tiles-list"></div>
+  <input type="file" id="thumb-file-input" accept="image/*" style="display:none" onchange="handleThumbnailFileChange(event)">
 </div>
 
 <script>
@@ -609,7 +610,7 @@ function render() {
             </div>
           </div>
         </div>
-        ${presenterDisplay || sleeveImg ? `<div class="tc-identity">${sleeveImg ? `<img class="tc-sleeve-img" src="${sleeveImg}">` : (presenterDisplay ? `<span class="tc-sleeve-placeholder">${presenterDisplay.trim().charAt(0).toUpperCase()}</span>` : '')}<span class="tc-identity-name">${presenterDisplay}</span></div>` : ''}
+        ${presenterDisplay || sleeveImg ? `<div class="tc-identity">${sleeveImg ? `<img class="tc-sleeve-img" src="${sleeveImg}">` : (presenterDisplay ? `<span class="tc-sleeve-placeholder">${presenterDisplay.trim().charAt(0).toUpperCase()}</span>` : '')}<span class="tc-identity-name">${presenterDisplay}</span><span class="tc-edit-btn" onclick="event.stopPropagation();startThumbnailUpload(${t.id})">Change thumbnail</span></div>` : ''}
         ${gaps.length ? `<div class="tc-gaps-flag">⚠ Missing: ${gaps.join(', ')}</div>` : ''}
         ${(() => {
           const created = formatDate(t.created_at);
@@ -753,6 +754,36 @@ async function patchTile(id, fields) {
 
 function updateTileStatus(id, newStatus) {
   patchTile(id, { status: newStatus });
+}
+
+// Reuses the same upload endpoint the Contributor Card profile page already
+// uses for headshots — a plain "upload an image, get back a URL" endpoint,
+// not headshot-specific in what it actually does. Lets a tile's thumbnail
+// override whatever got auto-inherited from the Contributor's profile photo
+// (e.g. a specific, memorable cover image instead of a generic headshot).
+const THUMB_UPLOAD_URL = 'https://xrxm-29on-xlyt.n7e.xano.io/api:nile/upload-headshot';
+let thumbUploadTileId = null;
+
+function startThumbnailUpload(tileId) {
+  thumbUploadTileId = tileId;
+  document.getElementById('thumb-file-input').click();
+}
+
+async function handleThumbnailFileChange(event) {
+  const file = event.target.files[0];
+  const tileId = thumbUploadTileId;
+  event.target.value = '';
+  if (!file || tileId == null) return;
+  try {
+    const form = new FormData();
+    form.append('content', file);
+    const resp = await fetch(THUMB_UPLOAD_URL, { method: 'POST', body: form });
+    const data = await resp.json();
+    if (!resp.ok || !data.url) throw new Error(data.message || 'Upload failed.');
+    await patchTile(tileId, { photo: data.url });
+  } catch (e) {
+    showApiError(e.message);
+  }
 }
 
 // visibility is a single private -> chapter -> public scale under the hood;
