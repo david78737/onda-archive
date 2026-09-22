@@ -107,9 +107,12 @@
     border-bottom: 1px solid var(--header-border);
     padding: 8px 24px;
   }
-  .search-bar-inner { max-width: 1000px; margin: 0 auto; }
+  .search-bar-inner {
+    max-width: 1000px; margin: 0 auto;
+    display: flex; align-items: center; gap: 8px;
+  }
   .search-bar input {
-    width: 100%;
+    flex: 1; min-width: 0;
     background: var(--surface2);
     border: 1px solid var(--border);
     color: var(--ink);
@@ -122,51 +125,7 @@
   .search-bar input:focus { border-color: var(--accent); }
   .search-bar input::placeholder { color: var(--muted-dim); }
 
-  /* ── Two-panel layout ── */
-  .layout {
-    max-width: 1000px;
-    margin: 0 auto;
-    display: flex;
-    align-items: flex-start;
-    height: calc(100vh - 112px);
-  }
-
-  /* ── Left panel ── */
-  .left-panel {
-    width: 130px;
-    flex-shrink: 0;
-    border-right: 1px solid var(--header-border);
-    height: 100%;
-    overflow-y: auto;
-    padding: 12px 8px 32px;
-    display: flex;
-    flex-direction: column;
-    gap: 16px;
-  }
-  .left-panel::-webkit-scrollbar { width: 3px; }
-  .left-panel::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
-
-  .filter-group { display: flex; flex-direction: column; gap: 5px; }
-  .filter-label {
-    font-size: 9px; text-transform: uppercase; letter-spacing: .1em;
-    color: var(--muted-dim); font-weight: 600;
-  }
-  .filter-btn {
-    background: var(--surface); border: 1px solid var(--border);
-    color: var(--ink-mid); border-radius: 4px; padding: 7px 8px;
-    font-size: 11px; cursor: pointer; text-align: left;
-    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-    transition: background .12s, color .12s, border-color .12s;
-    min-height: 36px; width: 100%;
-  }
-  .filter-btn:hover { background: var(--surface2); color: var(--ink); }
-  .filter-btn.active {
-    background: var(--accent-dim);
-    border-color: var(--accent);
-    color: var(--accent);
-  }
-
-  .tag-list { display: flex; flex-direction: column; gap: 4px; }
+  .tag-list, .contributor-list { display: flex; flex-direction: column; gap: 4px; }
   .tag-btn {
     display: flex; align-items: center; justify-content: space-between;
     background: var(--surface2); border: 1px solid var(--border-dim);
@@ -189,10 +148,11 @@
      already uses elsewhere. Keeps the left panel from ever having to fit
      an unbounded, ever-growing tag list permanently on screen. ── */
   .topics-toggle {
-    display: flex; align-items: center; justify-content: space-between; gap: 6px;
+    display: flex; align-items: center; justify-content: center; gap: 6px;
     background: var(--surface); border: 1px solid var(--border);
-    color: var(--ink-mid); border-radius: 4px; padding: 9px 8px;
-    font-size: 15px; cursor: pointer; width: 100%; font-family: inherit;
+    color: var(--ink-mid); border-radius: 5px; padding: 8px 14px;
+    font-size: 14px; cursor: pointer; white-space: nowrap; flex-shrink: 0;
+    font-family: inherit;
     transition: background .12s, color .12s, border-color .12s;
   }
   .topics-toggle:hover { background: var(--surface2); color: var(--ink); }
@@ -228,41 +188,57 @@
   .tag-drawer-close:hover { color: var(--ink); }
   .tag-drawer .tag-list { padding: 12px 16px 24px; overflow-y: auto; flex: 1; }
 
-  /* ── Right panel ── */
-  .right-panel {
-    flex: 1; height: 100%; overflow-y: auto;
-    padding: 10px 20px 48px; min-width: 0;
+  /* Contributor panel shares the same drawer shell as Tags — only one of
+     the two is ever visible at once (toggled via [hidden]), swapped by
+     whichever button opened the drawer. */
+  .contributor-panel { flex: 1; display: flex; flex-direction: column; padding: 12px 16px 0; overflow: hidden; }
+  .drawer-search {
+    width: 100%; background: var(--surface2); border: 1px solid var(--border);
+    color: var(--ink); font-size: 15px; border-radius: 5px; padding: 8px 10px;
+    margin-bottom: 10px; outline: none; flex-shrink: 0;
   }
-  .right-panel::-webkit-scrollbar { width: 3px; }
-  .right-panel::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+  .drawer-search:focus { border-color: var(--accent); }
+  .contributor-list { flex: 1; overflow-y: auto; padding-bottom: 24px; }
+  .az-heading {
+    font-size: 11px; font-weight: 700; color: var(--muted-dim);
+    text-transform: uppercase; letter-spacing: .06em; padding: 10px 2px 2px;
+  }
+  .az-heading:first-child { padding-top: 2px; }
+  .drawer-empty { padding: 16px 2px; color: var(--muted); font-size: 13px; }
+
+  /* ── Right panel — full width, no sidebar to share space with ── */
+  .right-panel {
+    max-width: 1000px; margin: 0 auto;
+    padding: 16px 20px 48px;
+  }
 
   #status { font-size: 12px; color: var(--muted); padding: 6px 0 8px; }
 
-  /* ── Cards — matrix of tiles ── */
-  .sessions { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 16px; }
+  /* ── Cards — full-width stacked list, better for phones than a
+     multi-column grid or a sideways-scrolling strip ── */
+  .sessions { display: flex; flex-direction: column; gap: 14px; }
   .card {
     background: var(--surface); border: 1px solid var(--border);
     border-radius: 10px; overflow: hidden; transition: border-color .15s, box-shadow .15s;
   }
-  .card.open { border-color: var(--accent); grid-column: 1 / -1; box-shadow: 0 4px 20px rgba(0,0,0,.08); }
+  .card.open { border-color: var(--accent); box-shadow: 0 4px 20px rgba(0,0,0,.08); }
+  /* Row layout at every state now — cards are always full width, so there's
+     no longer a cramped-grid-cell case that needed the centered/stacked
+     collapsed look. Matches the Nile browse page's own tile layout. */
   .card-header {
-    display: flex; flex-direction: column; align-items: center; text-align: center; gap: 10px;
-    padding: 20px 16px 16px; cursor: pointer; position: relative;
+    display: flex; flex-direction: row; align-items: center; text-align: left; gap: 14px;
+    padding: 14px 18px; cursor: pointer; position: relative;
     -webkit-user-select: none; user-select: none;
   }
-  .card.open .card-header { flex-direction: row; text-align: left; padding: 13px 14px; }
   .card-header:hover .card-title { color: var(--ink); }
   .chevron {
     flex-shrink: 0; position: absolute; top: 14px; right: 14px; width: 15px; height: 15px;
     color: var(--muted-dim); transition: transform .18s;
   }
-  .card.open .chevron { transform: rotate(90deg); position: static; margin-top: 4px; }
+  .card.open .chevron { transform: rotate(90deg); }
   .card-meta { flex: 1; min-width: 0; width: 100%; }
   .card-title { font-size: 15px; font-weight: 600; color: var(--ink-mid); margin-bottom: 4px; transition: color .15s; }
-  .card-presenter { font-size: 12px; color: var(--muted); margin-bottom: 6px; display: flex; align-items: center; justify-content: center; gap: 8px; }
-  .card.open .card-presenter { justify-content: flex-start; }
-  .card:not(.open) .badges,
-  .card:not(.open) .card-tags { justify-content: center; }
+  .card-presenter { font-size: 12px; color: var(--muted); margin-bottom: 6px; display: flex; align-items: center; gap: 8px; }
   .li-link {
     display: inline-flex; align-items: center; gap: 3px;
     font-size: 10px; color: var(--accent); text-decoration: none; opacity: .8;
@@ -350,10 +326,6 @@
 
   /* ── Pending tile ── */
   .card.pending { opacity: .7; }
-
-  @media (max-width: 480px) {
-    .left-panel { width: 110px; }
-  }
 </style>
 </head>
 <body>
@@ -379,39 +351,33 @@
 
 <div class="search-bar">
   <div class="search-bar-inner">
-    <input type="search" id="search-input" placeholder="Search sessions, speakers, tags…" autocomplete="off">
+    <input type="search" id="search-input" placeholder="Search sessions, contributors, tags…" autocomplete="off">
+    <button type="button" class="topics-toggle" id="contributor-toggle" onclick="openDrawer('contributor')">
+      <span>Contributor</span>
+    </button>
+    <button type="button" class="topics-toggle" id="topics-toggle" onclick="openDrawer('tags')">
+      <span>Tags</span>
+      <span class="count" id="topics-toggle-count" hidden></span>
+    </button>
   </div>
 </div>
 
-<div class="layout">
-  <aside class="left-panel">
-    <div class="filter-group">
-      <div class="filter-label">Speaker</div>
-      <div id="speaker-filters" style="display:flex;flex-direction:column;gap:3px;">
-        <button type="button" class="filter-btn active" data-filter="all">All</button>
-      </div>
-    </div>
-    <div class="filter-group">
-      <div class="filter-label">Tags</div>
-      <button type="button" class="topics-toggle" id="topics-toggle" onclick="openTagDrawer()">
-        <span>Filter by tag</span>
-        <span class="count" id="topics-toggle-count" hidden></span>
-      </button>
-    </div>
-  </aside>
-  <main class="right-panel">
-    <div id="status"></div>
-    <div class="sessions" id="sessions"><div class="loading">Loading archive…</div></div>
-  </main>
-</div>
+<main class="right-panel">
+  <div id="status"></div>
+  <div class="sessions" id="sessions"><div class="loading">Loading archive…</div></div>
+</main>
 
-<div class="tag-drawer-backdrop" id="tag-drawer-backdrop" onclick="closeTagDrawer()"></div>
+<div class="tag-drawer-backdrop" id="tag-drawer-backdrop" onclick="closeDrawer()"></div>
 <div class="tag-drawer" id="tag-drawer">
   <div class="tag-drawer-header">
-    <h2>Tags</h2>
-    <button type="button" class="tag-drawer-close" onclick="closeTagDrawer()" aria-label="Close">×</button>
+    <h2 id="drawer-title">Tags</h2>
+    <button type="button" class="tag-drawer-close" onclick="closeDrawer()" aria-label="Close">×</button>
   </div>
   <div class="tag-list" id="tag-list"></div>
+  <div class="contributor-panel" id="contributor-panel" hidden>
+    <input type="text" id="contributor-search" class="drawer-search" placeholder="Find a contributor…" oninput="renderContributorList(this.value)">
+    <div class="contributor-list" id="contributor-list"></div>
+  </div>
 </div>
 
 <footer id="footer">
@@ -577,31 +543,9 @@ function filtered() {
   return rows;
 }
 
-// ── Speaker filter buttons ─────────────────────────────────────────────────────
-function buildSpeakerFilters() {
-  const speakers = [...new Set(allSessions.map(s => s.presenter))].sort();
-  const container = document.getElementById('speaker-filters');
-  container.innerHTML = '<button type="button" class="filter-btn active" data-filter="all">All</button>';
-  speakers.forEach(sp => {
-    const btn = document.createElement('button');
-    btn.type = 'button';
-    btn.className = 'filter-btn';
-    btn.dataset.filter = sp;
-    btn.textContent = sp;
-    container.appendChild(btn);
-  });
-  container.querySelectorAll('.filter-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
-      container.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
-      btn.classList.add('active');
-      state.speaker = btn.dataset.filter;
-      render();
-    });
-  });
-}
-
-// ── Topics drawer ────────────────────────────────────────────────────────────
-function openTagDrawer() {
+// ── Drawer — shared shell for both Tags and Contributor, only one panel
+// visible at a time depending on which button opened it. ─────────────────────
+function openDrawer(mode) {
   // Computed fresh each open (not a fixed CSS value) so the header+search-bar
   // stay fully visible and tappable even when the header wraps to two lines
   // on a narrow screen — a hardcoded pixel offset would break in that case.
@@ -612,12 +556,56 @@ function openTagDrawer() {
   const backdrop = document.getElementById('tag-drawer-backdrop');
   drawer.style.top = topOffset;
   backdrop.style.top = topOffset;
+
+  document.getElementById('drawer-title').textContent = mode === 'contributor' ? 'Contributor' : 'Tags';
+  document.getElementById('tag-list').hidden = mode !== 'tags';
+  document.getElementById('contributor-panel').hidden = mode !== 'contributor';
+  if (mode === 'contributor') {
+    const search = document.getElementById('contributor-search');
+    renderContributorList(search.value);
+    search.focus();
+  }
+
   drawer.classList.add('open');
   backdrop.classList.add('open');
 }
-function closeTagDrawer() {
+function closeDrawer() {
   document.getElementById('tag-drawer').classList.remove('open');
   document.getElementById('tag-drawer-backdrop').classList.remove('open');
+}
+
+// ── Contributor search + A-Z list — built on demand when the drawer opens,
+// not pre-built on load, so a large contributor list costs nothing until
+// someone actually wants to browse it. ────────────────────────────────────
+function renderContributorList(query) {
+  const q = (query || '').trim().toLowerCase();
+  const names = [...new Set(allSessions.map(s => s.presenter).filter(Boolean))]
+    .sort((a, b) => a.localeCompare(b));
+  const matches = q ? names.filter(n => n.toLowerCase().includes(q)) : names;
+  const list = document.getElementById('contributor-list');
+
+  let html = '';
+  if (!q) {
+    html += `<button type="button" class="tag-btn${state.speaker === 'all' ? ' active' : ''}" onclick="selectContributor('all')"><span>All</span></button>`;
+  }
+  let lastLetter = null;
+  matches.forEach(name => {
+    const letter = name[0].toUpperCase();
+    if (letter !== lastLetter) {
+      html += `<div class="az-heading">${letter}</div>`;
+      lastLetter = letter;
+    }
+    const count = allSessions.filter(s => s.presenter === name).length;
+    const active = state.speaker === name;
+    html += `<button type="button" class="tag-btn${active ? ' active' : ''}" onclick="selectContributor(${JSON.stringify(name)})"><span>${name}</span><span class="tag-count">${count}</span></button>`;
+  });
+  if (!matches.length) html += '<div class="drawer-empty">No matches.</div>';
+  list.innerHTML = html;
+}
+function selectContributor(name) {
+  state.speaker = name;
+  render();
+  closeDrawer();
 }
 
 // ── Tag panel ─────────────────────────────────────────────────────────────────
@@ -669,6 +657,7 @@ function render() {
     `${allSessions.length} session${allSessions.length !== 1 ? 's' : ''}`;
 
   renderTags(rows);
+  document.getElementById('contributor-toggle').classList.toggle('has-active', state.speaker !== 'all');
 
   const container = document.getElementById('sessions');
   if (!rows.length) {
@@ -868,7 +857,6 @@ function normalizePresentation(p) {
   allSessions.forEach(s => (s.tags||[]).forEach(t => { tagCount[t] = (tagCount[t]||0)+1; }));
   allTags = Object.entries(tagCount).sort((a,b)=>b[1]-a[1]).map(([tag,n])=>({tag,n}));
 
-  buildSpeakerFilters();
   render();
 })();
 </script>
