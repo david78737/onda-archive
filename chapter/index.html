@@ -410,6 +410,12 @@ const STATION_ID = params.get('station') || '';
 const ORG_L1     = params.get('org_l1') || '';
 const ORG_L2     = params.get('org_l2') || '';
 const ORG_L3     = params.get('org_l3') || '';
+// Lets a plain Contributor (not a Curator) embed a version of this page on
+// their own site showing only their own work — a personal catalog/following,
+// distinct from the shared station feed. Locked, not just pre-filtered: the
+// Contributor toggle is hidden entirely so a visitor can't wander into
+// everyone else curated under the same station.
+const LOCKED_PRESENTER = params.get('presenter') || '';
 
 function humanizeStationId(id) {
   return id.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
@@ -423,7 +429,8 @@ function initialsForStationId(id) {
 // ── State ─────────────────────────────────────────────────────────────────────
 let allSessions = [];
 let allTags     = [];
-const state     = { speaker: 'all', tags: new Set(), query: '' };
+const state     = { speaker: LOCKED_PRESENTER || 'all', tags: new Set(), query: '' };
+if (LOCKED_PRESENTER) document.getElementById('contributor-toggle').style.display = 'none';
 
 // ── Avatar helpers ─────────────────────────────────────────────────────────────
 const _pal = ['#3a5a8a','#5a3a8a','#3a7a5a','#7a4a3a','#6a3a6a','#3a6a7a','#8a5a3a'];
