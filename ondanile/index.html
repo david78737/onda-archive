@@ -99,7 +99,6 @@
     font-size: 11px; font-weight: 600; cursor: pointer;
   }
   .filter-chip:hover { background: #E8F8F6; }
-  .filter-chip .chip-label-group { color: #888888; font-weight: 400; margin-right: 2px; }
   .filter-chip .chip-x {
     display: inline-flex; align-items: center; justify-content: center;
     width: 15px; height: 15px; border-radius: 50%;
@@ -598,14 +597,14 @@ function renderActiveFilters() {
   tagsZone.innerHTML   = '';
 
   if (state.org !== 'all') {
-    sourceZone.appendChild(makeFilterChip('Source', state.org, () => {
+    sourceZone.appendChild(makeFilterChip(state.org, () => {
       state.org = 'all';
       render();
     }));
   }
   const removableTags = [...state.tags].filter(t => t !== LOCKED_TAG);
   removableTags.forEach(tag => {
-    tagsZone.appendChild(makeFilterChip('Tag', tag, () => {
+    tagsZone.appendChild(makeFilterChip(tag, () => {
       state.tags.delete(tag);
       render();
     }));
@@ -613,11 +612,11 @@ function renderActiveFilters() {
 
   wrap.hidden = state.org === 'all' && removableTags.length === 0;
 }
-function makeFilterChip(group, label, onRemove) {
+function makeFilterChip(label, onRemove) {
   const chip = document.createElement('button');
   chip.type = 'button';
   chip.className = 'filter-chip';
-  chip.innerHTML = `<span class="chip-label-group">${group}:</span> ${label} <span class="chip-x">×</span>`;
+  chip.innerHTML = `${label} <span class="chip-x">×</span>`;
   chip.addEventListener('click', onRemove);
   return chip;
 }
