@@ -77,6 +77,29 @@
   .search-bar input:focus { border-color: #008787; }
   .search-bar input::placeholder { color: #AAAAAA; }
 
+  /* ── Active filter chips — shows what's actually selected at a glance,
+     without needing to open the drawer to check. ── */
+  .active-filters {
+    max-width: 1000px; margin: 0 auto;
+    display: flex; flex-wrap: wrap; gap: 6px;
+    padding-top: 8px;
+  }
+  .active-filters:empty { display: none; }
+  .filter-chip {
+    display: inline-flex; align-items: center; gap: 5px;
+    background: #FFFFFF; border: 1px solid #008787; color: #006F6F;
+    border-radius: 100px; padding: 3px 6px 3px 10px;
+    font-size: 11px; font-weight: 600; cursor: pointer;
+  }
+  .filter-chip:hover { background: #E8F8F6; }
+  .filter-chip .chip-label-group { color: #888888; font-weight: 400; margin-right: 2px; }
+  .filter-chip .chip-x {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 15px; height: 15px; border-radius: 50%;
+    background: #E0F2F0; font-size: 11px; line-height: 1;
+  }
+  .filter-chip:hover .chip-x { background: #008787; color: #fff; }
+
   /* ── Search-bar controls — Source and Tags open the same off-canvas
      drawer, matching the station-page pattern so both properties share
      one layout and only the content differs. ── */
@@ -341,6 +364,7 @@
       <span class="count" id="topics-toggle-count" hidden></span>
     </button>
   </div>
+  <div class="active-filters" id="active-filters"></div>
 </div>
 
 <main class="right-panel">
@@ -558,6 +582,35 @@ function miniLabel(text) {
   return el;
 }
 
+// ── Active filter chips — what's actually selected, visible without
+// opening the drawer. Clicking a chip's × removes just that one filter. ────
+function renderActiveFilters() {
+  const el = document.getElementById('active-filters');
+  el.innerHTML = '';
+
+  if (state.org !== 'all') {
+    el.appendChild(makeFilterChip('Source', state.org, () => {
+      state.org = 'all';
+      render();
+    }));
+  }
+  [...state.tags].forEach(tag => {
+    if (tag === LOCKED_TAG) return; // locked via URL — not user-removable
+    el.appendChild(makeFilterChip('Tag', tag, () => {
+      state.tags.delete(tag);
+      render();
+    }));
+  });
+}
+function makeFilterChip(group, label, onRemove) {
+  const chip = document.createElement('button');
+  chip.type = 'button';
+  chip.className = 'filter-chip';
+  chip.innerHTML = `<span class="chip-label-group">${group}:</span> ${label} <span class="chip-x">×</span>`;
+  chip.addEventListener('click', onRemove);
+  return chip;
+}
+
 // ── Render ────────────────────────────────────────────────────────────────────
 function render() {
   const rows = filtered();
@@ -565,6 +618,7 @@ function render() {
   document.getElementById('status').textContent =
     isFiltered ? `${rows.length} of ${allSessions.length} items` : `${allSessions.length} items`;
   document.getElementById('source-toggle').classList.toggle('has-active', state.org !== 'all');
+  renderActiveFilters();
 
   renderTags(rows);
 
