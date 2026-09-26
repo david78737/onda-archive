@@ -53,7 +53,8 @@
     border-bottom: 2px solid #008787;
     padding: 10px 24px;
     box-shadow: 0 2px 6px rgba(0,150,136,0.12);
-    position: relative;
+    position: sticky;
+    top: 0;
     z-index: 40;
   }
   .search-bar-inner {
@@ -78,13 +79,19 @@
   .search-bar input::placeholder { color: #AAAAAA; }
 
   /* ── Active filter chips — shows what's actually selected at a glance,
-     without needing to open the drawer to check. ── */
+     without needing to open the drawer to check. Source stays left,
+     Tags stay right, so the two dimensions never blend together. ── */
   .active-filters {
     max-width: 1000px; margin: 0 auto;
-    display: flex; flex-wrap: wrap; gap: 6px;
+    display: flex; justify-content: space-between; align-items: flex-start;
+    gap: 10px; flex-wrap: wrap;
     padding-top: 8px;
   }
-  .active-filters:empty { display: none; }
+  .active-filters[hidden] { display: none; }
+  .active-filters-source, .active-filters-tags {
+    display: flex; flex-wrap: wrap; gap: 6px;
+  }
+  .active-filters-tags { margin-left: auto; justify-content: flex-end; }
   .filter-chip {
     display: inline-flex; align-items: center; gap: 5px;
     background: #FFFFFF; border: 1px solid #008787; color: #006F6F;
@@ -333,10 +340,6 @@
     .header-tagline { display: none; }
     .header-right { margin-left: 0; font-size: 10px; }
 
-    /* The drawer already works the same way at every width, so the only
-       thing phones need is the search/filter row staying on screen
-       while scrolling through results. */
-    .search-bar { position: sticky; top: 0; z-index: 40; }
   }
 </style>
 </head>
@@ -364,7 +367,10 @@
       <span class="count" id="topics-toggle-count" hidden></span>
     </button>
   </div>
-  <div class="active-filters" id="active-filters"></div>
+  <div class="active-filters" id="active-filters" hidden>
+    <div class="active-filters-source" id="active-filters-source"></div>
+    <div class="active-filters-tags" id="active-filters-tags"></div>
+  </div>
 </div>
 
 <main class="right-panel">
@@ -585,22 +591,27 @@ function miniLabel(text) {
 // ── Active filter chips — what's actually selected, visible without
 // opening the drawer. Clicking a chip's × removes just that one filter. ────
 function renderActiveFilters() {
-  const el = document.getElementById('active-filters');
-  el.innerHTML = '';
+  const wrap       = document.getElementById('active-filters');
+  const sourceZone = document.getElementById('active-filters-source');
+  const tagsZone   = document.getElementById('active-filters-tags');
+  sourceZone.innerHTML = '';
+  tagsZone.innerHTML   = '';
 
   if (state.org !== 'all') {
-    el.appendChild(makeFilterChip('Source', state.org, () => {
+    sourceZone.appendChild(makeFilterChip('Source', state.org, () => {
       state.org = 'all';
       render();
     }));
   }
-  [...state.tags].forEach(tag => {
-    if (tag === LOCKED_TAG) return; // locked via URL — not user-removable
-    el.appendChild(makeFilterChip('Tag', tag, () => {
+  const removableTags = [...state.tags].filter(t => t !== LOCKED_TAG);
+  removableTags.forEach(tag => {
+    tagsZone.appendChild(makeFilterChip('Tag', tag, () => {
       state.tags.delete(tag);
       render();
     }));
   });
+
+  wrap.hidden = state.org === 'all' && removableTags.length === 0;
 }
 function makeFilterChip(group, label, onRemove) {
   const chip = document.createElement('button');
