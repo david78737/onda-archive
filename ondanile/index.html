@@ -173,6 +173,12 @@
   .tag-btn.remaining:hover { background: #F8F8F8; color: #888888; border-color: #CCCCCC; }
   .tag-count { font-size: 10px; opacity: .6; margin-left: 4px; flex-shrink: 0; }
   .tag-divider { width: 100%; border: none; border-top: 1px solid #E8E8E8; margin: 6px 0; }
+  .tag-btn.favorite { border-color: #e0b400; }
+  .tag-main { display: flex; align-items: center; gap: 7px; overflow: hidden; min-width: 0; }
+  .tag-label { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
+  .tag-star { flex-shrink: 0; color: #BBBBBB; font-size: 14px; cursor: pointer; line-height: 1; }
+  .tag-star:hover { color: #555555; }
+  .tag-star.active { color: #e0b400; }
 
   /* ── Right panel — full width, no sidebar to share space with ── */
   .right-panel {
@@ -424,6 +430,28 @@ let allTags = [];
 const state = { org: 'all', tags: new Set(), query: LOCKED_QUERY || '' };
 if (LOCKED_TAG) state.tags.add(LOCKED_TAG);
 
+// ── Favorites — per-device only, same "star it, it floats to the top"
+// pattern as the station page's Tags panel, now covering Source too. ───────
+function loadFavSet(key) {
+  try { return new Set(JSON.parse(localStorage.getItem(key) || '[]')); }
+  catch (_) { return new Set(); }
+}
+function saveFavSet(key, set) {
+  try { localStorage.setItem(key, JSON.stringify([...set])); } catch (_) {}
+}
+const favoriteTags    = loadFavSet('onda_nile_favorite_tags');
+const favoriteSources = loadFavSet('onda_nile_favorite_sources');
+function toggleFavoriteTag(tag) {
+  if (favoriteTags.has(tag)) favoriteTags.delete(tag); else favoriteTags.add(tag);
+  saveFavSet('onda_nile_favorite_tags', favoriteTags);
+  renderTags(filtered());
+}
+function toggleFavoriteSource(org) {
+  if (favoriteSources.has(org)) favoriteSources.delete(org); else favoriteSources.add(org);
+  saveFavSet('onda_nile_favorite_sources', favoriteSources);
+  renderSourceList();
+}
+
 // ── Helpers ───────────────────────────────────────────────────────────────────
 const _palette = ['#3a5a8a','#5a3a8a','#3a7a5a','#7a4a3a','#6a3a6a','#3a6a7a','#8a5a3a','#2a6a4a'];
 function avatarColor(name) {
@@ -501,14 +529,30 @@ function renderSourceList() {
   const orgs = [...new Set(allSessions.map(s => s.org))].sort();
   const list = document.getElementById('source-list');
   list.innerHTML = '';
-  list.appendChild(makeSourceBtn('all', 'All'));
-  orgs.forEach(org => list.appendChild(makeSourceBtn(org, org)));
+  list.appendChild(makeSourceBtn('all', 'All', false));
+
+  const favs = orgs.filter(org => favoriteSources.has(org));
+  favs.forEach(org => list.appendChild(makeSourceBtn(org, org, true)));
+  if (favs.length) list.appendChild(divider());
+
+  const rest = orgs.filter(org => !favoriteSources.has(org));
+  rest.forEach(org => list.appendChild(makeSourceBtn(org, org, true)));
 }
-function makeSourceBtn(value, label) {
+function makeSourceBtn(value, label, favoritable) {
   const btn = document.createElement('button');
   btn.type = 'button';
-  btn.className = 'tag-btn' + (state.org === value ? ' active' : '');
-  btn.innerHTML = `<span>${label}</span>`;
+  const isFav = favoritable && favoriteSources.has(value);
+  btn.className = 'tag-btn' + (state.org === value ? ' active' : '') + (isFav ? ' favorite' : '');
+  const star = favoritable
+    ? `<span class="tag-star${isFav ? ' active' : ''}" title="${isFav ? 'Remove from favorites' : 'Add to favorites'}">${isFav ? '★' : '☆'}</span>`
+    : '';
+  btn.innerHTML = `<span class="tag-main">${star}<span class="tag-label">${label}</span></span>`;
+  if (favoritable) {
+    btn.querySelector('.tag-star').addEventListener('click', (e) => {
+      e.stopPropagation();
+      toggleFavoriteSource(value);
+    });
+  }
   btn.addEventListener('click', () => {
     state.org = value;
     render();
@@ -534,15 +578,21 @@ function renderTags(rows) {
   const listEl = document.getElementById('tag-list');
   listEl.innerHTML = '';
 
-  const active = [...state.tags].filter(t => t !== LOCKED_TAG);
+  // Favorites float above every other group, regardless of whether they're
+  // currently active or visible in the filtered results.
+  const favs = allTags.filter(({tag}) => tag !== LOCKED_TAG && favoriteTags.has(tag));
+  favs.forEach(({tag, n}) => listEl.appendChild(makeTagBtn(tag, state.tags.has(tag) ? 'active' : 'favorite', n)));
+  if (favs.length) listEl.appendChild(divider());
+
+  const active = [...state.tags].filter(t => t !== LOCKED_TAG && !favoriteTags.has(t));
   active.forEach(t => listEl.appendChild(makeTagBtn(t, 'active', null)));
 
-  const related = allTags.filter(({tag}) => tag !== LOCKED_TAG && !state.tags.has(tag) && visibleSet.has(tag));
-  if (active.length && related.length) listEl.appendChild(divider());
+  const related = allTags.filter(({tag}) => tag !== LOCKED_TAG && !state.tags.has(tag) && !favoriteTags.has(tag) && visibleSet.has(tag));
+  if ((active.length || favs.length) && related.length) listEl.appendChild(divider());
   related.forEach(({tag, n}) => listEl.appendChild(makeTagBtn(tag, 'related', n)));
 
-  const remaining = allTags.filter(({tag}) => tag !== LOCKED_TAG && !state.tags.has(tag) && !visibleSet.has(tag));
-  if ((active.length || related.length) && remaining.length) listEl.appendChild(divider());
+  const remaining = allTags.filter(({tag}) => tag !== LOCKED_TAG && !state.tags.has(tag) && !favoriteTags.has(tag) && !visibleSet.has(tag));
+  if ((active.length || favs.length || related.length) && remaining.length) listEl.appendChild(divider());
   remaining.forEach(({tag, n}) => listEl.appendChild(makeTagBtn(tag, 'remaining', n)));
 }
 
@@ -551,7 +601,17 @@ function makeTagBtn(tag, group, count) {
   btn.type = 'button';
   btn.className = `tag-btn ${group}`;
   btn.dataset.tag = tag;
-  btn.innerHTML = `<span>${tag}</span>` + (count !== null ? `<span class="tag-count">${count}</span>` : '');
+  const isFav = favoriteTags.has(tag);
+  btn.innerHTML =
+    `<span class="tag-main">` +
+      `<span class="tag-star${isFav ? ' active' : ''}" title="${isFav ? 'Remove from favorites' : 'Add to favorites'}">${isFav ? '★' : '☆'}</span>` +
+      `<span class="tag-label">${tag}</span>` +
+    `</span>` +
+    (count !== null ? `<span class="tag-count">${count}</span>` : '');
+  btn.querySelector('.tag-star').addEventListener('click', (e) => {
+    e.stopPropagation();
+    toggleFavoriteTag(tag);
+  });
   btn.addEventListener('click', () => {
     if (state.tags.has(tag)) state.tags.delete(tag); else state.tags.add(tag);
     render();
