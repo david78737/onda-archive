@@ -189,7 +189,6 @@
   <div class="filter-row">
     <input type="text" id="search-box" class="search-box" placeholder="Find by title or tag…" oninput="setSearch(this.value)">
     <button type="button" class="sort-btn" id="sort-btn" onclick="toggleSort()">Sort: Newest</button>
-    <button type="button" class="sort-btn" id="hidden-toggle-btn" onclick="toggleShowHidden()">Show Hidden</button>
   </div>
   <div id="list"></div>
   <input type="file" id="thumb-file-input" accept="image/*" style="display:none" onchange="handleThumbnailFileChange(event)">
@@ -207,13 +206,6 @@ let selectedTileId = null;
 let openTileId = null;
 let currentSearch = '';
 let sortAZ = false; // false = newest first (default), true = title A-Z
-let showHidden = false; // false = normal archive, true = only hidden (status 'archived') items
-
-function toggleShowHidden() {
-  showHidden = !showHidden;
-  document.getElementById('hidden-toggle-btn').textContent = showHidden ? 'Show Active' : 'Show Hidden';
-  render();
-}
 
 function setSearch(v) {
   currentSearch = v.trim().toLowerCase();
@@ -303,14 +295,8 @@ function render() {
     return;
   }
 
-  const hiddenCount = myTiles.filter(t => t.status === 'archived').length;
-  document.getElementById('hidden-toggle-btn').textContent =
-    showHidden ? 'Show Active' : `Show Hidden${hiddenCount ? ` (${hiddenCount})` : ''}`;
-
   const q = currentSearch;
   const rows = myTiles.filter(t => {
-    const isHiddenTile = t.status === 'archived';
-    if (showHidden ? !isHiddenTile : isHiddenTile) return false;
     if (!q) return true;
     const hay = [t.title, ...(Array.isArray(t.tags) ? t.tags : [])].join(' ').toLowerCase();
     return hay.includes(q);
@@ -320,7 +306,7 @@ function render() {
     : new Date(b.created_at || 0) - new Date(a.created_at || 0));
 
   if (!rows.length) {
-    list.innerHTML = `<div class="empty-state">${showHidden ? 'No hidden presentations.' : 'Nothing matches that search.'}</div>`;
+    list.innerHTML = '<div class="empty-state">Nothing matches that search.</div>';
     return;
   }
 
@@ -417,10 +403,7 @@ function render() {
         ${bodySections ? `<div class="tc-body">${bodySections}</div>` : ''}
         <div class="tc-actions">
           ${t.onda_url ? `<a href="${playerUrlFor(t.onda_url)}" target="_blank" rel="noopener" onclick="event.stopPropagation()">Watch ONDA Viewer</a>` : '<span style="color:var(--muted);font-size:13px">No linked file</span>'}
-          ${status === 'submitted' && !showHidden ? `<a href="#" id="draft-btn-${t.id}" onclick="event.stopPropagation();event.preventDefault();generateDraft(${t.id})">${t.synopsis ? 'Regenerate Draft' : 'Generate Draft'}</a>` : ''}
-          ${showHidden
-            ? `<a href="#" onclick="event.stopPropagation();event.preventDefault();restoreTile(${t.id})" style="margin-left:auto;">Restore</a>`
-            : `<a href="#" onclick="event.stopPropagation();event.preventDefault();hideTile(${t.id})" style="margin-left:auto;color:var(--muted)">Hide</a>`}
+          ${status === 'submitted' ? `<a href="#" id="draft-btn-${t.id}" onclick="event.stopPropagation();event.preventDefault();generateDraft(${t.id})" style="margin-left:auto;">${t.synopsis ? 'Regenerate Draft' : 'Generate Draft'}</a>` : ''}
         </div>
       </div>`;
   }).join('');
@@ -495,32 +478,6 @@ async function patchTile(id, fields) {
 function toggleMine(id, level, isCurrentlyActive) {
   const field = level === 'station' ? 'contributor_approved_station' : 'contributor_approved_nile';
   patchTile(id, { [field]: !isCurrentlyActive });
-}
-
-// "Hide" reuses the existing 'archived' status — already a real status this
-// system understands, so nothing new needed to keep a hidden tile out of
-// every other view (station page, Nile) that already excludes it. The
-// status it had before hiding is remembered locally (per device) so
-// Restore can put it back where it was, not just dump it into 'submitted'.
-const HIDE_MEMORY_KEY = 'onda_nile_prehide_status';
-function loadHideMemory() {
-  try { return JSON.parse(localStorage.getItem(HIDE_MEMORY_KEY) || '{}'); }
-  catch (_) { return {}; }
-}
-function hideTile(id) {
-  const tile = myTiles.find(t => t.id === id);
-  if (!tile) return;
-  const mem = loadHideMemory();
-  mem[id] = tile.status || 'submitted';
-  try { localStorage.setItem(HIDE_MEMORY_KEY, JSON.stringify(mem)); } catch (_) {}
-  patchTile(id, { status: 'archived' });
-}
-function restoreTile(id) {
-  const mem = loadHideMemory();
-  const priorStatus = mem[id] || 'submitted';
-  delete mem[id];
-  try { localStorage.setItem(HIDE_MEMORY_KEY, JSON.stringify(mem)); } catch (_) {}
-  patchTile(id, { status: priorStatus });
 }
 
 // Same upload endpoint the Contributor Card profile page already uses for
