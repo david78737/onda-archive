@@ -59,9 +59,13 @@
   .search-bar-inner {
     max-width: 1000px;
     margin: 0 auto;
+    display: flex;
+    align-items: center;
+    gap: 8px;
   }
   .search-bar input {
-    width: 100%;
+    flex: 1;
+    min-width: 0;
     border: 1px solid #C0C0C0;
     background: #FFFFFF;
     color: #333333;
@@ -73,82 +77,54 @@
   .search-bar input:focus { border-color: #008787; }
   .search-bar input::placeholder { color: #AAAAAA; }
 
-  /* ── Two-panel layout ── */
-  .layout {
-    max-width: 1000px;
-    margin: 0 auto;
-    display: flex;
-    align-items: flex-start;
-    min-height: calc(100vh - 120px);
-  }
-
-  /* ── Left panel ── */
-  .left-panel {
-    width: 160px;
-    flex-shrink: 0;
-    border-right: 1px solid #D0D0D0;
-    padding: 14px 10px 32px;
-    display: flex;
-    flex-direction: column;
-    gap: 18px;
-    position: sticky;
-    top: 0;
-    max-height: calc(100vh - 10px);
-    overflow-y: auto;
-    align-self: flex-start;
-  }
-  .left-panel::-webkit-scrollbar { width: 3px; }
-  .left-panel::-webkit-scrollbar-thumb { background: #C0C0C0; border-radius: 2px; }
-
-  /* ── Scrollable source container ── */
-  .source-scroll {
-    display: flex;
-    flex-direction: column;
-    gap: 3px;
-    max-height: 220px;
-    overflow-y: auto;
-    padding-right: 2px;
-  }
-  .source-scroll::-webkit-scrollbar { width: 3px; }
-  .source-scroll::-webkit-scrollbar-thumb { background: #C0C0C0; border-radius: 2px; }
-
-  /* ── Filter groups ── */
-  .filter-group { display: flex; flex-direction: column; gap: 5px; }
-  .filter-label {
-    font-size: 9px; text-transform: uppercase; letter-spacing: .1em;
-    color: #888888; font-weight: 600;
-  }
-  .filter-chips { display: flex; flex-direction: column; gap: 3px; }
-  .filter-btn {
-    background: #FFFFFF;
-    border: 1px solid #C8C8C8;
-    color: #555555;
-    border-radius: 4px;
-    padding: 6px 8px;
-    font-size: 11px;
-    cursor: pointer;
-    text-align: left;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
+  /* ── Search-bar controls — Source and Tags open the same off-canvas
+     drawer, matching the station-page pattern so both properties share
+     one layout and only the content differs. ── */
+  .topics-toggle {
+    display: flex; align-items: center; justify-content: center; gap: 6px;
+    background: #FFFFFF; border: 1px solid #C0C0C0;
+    color: #333333; border-radius: 6px; padding: 8px 14px;
+    font-size: 13px; cursor: pointer; white-space: nowrap; flex-shrink: 0;
+    font-family: inherit;
     transition: background .12s, color .12s, border-color .12s;
-    min-height: 34px;
   }
-  .filter-btn:hover { background: #F8F8F8; border-color: #008787; color: #008787; }
-  .filter-btn.active { background: #008787; border-color: #008787; color: #fff; }
+  .topics-toggle:hover { background: #F0F0F0; }
+  .topics-toggle.has-active { border-color: #008787; color: #008787; }
+  .topics-toggle .count {
+    font-size: 10px; background: #D4EBEB; color: #008787;
+    border-radius: 10px; padding: 1px 7px; flex-shrink: 0;
+  }
 
-  /* ── Topics bar (bottom) ── */
-  .topics-bar {
-    max-width: 1000px;
-    margin: 0 auto;
-    padding: 16px 20px 32px;
-    border-top: 1px solid #D0D0D0;
+  /* ── Drawer — shared shell for Source and Tags, off-canvas at every
+     width so the results panel is always full width, no sidebar. ── */
+  .tag-drawer-backdrop {
+    position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0,0,0,.45);
+    opacity: 0; pointer-events: none; transition: opacity .2s; z-index: 999;
   }
-  .topics-bar-label {
-    font-size: 9px; text-transform: uppercase; letter-spacing: .1em;
-    color: #888888; font-weight: 600; margin-bottom: 10px;
+  .tag-drawer-backdrop.open { opacity: 1; pointer-events: auto; }
+  .tag-drawer {
+    position: fixed; top: 0; right: 0; bottom: 0; width: min(240px, 85vw);
+    background: #FFFFFF; border-left: 1px solid #D0D0D0;
+    z-index: 1000; transform: translateX(100%); transition: transform .25s;
+    display: flex; flex-direction: column;
   }
-  .tag-list { display: flex; flex-wrap: wrap; gap: 6px; }
+  .tag-drawer.open { transform: translateX(0); }
+  .tag-drawer-header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 16px 16px 12px; border-bottom: 1px solid #E0E0E0;
+  }
+  .tag-drawer-header h2 { font-size: 12px; text-transform: uppercase; letter-spacing: .1em; color: #888888; }
+  .tag-drawer-close {
+    background: none; border: none; color: #999999; font-size: 20px;
+    line-height: 1; cursor: pointer; padding: 4px 8px;
+  }
+  .tag-drawer-close:hover { color: #333333; }
+  .tag-drawer .tag-list, .tag-drawer .source-list {
+    padding: 12px 16px 24px; overflow-y: auto; flex: 1;
+    display: flex; flex-direction: column; gap: 3px;
+  }
+  .tag-list[hidden], .source-list[hidden] { display: none; }
 
   .tag-btn {
     display: flex; align-items: center; justify-content: space-between;
@@ -169,11 +145,11 @@
   .tag-count { font-size: 10px; opacity: .6; margin-left: 4px; flex-shrink: 0; }
   .tag-divider { width: 100%; border: none; border-top: 1px solid #E8E8E8; margin: 6px 0; }
 
-  /* ── Right panel ── */
+  /* ── Right panel — full width, no sidebar to share space with ── */
   .right-panel {
-    flex: 1;
-    padding: 12px 20px 48px;
-    min-width: 0;
+    max-width: 1000px;
+    margin: 0 auto;
+    padding: 16px 20px 48px;
   }
 
   #status { font-size: 12px; color: #888888; padding: 4px 0 10px; }
@@ -327,10 +303,6 @@
   footer a { color: #008787; text-decoration: none; }
   .header-link { color: rgba(255,255,255,0.9); text-decoration: underline; }
 
-  /* ── Mobile topics filter — button + backdrop, hidden on desktop ── */
-  .topics-toggle-btn { display: none; }
-  .topics-backdrop { display: none; }
-
   @media (max-width: 640px) {
     /* Branding takes a back seat to the controls people actually use —
        drop the tagline entirely and let "Powered by" sit compactly in
@@ -338,90 +310,10 @@
     .header-tagline { display: none; }
     .header-right { margin-left: 0; font-size: 10px; }
 
-    /* align-items: flex-start on the base rule means "top-align the two
-       desktop columns" — but once direction flips to column here, that
-       same property means "shrink each panel to its content width"
-       instead of "stretch to fill the screen," which is what was
-       pushing content past the phone's edge. Override back to stretch. */
-    .layout { flex-direction: column; align-items: stretch; }
-
-    /* Search, Filter Topics, and Source stay on screen together while
-       scrolling through results — stacked sticky elements, each offset
-       by the approximate height of the one above it. Nudge these top
-       values if the header/search/button styling changes enough to
-       throw the stacking off. */
-    .search-bar { position: sticky; top: 0; }
-    .topics-toggle-btn { position: sticky; top: 56px; }
-    .left-panel { position: sticky; top: 102px; }
-
-    .left-panel {
-      width: 100%;
-      max-height: none;
-      overflow: visible;
-      border-right: none;
-      padding: 10px 20px 0;
-      background: #F0F0F0;
-      z-index: 30;
-    }
-
-    /* Source stays always-visible, just goes horizontal to save vertical
-       space — it's a short list (~5 options), no need to hide it behind
-       a tap the way the much longer Topics list does. */
-    .filter-group-source .source-scroll {
-      flex-direction: row;
-      overflow-x: auto;
-      overflow-y: visible;
-      max-height: none;
-      padding-bottom: 4px;
-    }
-    .filter-group-source .filter-btn {
-      white-space: nowrap;
-      flex-shrink: 0;
-      min-height: 30px;
-    }
-
-    .topics-toggle-btn {
-      display: block;
-      margin: 0 20px 10px;
-      background: #FFFFFF;
-      border: 1px solid #008787;
-      color: #008787;
-      border-radius: 6px;
-      padding: 8px 14px;
-      font-size: 13px;
-      font-weight: 600;
-      cursor: pointer;
-      z-index: 35;
-    }
-
-    /* Topics becomes a bottom sheet — avoids the left-edge-swipe-back
-       conflict a side drawer would have on iOS Safari. */
-    .filter-group-topics {
-      position: fixed;
-      left: 0; right: 0; bottom: 0;
-      background: #FFFFFF;
-      border-radius: 14px 14px 0 0;
-      max-height: 65vh;
-      overflow-y: auto;
-      padding: 16px 16px 28px;
-      box-shadow: 0 -4px 20px rgba(0,0,0,0.2);
-      transform: translateY(110%);
-      transition: transform .25s ease;
-      z-index: 60;
-    }
-    .filter-group-topics.open { transform: translateY(0); }
-
-    .topics-backdrop {
-      display: block;
-      position: fixed;
-      inset: 0;
-      background: rgba(0,0,0,0.35);
-      opacity: 0;
-      pointer-events: none;
-      transition: opacity .25s ease;
-      z-index: 55;
-    }
-    .topics-backdrop.open { opacity: 1; pointer-events: auto; }
+    /* The drawer already works the same way at every width, so the only
+       thing phones need is the search/filter row staying on screen
+       while scrolling through results. */
+    .search-bar { position: sticky; top: 0; z-index: 40; }
   }
 </style>
 </head>
@@ -441,35 +333,29 @@
 <div class="search-bar">
   <div class="search-bar-inner">
     <input type="search" id="search-input" placeholder="Search by word, topic, or speaker…" autocomplete="off">
+    <button type="button" class="topics-toggle" id="source-toggle" onclick="openDrawer('source')">
+      <span>Source</span>
+    </button>
+    <button type="button" class="topics-toggle" id="topics-toggle" onclick="openDrawer('tags')">
+      <span>Tags</span>
+      <span class="count" id="topics-toggle-count" hidden></span>
+    </button>
   </div>
 </div>
 
-<button type="button" class="topics-toggle-btn" id="topics-toggle-btn">Filter Topics</button>
-<div class="topics-backdrop" id="topics-backdrop"></div>
+<main class="right-panel">
+  <div id="status"></div>
+  <div class="sessions" id="sessions"><div class="loading">Loading…</div></div>
+</main>
 
-<div class="layout">
-
-  <aside class="left-panel">
-
-    <div class="filter-group filter-group-source">
-      <div class="filter-label">Source</div>
-      <div class="source-scroll" id="source-filters">
-        <button type="button" class="filter-btn active" data-group="org" data-filter="all">All</button>
-      </div>
-    </div>
-
-    <div class="filter-group filter-group-topics" id="topics-panel">
-      <div class="filter-label">Topics</div>
-      <div class="tag-list" id="tag-list" style="flex-direction:column;flex-wrap:nowrap;gap:3px;"></div>
-    </div>
-
-  </aside>
-
-  <main class="right-panel">
-    <div id="status"></div>
-    <div class="sessions" id="sessions"><div class="loading">Loading…</div></div>
-  </main>
-
+<div class="tag-drawer-backdrop" id="tag-drawer-backdrop" onclick="closeDrawer()"></div>
+<div class="tag-drawer" id="tag-drawer">
+  <div class="tag-drawer-header">
+    <h2 id="drawer-title">Tags</h2>
+    <button type="button" class="tag-drawer-close" onclick="closeDrawer()" aria-label="Close">×</button>
+  </div>
+  <div class="tag-list" id="tag-list"></div>
+  <div class="source-list" id="source-list" hidden></div>
 </div>
 
 
@@ -561,36 +447,66 @@ function filtered() {
   });
 }
 
-// ── Source filter buttons ─────────────────────────────────────────────────────
-function buildSourceFilters() {
+// ── Drawer — shared shell for Source and Tags, only one panel visible
+// at a time depending on which button opened it. ────────────────────────────
+function openDrawer(mode) {
+  // Computed fresh each open (not a fixed CSS value) so the header+search-bar
+  // stay fully visible and tappable even when the header wraps to two lines
+  // on a narrow screen — a hardcoded pixel offset would break in that case.
+  const headerH = document.querySelector('header').offsetHeight;
+  const searchH = document.querySelector('.search-bar').offsetHeight;
+  const topOffset = headerH + searchH + 'px';
+  const drawer = document.getElementById('tag-drawer');
+  const backdrop = document.getElementById('tag-drawer-backdrop');
+  drawer.style.top = topOffset;
+  backdrop.style.top = topOffset;
+
+  document.getElementById('drawer-title').textContent = mode === 'source' ? 'Source' : 'Tags';
+  document.getElementById('tag-list').hidden = mode !== 'tags';
+  document.getElementById('source-list').hidden = mode !== 'source';
+  if (mode === 'source') renderSourceList();
+
+  drawer.classList.add('open');
+  backdrop.classList.add('open');
+}
+function closeDrawer() {
+  document.getElementById('tag-drawer').classList.remove('open');
+  document.getElementById('tag-drawer-backdrop').classList.remove('open');
+}
+
+// ── Source list — built on demand when the drawer opens, single-select
+// like Contributor on the station page: picking one closes the drawer. ─────
+function renderSourceList() {
   const orgs = [...new Set(allSessions.map(s => s.org))].sort();
-  const container = document.getElementById('source-filters');
-  container.innerHTML = '<button type="button" class="filter-btn active" data-group="org" data-filter="all">All</button>';
-  orgs.forEach(org => {
-    const btn = document.createElement('button');
-    btn.type = 'button';
-    btn.className = 'filter-btn';
-    btn.dataset.group = 'org';
-    btn.dataset.filter = org;
-    btn.textContent = org;
-    container.appendChild(btn);
+  const list = document.getElementById('source-list');
+  list.innerHTML = '';
+  list.appendChild(makeSourceBtn('all', 'All'));
+  orgs.forEach(org => list.appendChild(makeSourceBtn(org, org)));
+}
+function makeSourceBtn(value, label) {
+  const btn = document.createElement('button');
+  btn.type = 'button';
+  btn.className = 'tag-btn' + (state.org === value ? ' active' : '');
+  btn.innerHTML = `<span>${label}</span>`;
+  btn.addEventListener('click', () => {
+    state.org = value;
+    render();
+    closeDrawer();
   });
-  container.querySelectorAll('.filter-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
-      container.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
-      btn.classList.add('active');
-      state.org = btn.dataset.filter;
-      render();
-    });
-  });
+  return btn;
 }
 
 // ── Tag panel ─────────────────────────────────────────────────────────────────
 function renderTags(rows) {
-  // If locked tag filter produces no results, hide both panels entirely
+  const toggle      = document.getElementById('topics-toggle');
+  const toggleCount = document.getElementById('topics-toggle-count');
+  toggle.classList.toggle('has-active', state.tags.size > 0);
+  toggleCount.hidden = state.tags.size === 0;
+  toggleCount.textContent = state.tags.size;
+
+  // If locked tag filter produces no results, hide the tag list entirely
   if (LOCKED_TAG && rows.length === 0) {
     document.getElementById('tag-list').innerHTML = '';
-    document.getElementById('source-filters').innerHTML = '';
     return;
   }
   const visibleSet = new Set(rows.flatMap(s => s.tags));
@@ -642,22 +558,13 @@ function miniLabel(text) {
   return el;
 }
 
-// ── Mobile topics sheet ──────────────────────────────────────────────────────
-const topicsToggleBtn = document.getElementById('topics-toggle-btn');
-const topicsPanel = document.getElementById('topics-panel');
-const topicsBackdrop = document.getElementById('topics-backdrop');
-function openTopicsSheet() { topicsPanel.classList.add('open'); topicsBackdrop.classList.add('open'); }
-function closeTopicsSheet() { topicsPanel.classList.remove('open'); topicsBackdrop.classList.remove('open'); }
-topicsToggleBtn.addEventListener('click', openTopicsSheet);
-topicsBackdrop.addEventListener('click', closeTopicsSheet);
-
 // ── Render ────────────────────────────────────────────────────────────────────
 function render() {
   const rows = filtered();
   const isFiltered = state.org !== 'all' || state.tags.size > 0 || state.query;
   document.getElementById('status').textContent =
     isFiltered ? `${rows.length} of ${allSessions.length} items` : `${allSessions.length} items`;
-  topicsToggleBtn.textContent = state.tags.size ? `Filter Topics (${state.tags.size})` : 'Filter Topics';
+  document.getElementById('source-toggle').classList.toggle('has-active', state.org !== 'all');
 
   renderTags(rows);
 
@@ -869,7 +776,6 @@ function normalizePresentation(p) {
     allTags = [...eventTags, ...topicTags];
 
     if (LOCKED_QUERY) document.getElementById('search-input').value = LOCKED_QUERY;
-    buildSourceFilters();
     render();
   } catch (err) {
     document.getElementById('sessions').innerHTML =
