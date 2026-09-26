@@ -66,10 +66,35 @@
 
 <div class="wrap">
 
-  <!-- Auth error -->
+  <!-- Auth error — only for a genuinely missing station link, not a missing
+       token anymore (that case now goes to step-verify below instead). -->
   <div id="step-error" style="display:none;padding:40px 0;text-align:center;">
-    <p style="color:#c0392b;font-size:15px;margin-bottom:16px;">Session expired or invalid link. Please sign in again.</p>
+    <p style="color:#c0392b;font-size:15px;margin-bottom:16px;">This link is missing its station — ask your Curator for a fresh one.</p>
     <a id="signin-link" href="../nile-admin/signin.html" style="color:#008787;font-weight:600;text-decoration:none;">← Sign in</a>
+  </div>
+
+  <!-- Verify phone — shown when a station link arrives with no token yet.
+       Same one-time-code pattern as everywhere else in Nile; on success
+       this hands off straight into the form, no separate sign-in page. -->
+  <div id="step-verify" style="display:none;">
+    <h2>Verify your phone</h2>
+    <p class="sub">Before this goes to the Curator, we need to know who it's really from. One quick code, then straight to the form.</p>
+    <div id="verify-phone-step">
+      <div class="field">
+        <label>Phone number</label>
+        <input id="verify-phone-input" type="tel" placeholder="e.g. 512 555 0100" />
+      </div>
+      <button class="btn" onclick="sendOtp()">Send Code</button>
+    </div>
+    <div id="verify-otp-step" style="display:none;">
+      <div class="field">
+        <label>6-digit code</label>
+        <input id="verify-otp-input" type="text" inputmode="numeric" maxlength="6" placeholder="123456" />
+      </div>
+      <button class="btn" onclick="verifyOtp()">Verify</button>
+      <button class="btn" style="background:none;color:#008787;margin-top:6px;" onclick="resetVerify()">Use a different number</button>
+    </div>
+    <p class="msg" id="verify-msg"></p>
   </div>
 
   <!-- Create form -->
@@ -97,6 +122,11 @@
     <div class="field">
       <label id="label-presenter">Presenter name <span style="font-weight:400;color:#999">*</span></label>
       <input id="f-presenter" type="text" placeholder="Your name as it should appear on the tile" />
+    </div>
+
+    <div class="field">
+      <label>LinkedIn URL <span style="font-weight:400;color:#999">(optional)</span></label>
+      <input id="f-linkedin" type="url" placeholder="https://linkedin.com/in/yourname" />
     </div>
 
     <div class="field" id="field-event-code">
@@ -194,8 +224,8 @@ const SKIN    = _p.get('skin')    || null;
 const L1      = _p.get('org_l1') || null;
 const L2      = _p.get('org_l2') || null;
 const L3      = _p.get('org_l3') || null;
-const TOKEN   = _p.get('token')  || null;
-const PHONE   = _p.get('phone')  || null;
+let TOKEN     = _p.get('token')  || null;
+let PHONE     = _p.get('phone')  || null;
 const ROLE    = _p.get('role')   || null;
 const EVENT_CODE = _p.get('event_code') || null;
 if (EVENT_CODE) document.getElementById('f-event-code').value = EVENT_CODE.toUpperCase();
@@ -331,16 +361,8 @@ const SKINS = {
   document.getElementById('back-link').href = `../ondanile/?${params}`;
   document.getElementById('browse-link').href = `../ondanile/?${params}`;
 
-  // Dashboard needs phone+token too — only meaningful if we actually have
-  // them (we always should, this form is already behind the sign-in gate).
-  if (PHONE && TOKEN) {
-    const dashParams = new URLSearchParams(params);
-    dashParams.set('phone', PHONE);
-    dashParams.set('token', TOKEN);
-    document.getElementById('dashboard-link').href = `../nile-admin/dashboard.html?${dashParams}`;
-  } else {
-    document.getElementById('dashboard-link').style.display = 'none';
-  }
+  wireDashboardLink(params);
+
   const signinParams = new URLSearchParams();
   if (SKIN) signinParams.set('skin', SKIN);
   if (L1)   signinParams.set('org_l1', L1);
@@ -349,13 +371,88 @@ const SKINS = {
   document.getElementById('signin-link').href = `../nile-admin/signin.html?${signinParams}`;
 })();
 
+// Dashboard needs phone+token too — only meaningful once we actually have
+// them, which may happen later via inline verify rather than at page load.
+function wireDashboardLink(baseParams) {
+  if (PHONE && TOKEN) {
+    const dashParams = new URLSearchParams(baseParams);
+    dashParams.set('phone', PHONE);
+    dashParams.set('token', TOKEN);
+    document.getElementById('dashboard-link').href = `../nile-admin/dashboard.html?${dashParams}`;
+    document.getElementById('dashboard-link').style.display = '';
+  } else {
+    document.getElementById('dashboard-link').style.display = 'none';
+  }
+}
+
+// ── Verify phone (only reached when a station link has no token yet) ───────
+function normalizePhone(raw) {
+  const d = raw.replace(/\D/g, '');
+  if (d.length === 10) return '+1' + d;
+  if (d.length === 11 && d[0] === '1') return '+' + d;
+  return '+' + d;
+}
+function resetVerify() {
+  document.getElementById('verify-phone-step').style.display = 'block';
+  document.getElementById('verify-otp-step').style.display = 'none';
+  document.getElementById('verify-otp-input').value = '';
+  document.getElementById('verify-msg').className = 'msg';
+  document.getElementById('verify-msg').textContent = '';
+}
+async function sendOtp() {
+  const msg = document.getElementById('verify-msg');
+  msg.className = 'msg'; msg.textContent = '';
+  const raw = document.getElementById('verify-phone-input').value.trim();
+  if (!raw) { msg.className = 'msg err'; msg.textContent = 'Enter your mobile number.'; return; }
+  try {
+    const r = await fetch(`${NILE_AUTH}/presenter/magic/send`, {
+      method: 'POST', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ contact: normalizePhone(raw) }),
+    });
+    const data = await r.json();
+    if (!r.ok) throw new Error(data.message || 'Failed to send code');
+    document.getElementById('verify-phone-step').style.display = 'none';
+    document.getElementById('verify-otp-step').style.display = 'block';
+    setTimeout(() => document.getElementById('verify-otp-input').focus(), 50);
+  } catch (e) { msg.className = 'msg err'; msg.textContent = e.message; }
+}
+async function verifyOtp() {
+  const msg = document.getElementById('verify-msg');
+  msg.className = 'msg'; msg.textContent = '';
+  const raw  = document.getElementById('verify-phone-input').value.trim();
+  const code = document.getElementById('verify-otp-input').value.trim();
+  const phone = normalizePhone(raw);
+  if (!code) { msg.className = 'msg err'; msg.textContent = 'Enter the code from your text.'; return; }
+  try {
+    const r = await fetch(`${NILE_AUTH}/presenter/magic/verify`, {
+      method: 'POST', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ contact: phone, code }),
+    });
+    const data = await r.json();
+    if (!r.ok) throw new Error(data.message || 'Invalid code');
+    const token = (data.profile_url || '').split('?token=')[1]?.split('&')[0] || data.token || null;
+    if (!token) throw new Error('Verification failed — token not returned');
+    TOKEN = token;
+    PHONE = phone;
+    document.getElementById('step-verify').style.display = 'none';
+    proceedToForm();
+  } catch (e) { msg.className = 'msg err'; msg.textContent = e.message; }
+}
+
 // ── Init ──────────────────────────────────────────────────────────────────────
 (async function init() {
-  if (!TOKEN || !L1) {
+  if (!L1) {
     document.getElementById('step-error').style.display = 'block';
     return;
   }
+  if (!TOKEN) {
+    document.getElementById('step-verify').style.display = 'block';
+    return;
+  }
+  proceedToForm();
+})();
 
+function proceedToForm() {
   // Show org badge
   const badge = [L1, L2, L3].filter(Boolean).join(' · ');
   document.getElementById('org-badge').textContent = badge;
@@ -366,8 +463,15 @@ const SKINS = {
   selectType(currentType);
   renderVisibilityRow();
 
+  const linkParams = new URLSearchParams();
+  if (SKIN) linkParams.set('skin', SKIN);
+  if (L1)   linkParams.set('org_l1', L1);
+  if (L2)   linkParams.set('org_l2', L2);
+  if (L3)   linkParams.set('org_l3', L3);
+  wireDashboardLink(linkParams);
+
   document.getElementById('step-form').style.display = 'block';
-})();
+}
 
 // ── Tags ──────────────────────────────────────────────────────────────────────
 function renderTags() {
@@ -441,6 +545,7 @@ function getHeadings() {
 async function submitTile() {
   const title     = document.getElementById('f-title').value.trim();
   const presenter = document.getElementById('f-presenter').value.trim();
+  const linkedin  = document.getElementById('f-linkedin').value.trim() || null;
   const eventCode = document.getElementById('f-event-code').value.trim().toUpperCase() || null;
   const synopsis  = document.getElementById('f-synopsis').value.trim();
   const bestfor   = document.getElementById('f-bestfor').value.trim();
@@ -475,6 +580,8 @@ async function submitTile() {
         event_code: eventCode,
         title,
         presenter,
+        presenter_phone: PHONE,
+        linkedin_url: linkedin,
         synopsis,
         who: bestfor,
         tags: userTags.map(t => t.value),
