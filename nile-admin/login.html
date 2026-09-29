@@ -101,7 +101,6 @@
   }
   .work-tile-text { flex: 1; min-width: 0; }
   .work-tile-name { font-size: 15px; font-weight: 600; color: var(--ink); }
-  .work-tile-meta { font-size: 12px; color: var(--muted); margin-top: 1px; }
   .role-pills { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 6px; }
   .role-pill {
     font-size: 10px; font-weight: 700; text-transform: uppercase;
@@ -430,7 +429,6 @@ async function loadWorkList() {
         <div class="work-tile-icon">${initial}</div>
         <div class="work-tile-text">
           <div class="work-tile-name">${org.name}</div>
-          <div class="work-tile-meta">${org.l1} · ${org.l2} · ${org.l3}</div>
           <div class="role-pills">${pills}</div>
         </div>
       </div>

@@ -292,7 +292,11 @@ const VISIBILITY_OPTIONS = {
   chapter: { label: 'This Station Only', hint: 'Shows on this station’s own page, not the global directory.' },
   private: { label: 'Admin Only', hint: 'Only visible to you, the curator, on your Station Dashboard.' },
 };
-let currentVisibility = 'public';
+// Defaults to the station-only tier, not public — publishing globally is a
+// decision, never an accident of not touching this toggle. See the mutual
+// contributor/curator approval model this should eventually be wired into
+// (neither side can push content further than the other has agreed to).
+let currentVisibility = 'chapter';
 
 function renderVisibilityRow() {
   const row = document.getElementById('visibility-row');
