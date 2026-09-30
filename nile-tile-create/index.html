@@ -55,7 +55,8 @@
   .tag-add{padding:7px 12px;background:#008787;color:#fff;border:none;border-radius:6px;font-size:13px;cursor:pointer;}
 
   .avatar-row{display:flex;align-items:center;gap:14px;margin:14px 0 16px;}
-  .avatar{width:44px;height:44px;border-radius:50%;background:#5B4FCF;color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:17px;flex-shrink:0;}
+  .avatar{width:44px;height:44px;border-radius:50%;background:#5B4FCF;color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:17px;flex-shrink:0;cursor:pointer;overflow:hidden;}
+  .avatar img{width:100%;height:100%;object-fit:cover;display:block;}
 
   /* Play button that doubles as the .onda link editor */
   .play-btn{display:inline-flex;align-items:center;gap:8px;padding:10px 20px;background:#008787;color:#fff;border:none;border-radius:24px;font-size:15px;font-weight:600;cursor:pointer;}
@@ -177,7 +178,7 @@
       </div>
 
       <div class="avatar-row">
-        <div class="avatar" id="avatar-initial">?</div>
+        <div class="avatar" id="avatar-initial" onclick="openAvatarEditor()" title="Add your photo">?</div>
         <button type="button" class="play-btn empty" id="onda-play-btn" onclick="openOndaEditor()">
           <span class="tri"></span><span id="onda-play-label">Add Recording</span>
         </button>
@@ -288,6 +289,12 @@ let userTags = [];
 let photos = [null, null, null];
 let videos = [null, null, null];
 let mediaOverlayTarget = null; // { kind: 'photo'|'video', index: N }
+
+// The presenter's own photo — a real face, not an initial, so someone who
+// hasn't seen this person in 20 years recognizes them. Maps to the same
+// 'photo' field the old form already had (a headshot), so unlike the
+// gallery above, this one actually persists today — no backend work needed.
+let presenterPhotoUrl = null;
 
 // Declared here (not down by the functions that use it) because init()
 // below runs immediately and reaches into this before the script would
@@ -498,6 +505,7 @@ function startEditing(displayEl) {
   const input = document.createElement(multiline ? 'textarea' : 'input');
   input.className = 'editable-input';
   input.value = current;
+  input.placeholder = displayEl.dataset.placeholder || '';
   if (!multiline) input.type = 'text';
 
   const doneRow = document.createElement('div');
@@ -525,8 +533,17 @@ function startEditing(displayEl) {
 }
 
 function updateAvatar() {
+  const el = document.getElementById('avatar-initial');
+  if (presenterPhotoUrl) {
+    el.innerHTML = `<img src="${presenterPhotoUrl}" onerror="this.parentElement.textContent='?'">`;
+    return;
+  }
   const name = getFieldValue('presenter').trim();
-  document.getElementById('avatar-initial').textContent = name ? name.charAt(0).toUpperCase() : '?';
+  el.textContent = name ? name.charAt(0).toUpperCase() : '?';
+}
+
+function openAvatarEditor() {
+  openMediaOverlay('avatar', 0);
 }
 
 // ── The Play button as the .onda link editor ────────────────────────────
@@ -582,8 +599,10 @@ function renderMediaRow(kind) {
 
 function openMediaOverlay(kind, index) {
   mediaOverlayTarget = { kind, index };
-  document.getElementById('media-overlay-label').textContent = kind === 'photo' ? 'Photo link' : 'YouTube video link';
-  document.getElementById('media-overlay-input').value = (kind === 'photo' ? photos : videos)[index] || '';
+  const labels = { photo: 'Photo link', video: 'YouTube video link', avatar: 'Your photo — helps people recognize you' };
+  const current = kind === 'avatar' ? presenterPhotoUrl : (kind === 'photo' ? photos : videos)[index];
+  document.getElementById('media-overlay-label').textContent = labels[kind];
+  document.getElementById('media-overlay-input').value = current || '';
   document.getElementById('media-overlay').style.display = 'flex';
   setTimeout(() => document.getElementById('media-overlay-input').focus(), 30);
 }
@@ -595,8 +614,13 @@ function confirmMediaOverlay() {
   if (!mediaOverlayTarget) return;
   const { kind, index } = mediaOverlayTarget;
   const val = document.getElementById('media-overlay-input').value.trim();
-  (kind === 'photo' ? photos : videos)[index] = val || null;
-  renderMediaRow(kind);
+  if (kind === 'avatar') {
+    presenterPhotoUrl = val || null;
+    updateAvatar();
+  } else {
+    (kind === 'photo' ? photos : videos)[index] = val || null;
+    renderMediaRow(kind);
+  }
   closeMediaOverlay();
 }
 
@@ -714,11 +738,11 @@ async function submitTile() {
         tags: userTags.map(t => t.value),
         brief, takeaways, headings,
         deck_url: deck,
-        // First photo/video kept in the original single-value fields for
-        // compatibility with anything still reading them; full lists sent
-        // alongside for the station page to render as galleries once it's
-        // updated to look for these.
-        photo: photoList[0] || null,
+        // 'photo' is the presenter's own headshot (the avatar) — the one
+        // field from the old form that already persists and displays
+        // correctly today. The gallery below is separate, new, and not
+        // yet stored server-side (see the note further down).
+        photo: presenterPhotoUrl || null,
         youtube: videoList[0] || null,
         photos: photoList,
         videos: videoList,
