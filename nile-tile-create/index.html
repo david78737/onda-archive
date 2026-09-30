@@ -289,6 +289,12 @@ let photos = [null, null, null];
 let videos = [null, null, null];
 let mediaOverlayTarget = null; // { kind: 'photo'|'video', index: N }
 
+// Declared here (not down by the functions that use it) because init()
+// below runs immediately and reaches into this before the script would
+// otherwise get to a later declaration — a real "used before
+// initialization" crash caught live, not just a style choice.
+const fieldValues = {};
+
 const CONTENT_TYPES = {
   presentation: { label: 'Presentation', typeTag: 'presentation', submitLabel: 'Submit Presentation', synopsisLabel: 'Story', presenterLabel: 'Presenter', takeawaysLabel: 'Key Takeaways' },
   help_file:    { label: 'Help File',    typeTag: 'help-file',    submitLabel: 'Submit Help File',    synopsisLabel: 'What this covers', presenterLabel: 'Author', takeawaysLabel: 'Key Points' },
@@ -459,7 +465,6 @@ function proceedToForm() {
 }
 
 // ── Generic click-to-edit fields (title, presenter, synopsis, etc.) ────────
-const fieldValues = {};
 function setFieldValue(field, value) {
   fieldValues[field] = value;
   const el = document.getElementById('f-' + field);
