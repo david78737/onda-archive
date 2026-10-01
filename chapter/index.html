@@ -432,6 +432,15 @@ const ORG_L3     = params.get('org_l3') || '';
 // Contributor toggle is hidden entirely so a visitor can't wander into
 // everyone else curated under the same station.
 const LOCKED_PRESENTER = params.get('presenter') || '';
+// Pre-filters the view on arrival — never locks it. The app's per-screen
+// help buttons send ?ctx=Storyboard (etc.); this just seeds the same
+// tag filter state the drawer itself writes to, so arriving here starts
+// scoped to the relevant screen but every other tag stays one tap away
+// via the normal Tags drawer. Added 2026-10-01 — this param existed on
+// every help-button link in the app for weeks with nothing here reading
+// it, so every tap landed on the full, unfiltered station regardless of
+// which screen it came from.
+const CTX = (params.get('ctx') || '').toLowerCase();
 
 function humanizeStationId(id) {
   return id.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
@@ -445,7 +454,7 @@ function initialsForStationId(id) {
 // ── State ─────────────────────────────────────────────────────────────────────
 let allSessions = [];
 let allTags     = [];
-const state     = { speaker: LOCKED_PRESENTER || 'all', tags: new Set(), query: '' };
+const state     = { speaker: LOCKED_PRESENTER || 'all', tags: new Set(CTX ? [CTX] : []), query: '' };
 if (LOCKED_PRESENTER) document.getElementById('contributor-toggle').style.display = 'none';
 
 // ── Avatar helpers ─────────────────────────────────────────────────────────────
