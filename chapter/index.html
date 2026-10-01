@@ -571,7 +571,14 @@ const PIN_TAG = 'how-to';
 function filtered() {
   const rows = allSessions.filter(s => {
     if (state.speaker !== 'all' && s.presenter !== state.speaker) return false;
-    if (state.tags.size > 0 && ![...state.tags].every(t => (s.tags||[]).includes(t))) return false;
+    // Case-insensitive on purpose (2026-10-01) — a tag match is a real
+    // comparison, not a lookup key, and this project has already been
+    // burned more than once by an exact-string-match silently matching
+    // nothing (or the wrong thing) over a case/format difference nobody
+    // noticed. Normalizing here means the content side never has to be
+    // perfectly disciplined for this to work.
+    if (state.tags.size > 0 && ![...state.tags].every(t =>
+        (s.tags||[]).some(st => st.toLowerCase() === t.toLowerCase()))) return false;
     if (state.query) {
       const q   = state.query.toLowerCase();
       const hay = [s.title, s.presenter, s.synopsis, ...(s.tags||[])].join(' ').toLowerCase();
