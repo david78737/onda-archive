@@ -453,6 +453,10 @@ async function verifyOtp() {
 function proceedToForm() {
   document.getElementById('org-badge').textContent = [L1, L2, L3].filter(Boolean).join(' · ');
   if (LOCKED_TAG) addTagValue(LOCKED_TAG, true);
+  // A station whose own identity is "help" shouldn't also ask every card to
+  // re-declare it via the type picker — that's the station's name redundantly
+  // asked again as a choice. Default straight to Help File there.
+  if (LOCKED_TAG === 'help') currentType = 'help_file';
   renderTypeRow();
   selectType(currentType);
   renderVisibilityBadge();
