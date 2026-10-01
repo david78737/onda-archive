@@ -2,6 +2,22 @@
 
 Living document. Update the status lines as stages move — this is meant to be read at the start of a work session to answer "what do I do right now," not a historical log.
 
+## Architecture decision, 2026-09-30 — read this before producing anything
+
+**Help content gets its own station.** Not a tile type mixed into the general `onda-replay` station — a dedicated **Replay Help Station**, same pattern as any other curated archive (Pat Stone Memorium, Gerette's Living Cult Free). Created 2026-10-01 ("ondareplay · austin · help").
+
+**`ctx` now actually pre-filters, as of 2026-10-01.** `chapter.html` seeds its existing tag-filter state (the same one the Tags drawer writes to) from `?ctx=` on load — pre-scoped on arrival, full drawer still one tap away for everything else. This was a real, confirmed gap: the app's help buttons had sent `ctx=` for weeks with nothing reading it, so every tap landed on the full, unfiltered station. Fixed in `chapter/index.html`.
+
+**Real follow-on requirement, not yet consistently done:** this only actually filters anything if each Help File is tagged with the lowercase screen name that matches its `ctx` value (e.g. a Sleeve-editor Help File needs the tag `sleeve`, since `ctx=Sleeve` lowercases to that). Tag discipline when producing each Help File, not a code problem.
+
+**Two content tiers, not one — match the ingredient to the appetite:**
+1. **The session card itself (Activity pathway)** — screenshot + control labels + what each one does in the common case. A *reminder*, not an explanation. Often enough on its own for someone who's used the screen before.
+2. **The full Storyboard (Orientation)** — the real, narrated, goal-first deep dive, for when the reminder isn't enough.
+
+**The tag/heading vocabulary rule — this is the actual authoring discipline, not a new feature:** Section Headings already let a listener jump straight to a moment in a Storyboard — that mechanism is built and working. The rule going forward: **tags on the session card and section headings in the deep-dive must use the exact same words.** Tag says "pausing," heading says "pausing" — tap the tag, land exactly there. No new code needed, just deliberate shared vocabulary between whoever writes the tags and whoever writes the headings (usually the same person, but easy to drift if not done on purpose).
+
+**For ONDA's own help content specifically**, this is first-party, fully-hosted content (real fields on the tile, not a pointer) — there's no external site to point to, ONDA is the only source. A pointer-style tile (like the existing `Article` type: title + tags + a link to where the real thing lives elsewhere) is the right shape for a *different* case — an enterprise Curator whose real help content lives on their own site — not needed for this station.
+
 ## Stage 1 — Create one Help File (content)
 **Status: built and refined.** Protocol lives in `onda-replay/.claude/skills/onda-doc/SKILL.md` — screenshot, numbered callouts verified against real source code, orientation-vs-activity-pathway content choice, headings worded as answers to "where."
 **Next, if anything:** none required to keep working — this stage is usable today.
