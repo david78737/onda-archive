@@ -262,6 +262,11 @@
   <div class="media-input-box">
     <label id="media-overlay-label">Photo link</label>
     <input id="media-overlay-input" type="url" placeholder="https://..." />
+    <div id="media-overlay-upload-wrap" style="display:none;margin:-4px 0 12px;">
+      <button class="btn btn-text" type="button" style="width:auto;padding:4px 0;margin-top:0;" onclick="document.getElementById('media-overlay-file').click()">Upload a photo instead…</button>
+      <span id="media-overlay-upload-status" style="font-size:12.5px;color:#888;margin-left:8px;"></span>
+    </div>
+    <input type="file" id="media-overlay-file" accept="image/*" style="display:none;">
     <div class="row">
       <button class="btn btn-cancel" type="button" onclick="closeMediaOverlay()">Cancel</button>
       <button class="btn" type="button" onclick="confirmMediaOverlay()">Add</button>
@@ -615,6 +620,8 @@ function openMediaOverlay(kind, index) {
   const current = kind === 'avatar' ? presenterPhotoUrl : (kind === 'photo' ? photos : videos)[index];
   document.getElementById('media-overlay-label').textContent = labels[kind];
   document.getElementById('media-overlay-input').value = current || '';
+  document.getElementById('media-overlay-upload-wrap').style.display = kind === 'photo' ? 'block' : 'none';
+  document.getElementById('media-overlay-upload-status').textContent = '';
   document.getElementById('media-overlay').style.display = 'flex';
   setTimeout(() => document.getElementById('media-overlay-input').focus(), 30);
 }
@@ -622,6 +629,28 @@ function closeMediaOverlay() {
   document.getElementById('media-overlay').style.display = 'none';
   mediaOverlayTarget = null;
 }
+
+// ── Photo upload — real file picker, hosted by Xano ─────────────────────
+const UPLOAD_PHOTO_URL = 'https://xrxm-29on-xlyt.n7e.xano.io/api:nile/upload-photo';
+document.getElementById('media-overlay-file').addEventListener('change', async (e) => {
+  const file = e.target.files[0];
+  if (!file) return;
+  const statusEl = document.getElementById('media-overlay-upload-status');
+  statusEl.textContent = 'Uploading…';
+  try {
+    const form = new FormData();
+    form.append('content', file);
+    const resp = await fetch(UPLOAD_PHOTO_URL, { method: 'POST', body: form });
+    const data = await resp.json();
+    if (!resp.ok || !data.url) throw new Error(data.message || 'Upload failed.');
+    document.getElementById('media-overlay-input').value = data.url;
+    statusEl.textContent = 'Uploaded ✓';
+  } catch (err) {
+    statusEl.textContent = err.message;
+  } finally {
+    e.target.value = '';
+  }
+});
 function confirmMediaOverlay() {
   if (!mediaOverlayTarget) return;
   const { kind, index } = mediaOverlayTarget;
