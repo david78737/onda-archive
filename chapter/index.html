@@ -703,22 +703,22 @@ function renderTags(rows) {
   toggleCount.hidden = state.tags.size === 0;
   toggleCount.textContent = state.tags.size;
 
-  // Favorites float above every other group, regardless of whether they're
-  // currently active or visible in the filtered results — a personal
-  // shortcut list for common searches, always in the same spot.
-  const favs = allTags.filter(({tag}) => favoriteTags.has(tag));
-  favs.forEach(({tag, n}) => el.appendChild(makeTagBtn(tag, state.tags.has(tag) ? 'active' : 'favorite', n)));
-  if (favs.length) el.appendChild(divider());
+  // Four zones, in this order, each separated by a divider — the standing
+  // protocol: selected (favorited or not) always leads, then favorites not
+  // currently selected, then tags relevant to what's visible, then the rest.
+  const selected  = allTags.filter(({tag}) => state.tags.has(tag));
+  selected.forEach(({tag, n}) => el.appendChild(makeTagBtn(tag, 'active', n)));
 
-  const active  = [...state.tags].filter(t => !favoriteTags.has(t));
-  active.forEach(t => el.appendChild(makeTagBtn(t, 'active', null)));
+  const favs = allTags.filter(({tag}) => favoriteTags.has(tag) && !state.tags.has(tag));
+  if (selected.length && favs.length) el.appendChild(divider());
+  favs.forEach(({tag, n}) => el.appendChild(makeTagBtn(tag, 'favorite', n)));
 
   const related   = allTags.filter(({tag}) => !state.tags.has(tag) && !favoriteTags.has(tag) && visible.has(tag));
-  if ((active.length || favs.length) && related.length) el.appendChild(divider());
+  if ((selected.length || favs.length) && related.length) el.appendChild(divider());
   related.forEach(({tag,n}) => el.appendChild(makeTagBtn(tag, 'related', n)));
 
   const remaining = allTags.filter(({tag}) => !state.tags.has(tag) && !favoriteTags.has(tag) && !visible.has(tag));
-  if ((active.length || favs.length || related.length) && remaining.length) el.appendChild(divider());
+  if ((selected.length || favs.length || related.length) && remaining.length) el.appendChild(divider());
   remaining.forEach(({tag,n}) => el.appendChild(makeTagBtn(tag, 'remaining', n)));
 }
 function makeTagBtn(tag, group, count) {
