@@ -262,6 +262,14 @@
   }
   .btn-primary:hover { background: var(--teal-dark); }
   .btn-primary:disabled { background: #AAA; cursor: default; }
+  .btn-outline {
+    padding: 10px 20px; background: transparent; color: var(--teal);
+    font-size: 14px; font-weight: 600; border: 1.5px solid var(--teal);
+    border-radius: 10px; cursor: pointer; font-family: inherit;
+    transition: background 0.15s;
+  }
+  .btn-outline:hover { background: var(--teal-light); }
+  .btn-outline:disabled { border-color: #AAA; color: #AAA; cursor: default; }
 
   /* Screens */
   .screen { display: none; }
@@ -466,6 +474,13 @@
       <span id="copy-confirm" style="margin-left:10px;font-size:13px;color:var(--teal);display:none;">✓ Copied</span>
     </div>
 
+    <div id="archive-section" style="margin-top:28px;padding-top:20px;border-top:1px solid var(--border);">
+      <div class="field-label" style="margin-bottom:6px;">Hide this station from your hub</div>
+      <p class="hint" style="margin-bottom:10px;">Doesn't touch your public listing or any tiles — only removes this station from your own ONDA Nile hub list. Reversible any time.</p>
+      <button type="button" class="btn-outline" id="btn-archive">Archive this station</button>
+      <div id="msg-archive" class="msg"></div>
+    </div>
+
   </div><!-- /screen-main -->
 
 </div><!-- /wrap -->
@@ -477,8 +492,15 @@
   let authToken   = '';
   let authedPhone = '';
   let currentOrg  = { l1: '', l2: '', l3: '' };
+  let currentArchived = false;
 
   function dbg(msg) { console.log('[station]', msg); }
+
+  function updateArchiveButton() {
+    const btn = document.getElementById('btn-archive');
+    if (!btn) return;
+    btn.textContent = currentArchived ? 'Unarchive this station' : 'Archive this station';
+  }
 
   function showMsg(id, type, text) {
     const el = document.getElementById(id);
@@ -689,6 +711,9 @@
         document.getElementById('embed-section').style.display = 'block';
       }
 
+      currentArchived = !!d.archived;
+      updateArchiveButton();
+
       // Populate fields
       if (d.station_name) document.getElementById('station-name').value = d.station_name;
       if (d.city)         document.getElementById('station-city').value = d.city;
@@ -799,6 +824,43 @@
       window.location.href = 'register.html' + params;
     } catch (e) {
       showMsg('msg-save', 'err', 'Save failed: ' + e.message);
+    }
+  });
+
+  // ── Archive / unarchive ─────────────────────────────────────
+  document.getElementById('btn-archive').addEventListener('click', async () => {
+    const next = !currentArchived;
+    const verb = next ? 'archive' : 'unarchive';
+    const confirmMsg = next
+      ? 'Archive this station? It\'ll stop showing in your hub list — nothing public changes, and you can unarchive it any time.'
+      : 'Unarchive this station? It\'ll show in your hub list again.';
+    if (!window.confirm(confirmMsg)) return;
+
+    const btn = document.getElementById('btn-archive');
+    btn.disabled = true;
+
+    try {
+      const r = await fetch(NILE_API + '/nile/station/profile', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          phone: authedPhone,
+          magic_auth_token: authToken,
+          org_l1: currentOrg.l1,
+          org_l2: currentOrg.l2,
+          org_l3: currentOrg.l3,
+          archived: next,
+        })
+      });
+      const data = await r.json();
+      if (!r.ok) throw new Error(data.message || JSON.stringify(data));
+      currentArchived = next;
+      updateArchiveButton();
+      showMsg('msg-archive', 'ok', next ? 'Archived — hidden from your hub.' : 'Unarchived — back on your hub.');
+    } catch (e) {
+      showMsg('msg-archive', 'err', 'Could not ' + verb + ': ' + e.message);
+    } finally {
+      btn.disabled = false;
     }
   });
 </script>
