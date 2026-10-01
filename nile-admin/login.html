@@ -116,6 +116,8 @@
   .role-presenter    { background: #FFF3E0; color: #B85C00; }
   .role-organizer    { background: #E8F5E9; color: #1B7A2E; }
   .role-hint { font-size: 12px; color: var(--muted); padding: 14px 16px; border-top: 1px solid var(--border); font-style: italic; }
+  .archived-toggle { display: block; font-size: 12.5px; color: var(--muted); text-align: center; margin: 2px 0 18px; text-decoration: none; }
+  .archived-toggle:hover { color: var(--teal); text-decoration: underline; }
 
   .work-tile.open { border-color: var(--teal); }
   .action-column { display: flex; flex-direction: column; border-top: 1px solid var(--border); }
@@ -205,6 +207,7 @@
     </div>
     <div id="list-banner" class="banner"></div>
     <div id="work-list"></div>
+    <a href="#" id="toggle-archived" class="archived-toggle" onclick="toggleArchived(event)">Show archived stations</a>
 
     <div class="section-label">Get Started</div>
     <a class="get-started-tile" id="link-apply" href="#">
@@ -325,11 +328,22 @@ function wireGetStartedLinks() {
   document.getElementById('link-profile').href = `../nile-profile-edit/${authParams}`;
 }
 
+let showArchived = false;
+
+function toggleArchived(e) {
+  e.preventDefault();
+  showArchived = !showArchived;
+  loadWorkList();
+}
+
 async function loadWorkList() {
   wireGetStartedLinks();
   TILE_DATA = [];
   const list = document.getElementById('work-list');
   list.innerHTML = '<div class="empty-note">Loading what you can work on…</div>';
+
+  const toggleLink = document.getElementById('toggle-archived');
+  if (toggleLink) toggleLink.textContent = showArchived ? 'Hide archived stations' : 'Show archived stations';
 
   const merged = {}; // key: org_l1|org_l2|org_l3 -> { l1, l2, l3, name, roles:Set }
 
@@ -343,7 +357,7 @@ async function loadWorkList() {
 
   // Curator / coordinator orgs
   try {
-    const url = `${NILE_API}/nile/coordinator/orgs?phone=${encodeURIComponent(authedPhone)}&magic_auth_token=${encodeURIComponent(authToken)}`;
+    const url = `${NILE_API}/nile/coordinator/orgs?phone=${encodeURIComponent(authedPhone)}&magic_auth_token=${encodeURIComponent(authToken)}&include_archived=${showArchived}`;
     const r = await fetch(url);
     if (r.ok) {
       const data = await r.json();
@@ -356,7 +370,7 @@ async function loadWorkList() {
   try {
     const r = await fetch(`${NILE_API}/nile/presenter/my-stations`, {
       method: 'POST', headers: {'Content-Type':'application/json'},
-      body: JSON.stringify({ phone: authedPhone, magic_auth_token: authToken })
+      body: JSON.stringify({ phone: authedPhone, magic_auth_token: authToken, include_archived: showArchived })
     });
     if (r.ok) {
       const stations = await r.json();
