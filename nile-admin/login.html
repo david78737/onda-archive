@@ -100,9 +100,9 @@
     align-items: center; justify-content: center; flex-shrink: 0;
   }
   .work-tile-text { flex: 1; min-width: 0; }
-  .work-tile-key { font-size: 15px; font-weight: 700; color: var(--ink); }
+  .work-tile-name { font-size: 15px; font-weight: 700; color: var(--ink); }
   .work-tile-desc { font-size: 12.5px; color: var(--muted); margin-top: 2px; }
-  .work-tile-name { font-size: 12px; color: var(--muted); opacity: .75; margin-top: 2px; }
+  .work-tile-key { font-size: 11px; color: var(--muted); opacity: .65; margin-top: 2px; font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace; }
   .role-pills { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 6px; }
   .role-pill {
     font-size: 10px; font-weight: 700; text-transform: uppercase;
@@ -436,9 +436,9 @@ async function loadWorkList() {
       <div class="work-tile-head">
         <div class="work-tile-icon">${initial}</div>
         <div class="work-tile-text">
-          <div class="work-tile-key">${identityKey}</div>
-          ${org.description ? `<div class="work-tile-desc">${org.description}</div>` : ''}
           <div class="work-tile-name">${org.name}</div>
+          ${org.description ? `<div class="work-tile-desc">${org.description}</div>` : ''}
+          <div class="work-tile-key">${identityKey}</div>
           <div class="role-pills">${pills}</div>
         </div>
       </div>
