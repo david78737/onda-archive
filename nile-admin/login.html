@@ -101,6 +101,8 @@
   }
   .work-tile-text { flex: 1; min-width: 0; }
   .work-tile-name { font-size: 15px; font-weight: 600; color: var(--ink); }
+  .work-tile-desc { font-size: 12.5px; color: var(--muted); margin-top: 2px; }
+  .work-tile-key { font-size: 10.5px; color: var(--muted); opacity: .65; margin-top: 3px; font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace; }
   .role-pills { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 6px; }
   .role-pill {
     font-size: 10px; font-weight: 700; text-transform: uppercase;
@@ -331,10 +333,11 @@ async function loadWorkList() {
 
   const merged = {}; // key: org_l1|org_l2|org_l3 -> { l1, l2, l3, name, roles:Set }
 
-  function mergeIn(l1, l2, l3, name, role) {
+  function mergeIn(l1, l2, l3, name, role, description) {
     const key = `${l1}|${l2}|${l3}`;
-    if (!merged[key]) merged[key] = { l1, l2, l3, name: name || l1, roles: new Set() };
+    if (!merged[key]) merged[key] = { l1, l2, l3, name: name || l1, description: description || null, roles: new Set() };
     if (name && !merged[key].name) merged[key].name = name;
+    if (description && !merged[key].description) merged[key].description = description;
     merged[key].roles.add(role);
   }
 
@@ -345,7 +348,7 @@ async function loadWorkList() {
     if (r.ok) {
       const data = await r.json();
       const orgs = Array.isArray(data) ? data : (data.items || data.orgs || []);
-      orgs.forEach(o => mergeIn(o.org_l1, o.org_l2, o.org_l3, o.org_name, o.role === 'curator' ? 'curator' : 'coordinator'));
+      orgs.forEach(o => mergeIn(o.org_l1, o.org_l2, o.org_l3, o.org_name, o.role === 'curator' ? 'curator' : 'coordinator', o.description));
     }
   } catch (e) { /* endpoint may be unavailable — contributor-only accounts still work below */ }
 
@@ -358,7 +361,7 @@ async function loadWorkList() {
     if (r.ok) {
       const stations = await r.json();
       (Array.isArray(stations) ? stations : []).forEach(s =>
-        mergeIn(s.org_l1, s.org_l2, s.org_l3, s.station_name, s.role === 'organizer' ? 'organizer' : 'presenter')
+        mergeIn(s.org_l1, s.org_l2, s.org_l3, s.station_name, s.role === 'organizer' ? 'organizer' : 'presenter', s.description)
       );
     }
   } catch (e) { /* contributor endpoint unavailable — curator-only accounts still work above */ }
@@ -421,6 +424,11 @@ async function loadWorkList() {
     ).join('');
 
     const initial = (org.name || org.l1 || '?').charAt(0).toUpperCase();
+    // Station identity is the org_l1|l2|l3 triple, not the display name —
+    // two different stations can share a name prefix ("ONDA · Replay" vs
+    // the Help station's auto-generated "ondareplay · austin"), so the key
+    // line always shows regardless of whether a real description exists.
+    const identityKey = `${org.l1} · ${org.l2} · ${org.l3}`;
     const tile = document.createElement('div');
     tile.className = 'work-tile';
     tile.id = `tile-${tileIdx}`;
@@ -429,6 +437,8 @@ async function loadWorkList() {
         <div class="work-tile-icon">${initial}</div>
         <div class="work-tile-text">
           <div class="work-tile-name">${org.name}</div>
+          ${org.description ? `<div class="work-tile-desc">${org.description}</div>` : ''}
+          <div class="work-tile-key">${identityKey}</div>
           <div class="role-pills">${pills}</div>
         </div>
       </div>

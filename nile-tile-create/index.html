@@ -370,7 +370,15 @@ const SKINS = { 'circle-docs': { wordmark: 'Circle Docs' } };
   if (L1)   params.set('org_l1', L1);
   if (L2)   params.set('org_l2', L2);
   if (L3)   params.set('org_l3', L3);
-  document.getElementById('back-link').href = `../ondanile/?${params}`;
+  // Same hubUrl pattern as nile-profile-edit's "Back to Hub" — return to the
+  // signed-in work list (login.html's bootstrap() resumes it straight from
+  // these params), not the public directory the old link pointed at.
+  const hubUrl = PHONE
+    ? `../nile-admin/login.html?phone=${encodeURIComponent(PHONE)}&token=${encodeURIComponent(TOKEN)}`
+    : `../nile-admin/login.html`;
+  const backLink = document.getElementById('back-link');
+  backLink.href = hubUrl;
+  backLink.textContent = '← Back to Hub';
   document.getElementById('browse-link').href = `../ondanile/?${params}`;
   wireDashboardLink(params);
   const signinParams = new URLSearchParams(params);
