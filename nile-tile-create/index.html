@@ -286,6 +286,7 @@ const L3      = _p.get('org_l3') || null;
 let TOKEN     = _p.get('token')  || null;
 let PHONE     = _p.get('phone')  || null;
 const EVENT_CODE = _p.get('event_code') || null;
+const TILE_ID = _p.get('tile_id') || null;
 
 const LOCKED_TAG = L3 || L1 || null;
 let userTags = [];
@@ -293,6 +294,10 @@ let userTags = [];
 // Up to 3 photo links, 3 video links — each slot is null until filled.
 let photos = [null, null, null];
 let videos = [null, null, null];
+// Per-photo callout JSON (from the callout-picker tool), same indexing as
+// photos — no editor for this yet, just round-tripped on load/save so an
+// existing tile's control data isn't lost when the tile is re-saved.
+let photoCallouts = [null, null, null];
 let mediaOverlayTarget = null; // { kind: 'photo'|'video', index: N }
 
 // The presenter's own photo — a real face, not an initial, so someone who
@@ -463,20 +468,36 @@ async function verifyOtp() {
   proceedToForm();
 })();
 
-function proceedToForm() {
+async function proceedToForm() {
   document.getElementById('org-badge').textContent = [L1, L2, L3].filter(Boolean).join(' · ');
   if (LOCKED_TAG) addTagValue(LOCKED_TAG, true);
-  // A station whose own identity is "help" shouldn't also ask every card to
-  // re-declare it via the type picker — that's the station's name redundantly
-  // asked again as a choice. Default straight to Help File there.
-  if (LOCKED_TAG === 'help') currentType = 'help_file';
-  renderTypeRow();
-  selectType(currentType);
+
+  let loaded = null;
+  if (TILE_ID) {
+    try {
+      const dParams = new URLSearchParams({ id: TILE_ID, phone: PHONE || '', magic_auth_token: TOKEN || '' });
+      const r = await fetch(`${NILE_API}/nile/tile/detail?${dParams}`);
+      if (r.ok) loaded = await r.json();
+    } catch (e) { /* fall through — a failed load just leaves a blank form, same as a fresh tile */ }
+  }
+
+  if (loaded) {
+    applyLoadedTile(loaded);
+  } else {
+    // A station whose own identity is "help" shouldn't also ask every card to
+    // re-declare it via the type picker — that's the station's name redundantly
+    // asked again as a choice. Default straight to Help File there.
+    if (LOCKED_TAG === 'help') currentType = 'help_file';
+    renderTypeRow();
+    selectType(currentType);
+  }
+
   renderVisibilityBadge();
   renderEditableFields();
   renderMediaRow('photo');
   renderMediaRow('video');
-  if (EVENT_CODE) setFieldValue('event-code', EVENT_CODE.toUpperCase());
+  if (EVENT_CODE && !loaded) setFieldValue('event-code', EVENT_CODE.toUpperCase());
+  if (TILE_ID) document.getElementById('btn-submit').textContent = 'Save Changes';
 
   const linkParams = new URLSearchParams();
   if (SKIN) linkParams.set('skin', SKIN);
@@ -486,6 +507,45 @@ function proceedToForm() {
   wireDashboardLink(linkParams);
 
   document.getElementById('step-form').style.display = 'block';
+}
+
+// Populates every field from an existing /nile/tile/detail response — the
+// mirror image of submitTile()'s payload, field for field.
+function applyLoadedTile(d) {
+  setFieldValue('title', d.title || '');
+  setFieldValue('presenter', d.presenter_name || '');
+  setFieldValue('linkedin', d.linkedin_url || '');
+  setFieldValue('synopsis', d.summary || '');
+  setFieldValue('bestfor', d.audience || '');
+  setFieldValue('brief', d.brief || '');
+  setFieldValue('deck', d.deck_url || '');
+  if (d.event_code) setFieldValue('event-code', d.event_code.toUpperCase());
+
+  presenterPhotoUrl = d.photo_url || null;
+  updateAvatar();
+
+  photos        = [0, 1, 2].map(i => (d.photos || [])[i] || null);
+  photoCallouts = [0, 1, 2].map(i => (d.photo_callouts || [])[i] || null);
+  videos        = [0, 1, 2].map(i => (d.videos || [])[i] || null);
+
+  fieldValues['onda-url'] = d.onda_url || '';
+  document.getElementById('onda-play-btn').classList.toggle('empty', !d.onda_url);
+  document.getElementById('onda-play-label').textContent = d.onda_url ? 'Recording added' : 'Add Recording';
+
+  currentVisibility = d.visibility || currentVisibility;
+
+  // Figure out the content type from whichever type-tag is already on the
+  // tile, then let selectType lock that same tag in — same mechanism as a
+  // fresh tile, just reading the answer back instead of defaulting it.
+  const tagList = Array.isArray(d.tags) ? d.tags : [];
+  const matchedTypeKey = Object.keys(CONTENT_TYPES).find(k => tagList.includes(CONTENT_TYPES[k].typeTag));
+  if (matchedTypeKey) currentType = matchedTypeKey;
+  renderTypeRow();
+  selectType(currentType);
+  tagList.forEach(t => addTagValue(t, false)); // no-op for tags already added (locked ones), fills in the rest
+
+  (d.takeaways || []).forEach(t => addArrowLine('takeaway-list', 'One key takeaway…', t, false));
+  (d.headings  || []).forEach(h => addArrowLine('heading-list', 'e.g. What you can do', h, false));
 }
 
 // ── Generic click-to-edit fields (title, presenter, synopsis, etc.) ────────
@@ -698,15 +758,15 @@ document.getElementById('tag-input').addEventListener('keydown', e => {
 });
 
 // ── Takeaways / headings — arrow-bulleted lines, editable in place ──────
-function addArrowLine(listId, placeholder) {
+function addArrowLine(listId, placeholder, value, autoEdit) {
   const li = document.createElement('li');
   const span = document.createElement('span');
   span.className = 'arrow'; span.textContent = '→';
   const editable = document.createElement('div');
-  editable.className = 'editable empty';
-  editable.textContent = placeholder;
+  editable.className = 'editable' + (value ? '' : ' empty');
+  editable.textContent = value || placeholder;
   editable.dataset.placeholder = placeholder;
-  editable.dataset.lineValue = '';
+  editable.dataset.lineValue = value || '';
   const rm = document.createElement('button');
   rm.className = 'line-remove'; rm.type = 'button'; rm.textContent = '×';
   rm.onclick = () => li.remove();
@@ -729,10 +789,10 @@ function addArrowLine(listId, placeholder) {
 
   li.append(span, editable, rm);
   document.getElementById(listId).appendChild(li);
-  editable.click();
+  if (autoEdit) editable.click();
 }
-function addTakeaway() { addArrowLine('takeaway-list', 'One key takeaway…'); }
-function addHeading()  { addArrowLine('heading-list', 'e.g. What you can do'); }
+function addTakeaway() { addArrowLine('takeaway-list', 'One key takeaway…', '', true); }
+function addHeading()  { addArrowLine('heading-list', 'e.g. What you can do', '', true); }
 function getLines(listId) {
   return [...document.querySelectorAll(`#${listId} .editable`)]
     .map(el => el.dataset.lineValue || '').filter(Boolean);
@@ -749,7 +809,12 @@ async function submitTile() {
   const brief     = getFieldValue('brief') || null;
   const deck      = getFieldValue('deck') || null;
   const ondaUrl   = fieldValues['onda-url'] || null;
-  const photoList = photos.filter(Boolean);
+  // Keep each photo paired with its own callout data even if an earlier
+  // slot is empty — filtering photos and callouts independently would let
+  // slot 3's photo silently pick up slot 1's callouts.
+  const filledPhotoIdx = photos.map((p, i) => p ? i : null).filter(i => i !== null);
+  const photoList    = filledPhotoIdx.map(i => photos[i]);
+  const calloutList  = filledPhotoIdx.map(i => photoCallouts[i] || null);
   const videoList = videos.filter(Boolean);
   const takeaways = getLines('takeaway-list');
   const headings  = getLines('heading-list');
@@ -764,41 +829,45 @@ async function submitTile() {
   btn.disabled = true;
   btn.textContent = 'Saving…';
 
+  const payload = {
+    magic_auth_token: TOKEN,
+    org_l1: L1, org_l2: L2, org_l3: L3,
+    event_code: eventCode,
+    title, presenter,
+    presenter_phone: PHONE,
+    linkedin_url: linkedin,
+    synopsis, who: bestfor,
+    tags: userTags.map(t => t.value),
+    brief, takeaways, headings,
+    deck_url: deck,
+    photo: presenterPhotoUrl || null, // presenter's own headshot (the avatar) — distinct from the photo gallery below
+    youtube: videoList[0] || null,
+    photos: photoList,
+    photo_callouts: calloutList,
+    videos: videoList,
+    onda_url: ondaUrl,
+    visibility: currentVisibility,
+  };
+  if (TILE_ID) payload.id = TILE_ID;
+
   try {
-    const r = await fetch(`${NILE_API}/nile/tile/create`, {
+    const r = await fetch(`${NILE_API}/nile/tile/${TILE_ID ? 'update' : 'create'}`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        magic_auth_token: TOKEN,
-        org_l1: L1, org_l2: L2, org_l3: L3,
-        event_code: eventCode,
-        title, presenter,
-        presenter_phone: PHONE,
-        linkedin_url: linkedin,
-        synopsis, who: bestfor,
-        tags: userTags.map(t => t.value),
-        brief, takeaways, headings,
-        deck_url: deck,
-        // 'photo' is the presenter's own headshot (the avatar) — the one
-        // field from the old form that already persists and displays
-        // correctly today. The gallery below is separate, new, and not
-        // yet stored server-side (see the note further down).
-        photo: presenterPhotoUrl || null,
-        youtube: videoList[0] || null,
-        photos: photoList,
-        videos: videoList,
-        onda_url: ondaUrl,
-        visibility: currentVisibility,
-      }),
+      body: JSON.stringify(payload),
     });
-    if (!r.ok) { const e = await r.json(); throw new Error(e.message || 'Submit failed'); }
+    if (!r.ok) { const e = await r.json(); throw new Error(e.message || 'Save failed'); }
     document.getElementById('step-form').style.display = 'none';
     document.getElementById('step-success').style.display = 'block';
+    if (TILE_ID) {
+      document.querySelector('#step-success h2').textContent = 'Changes saved!';
+      document.querySelector('#step-success p').textContent = 'Your card has been updated.';
+    }
   } catch(e) {
     msg.className = 'msg err';
     msg.textContent = e.message;
     btn.disabled = false;
-    btn.textContent = CONTENT_TYPES[currentType].submitLabel;
+    btn.textContent = TILE_ID ? 'Save Changes' : CONTENT_TYPES[currentType].submitLabel;
   }
 }
 </script>
