@@ -574,7 +574,14 @@ function renderEditableFields() {
     el.onclick = () => startEditing(el);
   });
 }
+let activeFieldCommit = null; // the one currently-open field's commit fn, if any
+
 function startEditing(displayEl) {
+  // Opening a new field commits whatever field was already open, so at
+  // most one "Done" button is ever on screen instead of one per field
+  // you've tapped into without finishing.
+  if (activeFieldCommit) activeFieldCommit();
+
   const field = displayEl.dataset.field;
   const multiline = displayEl.dataset.multiline === '1';
   const current = fieldValues[field] || '';
@@ -604,7 +611,9 @@ function startEditing(displayEl) {
     doneRow.remove();
     renderEditableEl(displayEl);
     displayEl.onclick = () => startEditing(displayEl);
+    if (activeFieldCommit === commit) activeFieldCommit = null;
   };
+  activeFieldCommit = commit;
   doneBtn.onclick = commit;
   if (!multiline) input.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); commit(); } });
 }
