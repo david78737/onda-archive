@@ -74,35 +74,6 @@
     justify-content: center;
     gap: 1px;
   }
-  .station-switcher {
-    background: var(--header-bg);
-    border-bottom: 1px solid var(--header-border);
-    padding: 10px 24px;
-    display: flex;
-    gap: 10px;
-    flex-wrap: wrap;
-    justify-content: center;
-  }
-  .switch-pill {
-    display: inline-flex;
-    align-items: center;
-    padding: 7px 16px;
-    border-radius: 100px;
-    border: 1.5px solid var(--header-border);
-    background: transparent;
-    color: var(--header-ink);
-    font-size: 13.5px;
-    font-weight: 600;
-    text-decoration: none;
-    opacity: .7;
-  }
-  .switch-pill:hover { opacity: 1; border-color: var(--accent); }
-  .switch-pill.active {
-    opacity: 1;
-    background: var(--accent);
-    border-color: var(--accent);
-    color: #fff;
-  }
   .eyebrow {
     font-size: 9px; text-transform: uppercase; letter-spacing: .14em;
     color: #888888;
@@ -406,8 +377,6 @@
   </div>
 </header>
 
-<div class="station-switcher" id="station-switcher" hidden></div>
-
 <div class="search-bar">
   <div class="search-bar-inner">
     <input type="search" id="search-input" placeholder="Search sessions, contributors, tags…" autocomplete="off">
@@ -472,31 +441,6 @@ const LOCKED_PRESENTER = params.get('presenter') || '';
 // it, so every tap landed on the full, unfiltered station regardless of
 // which screen it came from.
 const CTX = (params.get('ctx') || '').toLowerCase();
-
-// ONDA Replay's own two stations (general + Help) cross-link to each
-// other plus the global Nile directory — shown only when this page is
-// actually one of those two, so an embed for an unrelated station
-// (ProductCamp, Toastmasters, etc.) doesn't get an irrelevant switcher.
-// Lives inside the iframe content itself, not the wrapping site, so it
-// travels with the embed wherever it's placed.
-(function renderStationSwitcher() {
-  const l1 = ORG_L1.toLowerCase();
-  const l3 = ORG_L3.toLowerCase();
-  const isOndaReplayFamily = l1 === 'onda' || l1 === 'ondareplay';
-  if (!isOndaReplayFamily) return;
-
-  const dests = [
-    { label: 'ONDA Replay Station', l1: 'onda', l2: 'replay', l3: '' },
-    { label: 'ONDA Replay Help',    l1: 'ondareplay', l2: 'austin', l3: 'help' },
-  ];
-  const el = document.getElementById('station-switcher');
-  el.innerHTML = dests.map(d => {
-    const isActive = l1 === d.l1 && (!d.l3 || l3 === d.l3);
-    const href = `?org_l1=${encodeURIComponent(d.l1)}&org_l2=${encodeURIComponent(d.l2)}` + (d.l3 ? `&org_l3=${encodeURIComponent(d.l3)}` : '');
-    return `<a class="switch-pill${isActive ? ' active' : ''}" href="${href}">${d.label}</a>`;
-  }).join('') + `<a class="switch-pill" href="../ondanile/">ONDA Nile</a>`;
-  el.hidden = false;
-})();
 
 function humanizeStationId(id) {
   return id.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
