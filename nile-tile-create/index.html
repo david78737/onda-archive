@@ -40,7 +40,6 @@
   .editable.empty{color:#999;font-style:italic;}
   .editable-input{width:100%;padding:8px 10px;font-size:inherit;font-family:inherit;font-weight:inherit;border:1.5px solid #008787;border-radius:6px;background:#fff;}
   textarea.editable-input{resize:vertical;min-height:70px;line-height:1.5;}
-  .edit-done-row{display:flex;justify-content:flex-end;margin-top:4px;}
   .btn-done{padding:4px 12px;background:#008787;color:#fff;border:none;border-radius:14px;font-size:12.5px;font-weight:600;cursor:pointer;}
 
   .card-title{font-size:20px;font-weight:700;color:#1a1a1a;line-height:1.3;}
@@ -574,14 +573,7 @@ function renderEditableFields() {
     el.onclick = () => startEditing(el);
   });
 }
-let activeFieldCommit = null; // the one currently-open field's commit fn, if any
-
 function startEditing(displayEl) {
-  // Opening a new field commits whatever field was already open, so at
-  // most one "Done" button is ever on screen instead of one per field
-  // you've tapped into without finishing.
-  if (activeFieldCommit) activeFieldCommit();
-
   const field = displayEl.dataset.field;
   const multiline = displayEl.dataset.multiline === '1';
   const current = fieldValues[field] || '';
@@ -592,29 +584,24 @@ function startEditing(displayEl) {
   input.placeholder = displayEl.dataset.placeholder || '';
   if (!multiline) input.type = 'text';
 
-  const doneRow = document.createElement('div');
-  doneRow.className = 'edit-done-row';
-  const doneBtn = document.createElement('button');
-  doneBtn.className = 'btn-done';
-  doneBtn.type = 'button';
-  doneBtn.textContent = 'Done';
-  doneRow.appendChild(doneBtn);
-
   displayEl.replaceWith(input);
-  input.after(doneRow);
   input.focus();
   if (!multiline) input.select();
 
+  // Commits on blur (click away, or tab/click into another field) — no
+  // separate Done button needed. Guarded against firing twice: Enter
+  // commits immediately, and removing the input from the DOM right after
+  // can itself trigger a blur on the now-detached element.
+  let committed = false;
   const commit = () => {
+    if (committed) return;
+    committed = true;
     setFieldValue(field, input.value.trim());
     input.replaceWith(displayEl);
-    doneRow.remove();
     renderEditableEl(displayEl);
     displayEl.onclick = () => startEditing(displayEl);
-    if (activeFieldCommit === commit) activeFieldCommit = null;
   };
-  activeFieldCommit = commit;
-  doneBtn.onclick = commit;
+  input.addEventListener('blur', commit);
   if (!multiline) input.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); commit(); } });
 }
 
