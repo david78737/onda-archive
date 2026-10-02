@@ -480,21 +480,25 @@ const CTX = (params.get('ctx') || '').toLowerCase();
 // Lives inside the iframe content itself, not the wrapping site, so it
 // travels with the embed wherever it's placed.
 (function renderStationSwitcher() {
-  const l1 = ORG_L1.toLowerCase();
-  const l3 = ORG_L3.toLowerCase();
-  const isOndaReplayFamily = l1 === 'onda' || l1 === 'ondareplay';
-  if (!isOndaReplayFamily) return;
+  // Real embeds use EITHER ?station=<id> OR ?org_l1/l2/l3 — the live
+  // ondareplay.com embed uses ?station=onda-replay specifically, which
+  // the first version of this function never checked at all.
+  const sid = STATION_ID.toLowerCase();
+  const l1  = ORG_L1.toLowerCase();
+  const l3  = ORG_L3.toLowerCase();
 
   const dests = [
-    { label: 'ONDA Replay Station', l1: 'onda', l2: 'replay', l3: '' },
-    { label: 'ONDA Replay Help',    l1: 'ondareplay', l2: 'austin', l3: 'help' },
+    { label: 'ONDA Replay Station', stationId: 'onda-replay',      l1: 'onda',       l2: 'replay', l3: '' },
+    { label: 'ONDA Replay Help',    stationId: 'onda-replay-help', l1: 'ondareplay', l2: 'austin', l3: 'help' },
   ];
+  const matches = d => sid ? sid === d.stationId : (l1 === d.l1 && (!d.l3 || l3 === d.l3));
+  const isOndaReplayFamily = dests.some(matches);
+  if (!isOndaReplayFamily) return;
+
   const el = document.getElementById('station-switcher');
-  el.innerHTML = dests.map(d => {
-    const isActive = l1 === d.l1 && (!d.l3 || l3 === d.l3);
-    const href = `?org_l1=${encodeURIComponent(d.l1)}&org_l2=${encodeURIComponent(d.l2)}` + (d.l3 ? `&org_l3=${encodeURIComponent(d.l3)}` : '');
-    return `<a class="switch-pill${isActive ? ' active' : ''}" href="${href}">${d.label}</a>`;
-  }).join('') + `<a class="switch-pill" href="../ondanile/">ONDA Nile</a>`;
+  el.innerHTML = dests.map(d =>
+    `<a class="switch-pill${matches(d) ? ' active' : ''}" href="?station=${encodeURIComponent(d.stationId)}">${d.label}</a>`
+  ).join('') + `<a class="switch-pill" href="../ondanile/">ONDA Nile</a>`;
   el.hidden = false;
 })();
 
