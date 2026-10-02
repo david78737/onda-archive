@@ -21,6 +21,8 @@
   .field input{width:100%;padding:11px 14px;font-size:16px;border:1px solid #CCC;border-radius:6px;color:#222;background:#FFF;}
   .field input:focus{border-color:#008787;outline:none;}
   .btn{width:100%;padding:13px;background:#008787;color:#fff;font-size:16px;font-weight:600;border:none;border-radius:6px;cursor:pointer;margin-top:8px;}
+  .btn-outline{background:transparent;color:#008787;border:1.5px solid #008787;}
+  .btn-outline:hover{background:#E0F4F2;}
   .btn:hover{background:#006f6f;}
   .btn:disabled{background:#AAA;cursor:default;}
   .btn-text{background:none;color:#008787;}
@@ -248,9 +250,9 @@
     <div class="check">✓</div>
     <h2>Tile added!</h2>
     <p>Your card is now visible on the browse page.</p>
-    <div style="display:flex;flex-direction:column;gap:10px;align-items:center">
-      <a id="browse-link" href="#">View the station →</a>
-      <a id="dashboard-link" href="#">← Back to Station Dashboard</a>
+    <div style="display:flex;flex-direction:column;gap:10px;align-items:stretch">
+      <a id="browse-link" class="btn" href="#" style="display:block;box-sizing:border-box;text-align:center;text-decoration:none;">View the station →</a>
+      <a id="dashboard-link" class="btn btn-outline" href="#" style="display:block;box-sizing:border-box;text-align:center;text-decoration:none;">← Back to Station Dashboard</a>
     </div>
   </div>
 
