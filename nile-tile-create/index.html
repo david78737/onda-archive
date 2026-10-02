@@ -388,7 +388,11 @@ const SKINS = { 'circle-docs': { wordmark: 'Circle Docs' } };
   const backLink = document.getElementById('back-link');
   backLink.href = hubUrl;
   backLink.textContent = '← Back to Hub';
-  document.getElementById('browse-link').href = `../ondanile/?${params}`;
+  // "View the station" means this station's own page — chapter.html,
+  // same pattern ondanile's own station cards use — not the general
+  // multi-station directory, which only reads org_l1 for its sign-in
+  // link and doesn't actually filter to one station at all.
+  document.getElementById('browse-link').href = `../chapter/?${params}`;
   wireDashboardLink(params);
   const signinParams = new URLSearchParams(params);
   document.getElementById('signin-link').href = `../nile-admin/signin.html?${signinParams}`;
