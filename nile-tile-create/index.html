@@ -407,11 +407,20 @@ const SKINS = { 'circle-docs': { wordmark: 'Circle Docs' } };
   const backLink = document.getElementById('back-link');
   backLink.href = hubUrl;
   backLink.textContent = '← Back to Hub';
-  // "View the station" means this station's own page — chapter.html,
-  // same pattern ondanile's own station cards use — not the general
-  // multi-station directory, which only reads org_l1 for its sign-in
-  // link and doesn't actually filter to one station at all.
-  document.getElementById('browse-link').href = `../chapter/?${params}`;
+  // "View the station" means this station's own branded page on the
+  // marketing site (ondareplay.com/recordings-*), which embeds this same
+  // chapter.html in an iframe with real site nav/login around it — not the
+  // bare archive.ondareplay.com subdomain, which has no site chrome at all
+  // (David, 2026-10-03: "this redirects to a stand alone archive... the
+  // correct destination is ondareplay.com/recordings-replay").
+  // Only "help" is a confirmed, distinct station page today
+  // (recordings-help's iframe is actually repointed at org_l3=help) —
+  // everything else, including a station whose org_l3 doesn't match any
+  // known marketing page yet, falls back to recordings-replay rather than
+  // guessing at a page that might not be wired to the right content.
+  const STATION_PAGES = { help: 'recordings-help' };
+  const stationSlug = STATION_PAGES[L3] || 'recordings-replay';
+  document.getElementById('browse-link').href = `https://www.ondareplay.com/${stationSlug}`;
   wireDashboardLink(params);
   const signinParams = new URLSearchParams(params);
   document.getElementById('signin-link').href = `../nile-admin/signin.html?${signinParams}`;
