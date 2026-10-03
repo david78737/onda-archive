@@ -682,7 +682,7 @@ function openMediaOverlay(kind, index) {
   const current = kind === 'avatar' ? presenterPhotoUrl : (kind === 'photo' ? photos : videos)[index];
   document.getElementById('media-overlay-label').textContent = labels[kind];
   document.getElementById('media-overlay-input').value = current || '';
-  document.getElementById('media-overlay-upload-wrap').style.display = kind === 'photo' ? 'block' : 'none';
+  document.getElementById('media-overlay-upload-wrap').style.display = (kind === 'photo' || kind === 'avatar') ? 'block' : 'none';
   document.getElementById('media-overlay-upload-status').textContent = '';
   document.getElementById('media-overlay').style.display = 'flex';
   setTimeout(() => document.getElementById('media-overlay-input').focus(), 30);
@@ -693,7 +693,11 @@ function closeMediaOverlay() {
 }
 
 // ── Photo upload — real file picker, hosted by Xano ─────────────────────
-const UPLOAD_PHOTO_URL = 'https://xrxm-29on-xlyt.n7e.xano.io/api:nile/upload-photo';
+// Avatar goes through the original headshot endpoint (square-crop handling
+// makes sense for a circular avatar); gallery photos go through the newer,
+// unprocessed one — same distinction as station.html's icon upload.
+const UPLOAD_PHOTO_URL    = 'https://xrxm-29on-xlyt.n7e.xano.io/api:nile/upload-photo';
+const UPLOAD_HEADSHOT_URL = 'https://xrxm-29on-xlyt.n7e.xano.io/api:nile/upload-headshot';
 document.getElementById('media-overlay-file').addEventListener('change', async (e) => {
   const file = e.target.files[0];
   if (!file) return;
@@ -702,7 +706,8 @@ document.getElementById('media-overlay-file').addEventListener('change', async (
   try {
     const form = new FormData();
     form.append('content', file);
-    const resp = await fetch(UPLOAD_PHOTO_URL, { method: 'POST', body: form });
+    const uploadUrl = mediaOverlayTarget?.kind === 'avatar' ? UPLOAD_HEADSHOT_URL : UPLOAD_PHOTO_URL;
+    const resp = await fetch(uploadUrl, { method: 'POST', body: form });
     const data = await resp.json();
     if (!resp.ok || !data.url) throw new Error(data.message || 'Upload failed.');
     document.getElementById('media-overlay-input').value = data.url;
