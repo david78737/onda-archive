@@ -959,6 +959,7 @@ async function submitTile() {
   btn.textContent = 'Saving…';
 
   const payload = {
+    phone: PHONE,
     magic_auth_token: TOKEN,
     org_l1: L1, org_l2: L2, org_l3: L3,
     event_code: eventCode,
