@@ -59,6 +59,11 @@
   }
   .dash-title { font-size: 20px; font-weight: 700; color: var(--ink); }
   .dash-count { font-size: 13px; color: var(--muted); }
+  .dash-role {
+    display: inline-block; margin-top: 6px; font-size: 11px; font-weight: 700;
+    letter-spacing: .04em; text-transform: uppercase; color: var(--teal);
+    background: var(--teal-light); padding: 3px 10px; border-radius: 20px;
+  }
 
   .refresh-btn {
     padding: 6px 14px; font-size: 13px; font-weight: 600;
@@ -194,16 +199,20 @@
   .tc-status-select.published { background: var(--success-bg); color: var(--success); }
   .tc-status-select.pending, .tc-status-select.submitted { background: var(--warn-bg); color: var(--warn); }
 
-  .tc-approve-pill {
-    font-size: 11px; font-weight: 700; padding: 4px 12px; border-radius: 20px;
-    cursor: pointer; border: 2px solid var(--border); background: transparent; color: var(--muted);
-    font-family: inherit; line-height: normal;
+  .tc-approve-check {
+    display: flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 600;
+    color: var(--muted); cursor: pointer; user-select: none;
   }
-  .tc-approve-pill.active { border-color: var(--success); color: var(--success); background: var(--success-bg); }
+  .tc-approve-check input[type="checkbox"] {
+    width: 16px; height: 16px; accent-color: var(--success); cursor: pointer; margin: 0;
+  }
+  .tc-approve-check:has(input:checked) { color: var(--success); font-weight: 700; }
   /* Contributor's half of the same approval — read-only here on purpose:
-     only the Contributor's own portal can change it. Dashed border keeps
-     it visually distinct from the Curator's own clickable pill. */
-  .tc-approve-pill.readonly { cursor: default; border-style: dashed; }
+     only the Contributor's own portal can change it. A disabled checkbox
+     is the standard way to show "this is informational, not yours to
+     click" — distinct from the Curator's own interactive one. */
+  .tc-approve-check.readonly, .tc-approve-check.readonly input { cursor: default; }
+  .tc-approve-check.readonly input[type="checkbox"] { accent-color: var(--muted); opacity: .7; }
   /* Two grouped columns next to Status/Visibility, by role — not by level —
      per David's own annotated mockup: everyone reads "who approved what"
      faster grouped this way than scattered across one row. */
@@ -261,6 +270,7 @@
     <div>
       <div class="dash-title" id="dash-title">Your Station</div>
       <div class="dash-count" id="dash-count"></div>
+      <div class="dash-role">Viewing as Curator</div>
     </div>
     <div style="display:flex;gap:8px">
       <a class="refresh-btn" id="new-tile-btn" href="#" style="display:none;text-decoration:none">+ New Tile</a>
@@ -598,13 +608,13 @@ function render() {
               <div class="tc-approval-grid" onclick="event.stopPropagation()">
                 <div class="tc-approval-col">
                   <div class="tc-approval-col-label">Contributor</div>
-                  <span class="tc-approve-pill readonly${contributorNileApproved ? ' active' : ''}">OK Nile</span>
-                  <span class="tc-approve-pill readonly${contributorStationApproved ? ' active' : ''}">OK Station</span>
+                  <label class="tc-approve-check readonly"><input type="checkbox" disabled ${contributorNileApproved ? 'checked' : ''}>Nile</label>
+                  <label class="tc-approve-check readonly"><input type="checkbox" disabled ${contributorStationApproved ? 'checked' : ''}>Station</label>
                 </div>
                 <div class="tc-approval-col">
                   <div class="tc-approval-col-label">Curator</div>
-                  <button type="button" class="tc-approve-pill${nileApproved ? ' active' : ''}" onclick="toggleApproval(${t.id}, 'nile', ${nileApproved})">OK Nile</button>
-                  <button type="button" class="tc-approve-pill${stationApproved ? ' active' : ''}" onclick="toggleApproval(${t.id}, 'station', ${stationApproved})">OK Station</button>
+                  <label class="tc-approve-check"><input type="checkbox" ${nileApproved ? 'checked' : ''} onchange="toggleApproval(${t.id}, 'nile', ${nileApproved})">Nile</label>
+                  <label class="tc-approve-check"><input type="checkbox" ${stationApproved ? 'checked' : ''} onchange="toggleApproval(${t.id}, 'station', ${stationApproved})">Station</label>
                 </div>
               </div>
             </div>
