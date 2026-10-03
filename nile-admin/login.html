@@ -239,6 +239,7 @@ const NILE_API  = 'https://xrxm-29on-xlyt.n7e.xano.io/api:onda-nile';
 let authToken = null;
 let authedPhone = null;
 let TILE_DATA = []; // per-tile { role: [actions] }, indexed by render order — reset each loadWorkList() call
+let showArchived = false;
 
 // Bootstrap: arriving back from a spoke page with identity already in the URL
 // (e.g. Edit Profile's "Back to Hub" link) — skip OTP, go straight to the list.
@@ -327,8 +328,6 @@ function wireGetStartedLinks() {
   document.getElementById('link-register').href = `register.html${authParams}&action=new`;
   document.getElementById('link-profile').href = `../nile-profile-edit/${authParams}`;
 }
-
-let showArchived = false;
 
 function toggleArchived(e) {
   e.preventDefault();
