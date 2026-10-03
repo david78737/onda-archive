@@ -485,7 +485,12 @@ async function verifyOtp() {
 
 // ── Init ──────────────────────────────────────────────────────────────────
 (function init() {
-  if (!L1) { document.getElementById('step-error').style.display = 'block'; return; }
+  // L1 is only truly required for a brand-new tile, where it's the only
+  // source of org context. Editing an existing one (tile_id present) gets
+  // its real org from the loaded tile itself — some older/orphaned tiles
+  // have no org_l1 at all, and blocking the edit entirely would mean the
+  // only way to ever fix one is a direct database edit.
+  if (!L1 && !TILE_ID) { document.getElementById('step-error').style.display = 'block'; return; }
   if (!TOKEN) { document.getElementById('step-verify').style.display = 'block'; return; }
   proceedToForm();
 })();
