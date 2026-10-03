@@ -549,6 +549,11 @@ function render() {
     const nileApproved = !!t.curator_approved_nile;
     const contributorStationApproved = !!t.contributor_approved_station;
     const contributorNileApproved = !!t.contributor_approved_nile;
+    // Same phone on both sides of this tile — the two-key approval protects
+    // nothing here (there's no second party to get consent from), so let
+    // either column edit both fields in one click instead of making David
+    // visit a separate page to check his own Contributor box.
+    const isSelfAuthored = !!t.presenter_phone && t.presenter_phone === authedPhone;
     const takeaways = Array.isArray(t.takeaways) ? t.takeaways.filter(Boolean) : [];
     const headings = Array.isArray(t.headings) ? t.headings.filter(Boolean) : [];
     const titleSuggestions = Array.isArray(t.title_suggestions) ? t.title_suggestions.filter(Boolean) : [];
@@ -607,14 +612,19 @@ function render() {
               </div>
               <div class="tc-approval-grid" onclick="event.stopPropagation()">
                 <div class="tc-approval-col">
-                  <div class="tc-approval-col-label">Contributor</div>
+                  <div class="tc-approval-col-label">Contributor${isSelfAuthored ? ' (you)' : ''}</div>
+                  ${isSelfAuthored ? `
+                  <label class="tc-approve-check"><input type="checkbox" ${contributorNileApproved ? 'checked' : ''} onchange="toggleApprovalSelf(${t.id}, 'nile', ${contributorNileApproved})">Nile</label>
+                  <label class="tc-approve-check"><input type="checkbox" ${contributorStationApproved ? 'checked' : ''} onchange="toggleApprovalSelf(${t.id}, 'station', ${contributorStationApproved})">Station</label>
+                  ` : `
                   <label class="tc-approve-check readonly"><input type="checkbox" disabled ${contributorNileApproved ? 'checked' : ''}>Nile</label>
                   <label class="tc-approve-check readonly"><input type="checkbox" disabled ${contributorStationApproved ? 'checked' : ''}>Station</label>
+                  `}
                 </div>
                 <div class="tc-approval-col">
                   <div class="tc-approval-col-label">Curator</div>
-                  <label class="tc-approve-check"><input type="checkbox" ${nileApproved ? 'checked' : ''} onchange="toggleApproval(${t.id}, 'nile', ${nileApproved})">Nile</label>
-                  <label class="tc-approve-check"><input type="checkbox" ${stationApproved ? 'checked' : ''} onchange="toggleApproval(${t.id}, 'station', ${stationApproved})">Station</label>
+                  <label class="tc-approve-check"><input type="checkbox" ${nileApproved ? 'checked' : ''} onchange="${isSelfAuthored ? `toggleApprovalSelf(${t.id}, 'nile', ${nileApproved})` : `toggleApproval(${t.id}, 'nile', ${nileApproved})`}">Nile</label>
+                  <label class="tc-approve-check"><input type="checkbox" ${stationApproved ? 'checked' : ''} onchange="${isSelfAuthored ? `toggleApprovalSelf(${t.id}, 'station', ${stationApproved})` : `toggleApproval(${t.id}, 'station', ${stationApproved})`}">Station</label>
                 </div>
               </div>
             </div>
@@ -808,6 +818,16 @@ async function handleThumbnailFileChange(event) {
 function toggleApproval(id, level, isCurrentlyActive) {
   const field = level === 'station' ? 'curator_approved_station' : 'curator_approved_nile';
   patchTile(id, { [field]: !isCurrentlyActive });
+}
+
+// Same phone is both Contributor and Curator on this tile — there's no
+// second party whose consent the two-key system is protecting, so either
+// checkbox in either column sets both fields in one call instead of making
+// the same person visit a separate page to check the other box.
+function toggleApprovalSelf(id, level, isCurrentlyActive) {
+  const curatorField = level === 'station' ? 'curator_approved_station' : 'curator_approved_nile';
+  const contributorField = level === 'station' ? 'contributor_approved_station' : 'contributor_approved_nile';
+  patchTile(id, { [curatorField]: !isCurrentlyActive, [contributorField]: !isCurrentlyActive });
 }
 
 // Soft hide/restore — the tag is never removed from the real tags array,
