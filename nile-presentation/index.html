@@ -78,6 +78,11 @@
   .tc-header { padding: 14px 18px 10px; cursor: pointer; }
   .tc-title-row { display: flex; align-items: flex-start; gap: 10px; margin-bottom: 4px; }
   .tc-title { font-size: 15px; font-weight: 700; color: var(--ink); flex: 1; }
+  .tc-edit-pencil {
+    font-size: 13px; color: var(--muted); text-decoration: none; opacity: .6;
+    margin-left: 2px; vertical-align: middle;
+  }
+  .tc-edit-pencil:hover { opacity: 1; color: var(--teal); }
   .tc-chevron { color: var(--muted); font-size: 13px; flex-shrink: 0; transition: transform .15s; margin-top: 2px; }
   .tile-card.open .tc-chevron { transform: rotate(90deg); }
 
@@ -385,7 +390,7 @@ function render() {
           <div class="tc-title-row">
             <span class="tc-chevron">▶</span>
             <div style="flex:1">
-              <div class="tc-title">${t.title || '(untitled)'}</div>
+              <div class="tc-title">${t.title || '(untitled)'} <a href="../nile-tile-create/?org_l1=${encodeURIComponent(t.org_l1 || '')}&org_l2=${encodeURIComponent(t.org_l2 || '')}&org_l3=${encodeURIComponent(t.org_l3 || '')}&tile_id=${t.id}&phone=${encodeURIComponent(PHONE)}&token=${encodeURIComponent(TOKEN)}" class="tc-edit-pencil" onclick="event.stopPropagation()" title="Edit this tile">✎</a></div>
               ${t.brief ? `<div style="font-size:13px;font-style:italic;color:var(--teal-dark);margin-top:2px;">${t.brief}</div>` : ''}
             </div>
             <div class="tc-header-controls">
