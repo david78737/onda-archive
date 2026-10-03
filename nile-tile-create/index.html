@@ -272,9 +272,14 @@
     <input id="media-overlay-input" type="url" placeholder="https://..." />
     <div id="media-overlay-upload-wrap" style="display:none;margin:-4px 0 12px;">
       <button class="btn btn-text" type="button" style="width:auto;padding:4px 0;margin-top:0;" onclick="document.getElementById('media-overlay-file').click()">Upload a photo instead…</button>
+      <a href="#" id="media-overlay-save-mine" style="font-size:12.5px;color:#008787;font-weight:600;text-decoration:none;margin-left:10px;" onclick="event.preventDefault();saveToMyCatalog()">+ Save to my catalog</a>
       <span id="media-overlay-upload-status" style="font-size:12.5px;color:#888;margin-left:8px;"></span>
     </div>
     <input type="file" id="media-overlay-file" accept="image/*" style="display:none;">
+    <div id="media-overlay-mine-wrap" style="display:none;">
+      <div class="catalog-divider">your saved images</div>
+      <div id="media-overlay-mine-grid" class="catalog-grid"></div>
+    </div>
     <div id="media-overlay-catalog-wrap" style="display:none;">
       <div class="catalog-divider">or choose from the Help docs catalog</div>
       <input id="media-overlay-catalog-filter" type="text" placeholder="Filter by name…" class="catalog-filter" oninput="renderCatalogGrid(this.value)">
@@ -696,11 +701,14 @@ function openMediaOverlay(kind, index) {
   document.getElementById('media-overlay-input').value = current || '';
   document.getElementById('media-overlay-upload-wrap').style.display = (kind === 'photo' || kind === 'avatar') ? 'block' : 'none';
   document.getElementById('media-overlay-upload-status').textContent = '';
+  document.getElementById('media-overlay-save-mine').textContent = '+ Save to my catalog';
   const showCatalog = kind === 'photo' || kind === 'avatar';
   document.getElementById('media-overlay-catalog-wrap').style.display = showCatalog ? 'block' : 'none';
+  document.getElementById('media-overlay-mine-wrap').style.display = 'none';
   if (showCatalog) {
     document.getElementById('media-overlay-catalog-filter').value = '';
     renderCatalogGrid('');
+    loadMyCatalogGrid(kind);
   }
   document.getElementById('media-overlay').style.display = 'flex';
   setTimeout(() => document.getElementById('media-overlay-input').focus(), 30);
@@ -777,6 +785,54 @@ function renderCatalogGrid(filterText) {
 function selectCatalogImage(url) {
   document.getElementById('media-overlay-input').value = url;
   document.getElementById('media-overlay-upload-status').textContent = 'Selected ✓';
+}
+
+// ── Presenter's own saved catalog — personal, smaller than the shared
+// Help-docs set, built from whatever they've explicitly chosen to keep.
+const CATALOG_GET_URL = 'https://xrxm-29on-xlyt.n7e.xano.io/api:onda-nile/nile/presenter/catalog';
+const CATALOG_ADD_URL = 'https://xrxm-29on-xlyt.n7e.xano.io/api:onda-nile/nile/presenter/catalog/add';
+let myCatalog = null; // null = not fetched yet this session
+
+async function loadMyCatalogGrid(kind) {
+  const wantKind = kind === 'avatar' ? 'headshot' : 'sleeve';
+  const wrap = document.getElementById('media-overlay-mine-wrap');
+  const grid = document.getElementById('media-overlay-mine-grid');
+  if (!myCatalog) {
+    try {
+      const r = await fetch(`${CATALOG_GET_URL}?phone=${encodeURIComponent(PHONE)}&magic_auth_token=${encodeURIComponent(TOKEN)}`);
+      const data = await r.json();
+      myCatalog = Array.isArray(data.image_catalog) ? data.image_catalog : [];
+    } catch (e) { myCatalog = []; }
+  }
+  const mine = myCatalog.filter(it => it.kind === wantKind);
+  if (!mine.length) { wrap.style.display = 'none'; return; }
+  wrap.style.display = 'block';
+  grid.innerHTML = mine.map(it =>
+    `<div class="catalog-thumb" onclick="selectCatalogImage('${it.url.replace(/'/g, "\\'")}')"><img src="${it.url}" loading="lazy"></div>`
+  ).join('');
+}
+
+async function saveToMyCatalog() {
+  const url = document.getElementById('media-overlay-input').value.trim();
+  if (!url) return;
+  const kind = mediaOverlayTarget?.kind === 'avatar' ? 'headshot' : 'sleeve';
+  const link = document.getElementById('media-overlay-save-mine');
+  link.textContent = 'Saving…';
+  try {
+    const r = await fetch(CATALOG_ADD_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ phone: PHONE, magic_auth_token: TOKEN, url, kind }),
+    });
+    const data = await r.json();
+    if (!r.ok) throw new Error(data.message || 'Could not save.');
+    myCatalog = Array.isArray(data.image_catalog) ? data.image_catalog : myCatalog;
+    await loadMyCatalogGrid(mediaOverlayTarget?.kind);
+    link.textContent = 'Saved ✓';
+  } catch (e) {
+    link.textContent = '+ Save to my catalog';
+    document.getElementById('media-overlay-upload-status').textContent = e.message;
+  }
 }
 
 function confirmMediaOverlay() {
