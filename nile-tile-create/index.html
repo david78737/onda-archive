@@ -81,6 +81,13 @@
   .media-input-box{background:#fff;border-radius:12px;padding:20px;width:100%;max-width:400px;}
   .media-input-box label{display:block;font-size:14px;font-weight:600;color:#555;margin-bottom:8px;}
   .media-input-box input{width:100%;padding:11px 14px;font-size:16px;border:1px solid #CCC;border-radius:6px;margin-bottom:12px;}
+  .catalog-divider{font-size:12.5px;color:#888;margin:-4px 0 10px;text-align:center;}
+  .catalog-filter{padding:8px 12px !important;font-size:14px !important;margin-bottom:8px !important;}
+  .catalog-grid{display:flex;flex-wrap:wrap;gap:6px;max-height:160px;overflow-y:auto;padding:4px;border:1px solid #eee;border-radius:6px;margin-bottom:12px;}
+  .catalog-thumb{width:52px;height:52px;border-radius:4px;overflow:hidden;cursor:pointer;border:2px solid transparent;flex-shrink:0;}
+  .catalog-thumb:hover{border-color:#008787;}
+  .catalog-thumb img{width:100%;height:100%;object-fit:cover;display:block;}
+  .catalog-empty{font-size:13px;color:#999;padding:8px;width:100%;text-align:center;}
   .media-input-box .row{display:flex;gap:8px;}
   .media-input-box .row .btn{margin-top:0;}
   .media-input-box .btn-cancel{background:#eee;color:#555;}
@@ -268,6 +275,11 @@
       <span id="media-overlay-upload-status" style="font-size:12.5px;color:#888;margin-left:8px;"></span>
     </div>
     <input type="file" id="media-overlay-file" accept="image/*" style="display:none;">
+    <div id="media-overlay-catalog-wrap" style="display:none;">
+      <div class="catalog-divider">or choose from the Help docs catalog</div>
+      <input id="media-overlay-catalog-filter" type="text" placeholder="Filter by name…" class="catalog-filter" oninput="renderCatalogGrid(this.value)">
+      <div id="media-overlay-catalog-grid" class="catalog-grid"></div>
+    </div>
     <div class="row">
       <button class="btn btn-cancel" type="button" onclick="closeMediaOverlay()">Cancel</button>
       <button class="btn" type="button" onclick="confirmMediaOverlay()">Add</button>
@@ -684,6 +696,12 @@ function openMediaOverlay(kind, index) {
   document.getElementById('media-overlay-input').value = current || '';
   document.getElementById('media-overlay-upload-wrap').style.display = (kind === 'photo' || kind === 'avatar') ? 'block' : 'none';
   document.getElementById('media-overlay-upload-status').textContent = '';
+  const showCatalog = kind === 'photo' || kind === 'avatar';
+  document.getElementById('media-overlay-catalog-wrap').style.display = showCatalog ? 'block' : 'none';
+  if (showCatalog) {
+    document.getElementById('media-overlay-catalog-filter').value = '';
+    renderCatalogGrid('');
+  }
   document.getElementById('media-overlay').style.display = 'flex';
   setTimeout(() => document.getElementById('media-overlay-input').focus(), 30);
 }
@@ -718,6 +736,49 @@ document.getElementById('media-overlay-file').addEventListener('change', async (
     e.target.value = '';
   }
 });
+
+// ── Existing Help-docs catalog — already public via GitHub Pages, no
+// upload needed. 59 real screenshots from onda-help/help-images/.
+const HELP_IMAGE_BASE = 'https://david78737.github.io/onda-help/help-images/';
+const HELP_IMAGE_CATALOG = [
+  'Transcription-menu-option.php.png','black-beans-test.png','catalog-information-modal.png',
+  'catalog-inspect.png','catalog-screen.png','debug-recording-studio-active-constraints.png',
+  'edit-metadata-below-the-fold.png','edit-metadata-confirmation-screen.png','edit-metadata-detail.png',
+  'explore-edit-mode.png','explore-filtered.png','explore-overview.png','explore-tag-actions.png',
+  'index drawer.png','index-drawer.png','index-strike.png','mark-this-moment.png',
+  'presentation-editor-content.png','presentation-editor-info.png','presentation-editor-links.png',
+  'presentation-editor-tags.png','record-screen-active.png','record-screen-save.png',
+  'record-screen-stop.png','recording-studio-active.png','recording-studio-idle.png',
+  'recording-studio-overview.png','share-bundle.png','share-copy.png','shrimp-annie-test.png',
+  'sleeve-edit-1-no-photo.png','sleeve-edit-2-photo-picked.png','sleeve-edit-3-tags-before-merge.png',
+  'sleeve-edit-4-tags-after-merge.png','sleeve-editor-1.png','sleeve-editor-2.png',
+  'sleeve-tag-longpress.png','storyboard add control numbers.png','storyboard add text with dictation.png',
+  'storyboard adding sound effects.png','storyboard control functions.png','storyboard controls for photo.png',
+  'storyboard edit text with long press.png','storyboard-controls-for-photo-annotated.png',
+  'storyboard-edit-text-annotated.png','storyboard-overview-annotated.png','storyboard-overview.png',
+  'storyboard-pending-tags.png','storyboard-save.png','storyboard-screen-idle.png','storyboard-screen.png',
+  'storyboard-sound-effects-annotated.png','tag-merge-select.png','transcribe-copy.php.png',
+  'transcribe-screen.png','transcript-find.png','transcript-header-longpress.png',
+  'transcription-screen.png','utilities-top.png',
+];
+function renderCatalogGrid(filterText) {
+  const grid = document.getElementById('media-overlay-catalog-grid');
+  const q = (filterText || '').trim().toLowerCase();
+  const matches = HELP_IMAGE_CATALOG.filter(name => name.toLowerCase().includes(q));
+  if (!matches.length) {
+    grid.innerHTML = `<div class="catalog-empty">No matches</div>`;
+    return;
+  }
+  grid.innerHTML = matches.map(name => {
+    const url = HELP_IMAGE_BASE + encodeURIComponent(name);
+    return `<div class="catalog-thumb" title="${name}" onclick="selectCatalogImage('${url.replace(/'/g, "\\'")}')"><img src="${url}" loading="lazy"></div>`;
+  }).join('');
+}
+function selectCatalogImage(url) {
+  document.getElementById('media-overlay-input').value = url;
+  document.getElementById('media-overlay-upload-status').textContent = 'Selected ✓';
+}
+
 function confirmMediaOverlay() {
   if (!mediaOverlayTarget) return;
   const { kind, index } = mediaOverlayTarget;
