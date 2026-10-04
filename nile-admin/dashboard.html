@@ -250,6 +250,24 @@
   .prompt-tuner-body.open { display: block; }
   #prompt-tuner-chevron.open { transform: rotate(90deg); }
 
+  /* Collapsed by default so a long tile list isn't permanently pushed down
+     by filters/search/sort/prompt-tuner — sticky so the toggle itself
+     stays reachable while scrolling instead of disappearing off the top,
+     per David's 2026-10-04 request. Opaque background is required, not
+     decorative — without it, tile cards scrolling up would show through. */
+  .filters-toggle {
+    position: sticky; top: 0; z-index: 15;
+    display: flex; align-items: center; justify-content: space-between;
+    background: var(--surface); border: 1px solid var(--border); border-radius: 10px;
+    padding: 10px 14px; margin-bottom: 10px; cursor: pointer;
+    font-weight: 700; font-size: 14px;
+    box-shadow: 0 2px 6px rgba(0,0,0,.06);
+  }
+  .filters-chevron { color: var(--muted); font-size: 13px; transition: transform .15s; }
+  .filters-chevron.open { transform: rotate(90deg); }
+  .filters-panel { display: none; }
+  .filters-panel.open { display: block; }
+
   .spinner { display: inline-block; width: 16px; height: 16px; border: 2px solid currentColor;
     border-top-color: transparent; border-radius: 50%; animation: spin .6s linear infinite;
     vertical-align: middle; margin-right: 4px; }
@@ -285,6 +303,12 @@
       <button class="refresh-btn" onclick="loadTiles()">↻ Refresh</button>
     </div>
   </div>
+
+  <div class="filters-toggle" onclick="toggleFiltersPanel()">
+    <span>Filters &amp; Tools</span>
+    <span class="filters-chevron" id="filters-chevron">▸</span>
+  </div>
+  <div class="filters-panel" id="filters-panel">
 
   <div class="filter-row">
     <button class="filter-btn active" onclick="setStatusFilter('')" id="filter-all">All</button>
@@ -322,6 +346,8 @@
       <button class="refresh-btn" style="margin-top:8px;" onclick="refinePrompt()" id="refine-btn">Refine My Prompt</button>
       <div id="refine-result" style="margin-top:10px;font-size:13px;"></div>
     </div>
+  </div>
+
   </div>
 
   <div id="tiles-list"></div>
@@ -500,6 +526,11 @@ async function loadTiles() {
     document.getElementById('auth-error-signin').style.display = 'block';
     document.getElementById('tiles-list').innerHTML = '';
   }
+}
+
+function toggleFiltersPanel() {
+  document.getElementById('filters-panel').classList.toggle('open');
+  document.getElementById('filters-chevron').classList.toggle('open');
 }
 
 function formatDate(ts) {
