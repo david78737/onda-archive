@@ -259,7 +259,7 @@
     <p>Your card is now visible on the browse page.</p>
     <div style="display:flex;flex-direction:column;gap:10px;align-items:stretch">
       <a id="browse-link" class="btn" href="#" style="display:block;box-sizing:border-box;text-align:center;text-decoration:none;">View the station →</a>
-      <a id="dashboard-link" class="btn btn-outline" href="#" style="display:block;box-sizing:border-box;text-align:center;text-decoration:none;">← Back to Station Dashboard</a>
+      <a id="dashboard-link" class="btn btn-outline" href="#" onclick="return goBackToDashboard(event)" style="display:block;box-sizing:border-box;text-align:center;text-decoration:none;">← Back to Station Dashboard</a>
     </div>
   </div>
 
@@ -428,14 +428,40 @@ const SKINS = { 'circle-docs': { wordmark: 'Circle Docs' } };
 
 function wireDashboardLink(baseParams) {
   if (PHONE && TOKEN) {
+    // Reconstructing dashboard.html from org_l1/l2/l3 breaks whenever the
+    // tile being edited has no org data of its own (a known real case —
+    // some tiles have null org_l1/l2/l3). Kept only as the href fallback
+    // for browsers that block goBackToDashboard(); the Hub is the one
+    // destination that's always buildable from phone+token alone, so it's
+    // the fallback of last resort, not this reconstruction.
     const dashParams = new URLSearchParams(baseParams);
     dashParams.set('phone', PHONE);
     dashParams.set('token', TOKEN);
-    document.getElementById('dashboard-link').href = `../nile-admin/dashboard.html?${dashParams}`;
+    const hasOrg = dashParams.get('org_l1') || dashParams.get('org_l2') || dashParams.get('org_l3');
+    document.getElementById('dashboard-link').href = hasOrg
+      ? `../nile-admin/dashboard.html?${dashParams}`
+      : `../nile-admin/login.html?phone=${encodeURIComponent(PHONE)}&token=${encodeURIComponent(TOKEN)}`;
     document.getElementById('dashboard-link').style.display = '';
   } else {
     document.getElementById('dashboard-link').style.display = 'none';
   }
+}
+
+// David, 2026-10-04: editing a tile with no org data landed on a dead-end
+// dashboard.html (couldn't rebuild its URL from empty org_l1/l2/l3), with
+// no way back except logging in again. Real fix: a logged-in user with a
+// valid token almost always arrived here FROM the exact page they want
+// back — Dashboard, Hub, wherever — so just go back, instead of trying to
+// reconstruct an equivalent URL that can be wrong or unbuildable. Only
+// falls through to the href (set above) when there's no real history to
+// go back to, e.g. this tab was opened fresh from a bookmark/shared link.
+function goBackToDashboard(event) {
+  if (window.history.length > 1 && document.referrer && document.referrer.startsWith(location.origin)) {
+    event.preventDefault();
+    window.history.back();
+    return false;
+  }
+  return true;
 }
 
 // ── Verify phone ─────────────────────────────────────────────────────────
