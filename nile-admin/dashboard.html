@@ -702,6 +702,7 @@ function render() {
         ${bodySections ? `<div class="tc-body">${bodySections}</div>` : ''}
         <div class="tc-actions">
           ${t.onda_url ? `<a href="${playerUrlFor(t.onda_url)}" target="_blank" rel="noopener" onclick="event.stopPropagation()">Watch ONDA Viewer</a>` : '<span style="color:var(--muted);font-size:13px">No linked file</span>'}
+          ${t.deck_url ? `<a href="${t.deck_url}" target="_blank" rel="noopener" onclick="event.stopPropagation()">View Full Document</a>` : ''}
           ${status === 'submitted' ? `<a href="#" id="draft-btn-${t.id}" onclick="event.stopPropagation();event.preventDefault();generateDraft(${t.id})" style="margin-left:auto;">${t.synopsis ? 'Regenerate Draft' : 'Generate Draft'}</a>` : ''}
         </div>
       </div>`;
