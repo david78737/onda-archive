@@ -297,6 +297,7 @@
       <div class="dash-title" id="dash-title">Your Station</div>
       <div class="dash-count" id="dash-count"></div>
       <div class="dash-role">Viewing as Curator</div>
+      <div id="active-filter-chips" style="display:flex;gap:6px;flex-wrap:wrap;margin-top:4px;"></div>
     </div>
     <div style="display:flex;gap:8px">
       <a class="refresh-btn" id="new-tile-btn" href="#" style="display:none;text-decoration:none">+ New Tile</a>
@@ -457,6 +458,10 @@ function playerUrlFor(url) {
 })();
 
 const VISIBILITY_LABELS = { public: 'Nile', chapter: 'Station', private: 'Admin' };
+// Mirrors the filter-btn labels exactly (see the status filter-row HTML) —
+// used to show a copy of whatever's active up next to the tile count, so
+// it's visible even while the Filters & Tools panel is collapsed.
+const STATUS_FILTER_LABELS = { published: 'Published', draft: 'Draft', pending: 'Pending', archived: 'Archived', 'needs-attention': '⚠ Needs Attention' };
 const STATUS_VALUES = ['draft', 'submitted', 'pending', 'approved', 'scheduled', 'armed', 'recorded', 'published', 'archived', 'rejected'];
 
 function setStatusFilter(f) {
@@ -563,6 +568,13 @@ function render() {
   }
   document.getElementById('dash-count').textContent =
     `${allTiles.length} tile${allTiles.length !== 1 ? 's' : ''} total`;
+
+  const activeChips = [];
+  if (currentFilter) activeChips.push(STATUS_FILTER_LABELS[currentFilter] || currentFilter);
+  if (currentVisibilityFilter) activeChips.push(VISIBILITY_LABELS[currentVisibilityFilter] || currentVisibilityFilter);
+  document.getElementById('active-filter-chips').innerHTML = activeChips
+    .map(label => `<span class="filter-btn active" style="cursor:pointer;" onclick="toggleFiltersPanel()" title="Tap to open Filters &amp; Tools">${label}</span>`)
+    .join('');
 
   const list = document.getElementById('tiles-list');
   if (!rows.length) {
