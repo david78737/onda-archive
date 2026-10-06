@@ -342,6 +342,14 @@
     <button class="filter-btn" onclick="toggleAuthorTitleSort()" id="sort-author-title">Sort: Author, Title</button>
   </div>
 
+  <!-- The chapter archive page (chapter/index.html) has a real Tags browse
+       drawer with favorites/related tags; this is the proportionate version
+       for the Dashboard — just the top tags as clickable pills, feeding the
+       same search box/matchesSearch logic above rather than new filter
+       state. David, 2026-10-06: "a way to select by tag, like the other
+       pages" was missing here. -->
+  <div class="filter-row" id="tag-cloud"></div>
+
   <div class="prompt-tuner">
     <div class="prompt-tuner-header" onclick="document.getElementById('prompt-tuner-body').classList.toggle('open');document.getElementById('prompt-tuner-chevron').classList.toggle('open')">
       <span class="tc-chevron" id="prompt-tuner-chevron">▶</span>
@@ -379,6 +387,38 @@ let sortAuthorTitle = false;
 function setSearch(v) {
   currentSearch = v.trim().toLowerCase();
   render();
+}
+
+// Clicking a tag pill reuses the existing search box/matchesSearch logic
+// in render() rather than adding separate tag-filter state — one search
+// path, two ways to fill it in.
+function selectTagFilter(tag) {
+  const box = document.getElementById('search-box');
+  const next = currentSearch === tag.toLowerCase() ? '' : tag;
+  if (box) box.value = next;
+  setSearch(next);
+}
+
+const TAG_CLOUD_MAX = 24;
+function renderTagCloud() {
+  const counts = {};
+  for (const t of allTiles) {
+    for (const tag of (Array.isArray(t.tags) ? t.tags : [])) {
+      if (!tag) continue;
+      counts[tag] = (counts[tag] || 0) + 1;
+    }
+  }
+  const top = Object.entries(counts)
+    .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))
+    .slice(0, TAG_CLOUD_MAX);
+  const cloud = document.getElementById('tag-cloud');
+  if (!cloud) return;
+  if (!top.length) { cloud.innerHTML = ''; return; }
+  cloud.innerHTML = top.map(([tag, n]) => {
+    const active = currentSearch === tag.toLowerCase();
+    const safe = tag.replace(/'/g, "\\'");
+    return `<button class="filter-btn${active ? ' active' : ''}" onclick="selectTagFilter('${safe}')">${tag} <span style="opacity:.6;">${n}</span></button>`;
+  }).join('');
 }
 
 function toggleAuthorTitleSort() {
@@ -576,6 +616,8 @@ function render() {
   }
   document.getElementById('dash-count').textContent =
     `${allTiles.length} tile${allTiles.length !== 1 ? 's' : ''} total`;
+
+  renderTagCloud();
 
   const activeChips = [];
   if (currentFilter) activeChips.push(STATUS_FILTER_LABELS[currentFilter] || currentFilter);
