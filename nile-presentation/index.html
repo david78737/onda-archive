@@ -75,7 +75,29 @@
      list shouldn't be permanently pushed down by search/sort. */
   .filters-panel { display: none; }
   .filters-panel.open { display: block; }
-  .filter-row { display: flex; gap: 8px; align-items: center; margin-bottom: 20px; }
+  .filter-row { display: flex; gap: 8px; align-items: center; margin-bottom: 20px; flex-wrap: wrap; }
+  /* Full parity pass, ported from nile-admin/dashboard.html — status
+     filter, visibility filter, and the real associative tag-zone system
+     (selected / favorite / related / remaining), not just search+sort.
+     David, 2026-10-06: "these are very different, right? replicate the
+     curator version in the contributor please." */
+  .filter-btn {
+    padding: 6px 14px; font-size: 13px; font-weight: 600;
+    border: 1px solid var(--border); border-radius: 20px;
+    background: var(--surface); color: var(--muted); cursor: pointer;
+    font-family: inherit; transition: all .12s;
+  }
+  .filter-btn.active { background: var(--teal); color: #fff; border-color: var(--teal); }
+  .filter-btn:hover:not(.active) { border-color: var(--teal); color: var(--teal); }
+  .tag-pill { display: inline-flex; align-items: center; gap: 5px; }
+  .tag-pill .tag-star { cursor: pointer; font-size: 12px; color: var(--border); line-height: 1; }
+  .tag-pill .tag-star:hover { color: var(--muted); }
+  .tag-pill .tag-star.active { color: #e0b400; }
+  .tag-pill.active { background: #FDF3D0; border-color: #e0b400; color: #7A5D00; }
+  .tag-pill.favorite:not(.active) { border-color: #e0b400; }
+  .tag-pill.remaining { opacity: .55; }
+  .tag-pill .tag-count { opacity: .6; font-size: 11px; }
+  .tag-divider { flex-basis: 100%; height: 0; border: none; border-top: 1px dashed var(--border); margin: 2px 0; }
   .search-box {
     flex: 1; min-width: 160px; padding: 7px 12px; font-size: 14px;
     border: 1px solid var(--border); border-radius: 20px; font-family: inherit;
@@ -244,7 +266,10 @@
         <div class="page-title">My Archive</div>
         <div class="dash-count" id="dash-count"></div>
       </div>
-      <div class="page-role">Viewing as Contributor</div>
+      <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+        <div class="page-role">Viewing as Contributor</div>
+        <div id="active-filter-chips" style="display:flex;gap:6px;flex-wrap:wrap;"></div>
+      </div>
     </div>
     <div style="display:flex;align-items:center;gap:8px">
       <button class="refresh-btn" onclick="loadMine()">↻ Refresh</button>
@@ -256,10 +281,29 @@
 
   <div class="filters-panel" id="filters-panel">
     <div class="page-sub">Take the first pass yourself — pick a title, write the synopsis, decide what stays. A Curator reviews and can refine it further from there, but nothing goes further than a station, or out onto Nile, until you approve that same level too.</div>
+
+    <div class="filter-row">
+      <button class="filter-btn active" onclick="setStatusFilter('')" id="filter-all">All</button>
+      <button class="filter-btn" onclick="setStatusFilter('published')" id="filter-published">Published</button>
+      <button class="filter-btn" onclick="setStatusFilter('draft')" id="filter-draft">Draft</button>
+      <button class="filter-btn" onclick="setStatusFilter('pending')" id="filter-pending">Pending</button>
+      <button class="filter-btn" onclick="setStatusFilter('archived')" id="filter-archived">Archived</button>
+      <button class="filter-btn" onclick="setStatusFilter('needs-attention')" id="filter-needs-attention">⚠ Needs Attention</button>
+    </div>
+
+    <div class="filter-row">
+      <button class="filter-btn active" onclick="setVisibilityFilter('')" id="vis-filter-all">Any Visibility</button>
+      <button class="filter-btn" onclick="setVisibilityFilter('public')" id="vis-filter-public">Nile</button>
+      <button class="filter-btn" onclick="setVisibilityFilter('chapter')" id="vis-filter-chapter">Station</button>
+      <button class="filter-btn" onclick="setVisibilityFilter('private')" id="vis-filter-private">Admin</button>
+    </div>
+
     <div class="filter-row">
       <input type="text" id="search-box" class="search-box" placeholder="Find by title or tag…" oninput="setSearch(this.value)">
       <button type="button" class="sort-btn" id="sort-btn" onclick="toggleSort()">Sort: Newest</button>
     </div>
+
+    <div class="filter-row" id="tag-cloud"></div>
   </div>
 
   <div id="list"></div>
@@ -277,7 +321,103 @@ let myTiles = [];
 let selectedTileId = null;
 let openTileId = null;
 let currentSearch = '';
+let currentFilter = '';
+let currentVisibilityFilter = '';
 let sortAZ = false; // false = newest first (default), true = title A-Z
+
+// Tags selected as filters — AND-matched, case-insensitive, same model as
+// dashboard.html and chapter/index.html. This page spans every station
+// (no single stationId to scope favorites to), so favorites use their own
+// dedicated key instead of dashboard's per-station one.
+const selectedTags = new Set();
+const FAV_TAG_KEY = 'onda_favorite_tags_contributor';
+let favoriteTags;
+try { favoriteTags = new Set(JSON.parse(localStorage.getItem(FAV_TAG_KEY) || '[]')); }
+catch (_) { favoriteTags = new Set(); }
+
+function toggleFavoriteTag(tag) {
+  if (favoriteTags.has(tag)) favoriteTags.delete(tag); else favoriteTags.add(tag);
+  try { localStorage.setItem(FAV_TAG_KEY, JSON.stringify([...favoriteTags])); } catch (_) {}
+  render();
+}
+
+function toggleSelectedTag(tag) {
+  if (selectedTags.has(tag)) selectedTags.delete(tag); else selectedTags.add(tag);
+  render();
+}
+
+function renderTagZones(rows) {
+  const el = document.getElementById('tag-cloud');
+  if (!el) return;
+
+  const counts = {};
+  for (const t of myTiles) {
+    for (const tag of (Array.isArray(t.tags) ? t.tags : [])) {
+      if (!tag) continue;
+      counts[tag] = (counts[tag] || 0) + 1;
+    }
+  }
+  const allTagsList = Object.entries(counts)
+    .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))
+    .map(([tag, n]) => ({ tag, n }));
+
+  const visible = new Set(rows.flatMap(t => Array.isArray(t.tags) ? t.tags : []));
+
+  const selected  = allTagsList.filter(({tag}) => selectedTags.has(tag));
+  const favs      = allTagsList.filter(({tag}) => favoriteTags.has(tag) && !selectedTags.has(tag));
+  const related   = allTagsList.filter(({tag}) => !selectedTags.has(tag) && !favoriteTags.has(tag) && visible.has(tag));
+  const remaining = allTagsList.filter(({tag}) => !selectedTags.has(tag) && !favoriteTags.has(tag) && !visible.has(tag));
+
+  const zones = [['active', selected], ['favorite', favs], ['', related], ['remaining', remaining]];
+  const pieces = [];
+  let prevNonEmpty = false;
+  for (const [cls, zone] of zones) {
+    if (!zone.length) continue;
+    if (prevNonEmpty) pieces.push('<hr class="tag-divider">');
+    for (const {tag, n} of zone) pieces.push(makeTagPillHtml(tag, n, cls));
+    prevNonEmpty = true;
+  }
+  el.innerHTML = pieces.join('');
+
+  el.querySelectorAll('.tag-pill').forEach(pill => {
+    const tag = pill.dataset.tag;
+    pill.querySelector('.tag-star').addEventListener('click', (e) => {
+      e.stopPropagation();
+      toggleFavoriteTag(tag);
+    });
+    pill.addEventListener('click', () => toggleSelectedTag(tag));
+  });
+}
+
+function makeTagPillHtml(tag, n, cls) {
+  const isFav = favoriteTags.has(tag);
+  const safe = String(tag).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  return `<button type="button" class="filter-btn tag-pill ${cls}" data-tag="${safe}">` +
+    `<span class="tag-star${isFav ? ' active' : ''}">${isFav ? '★' : '☆'}</span>` +
+    `<span>${safe}</span>` +
+    `<span class="tag-count">${n}</span>` +
+  `</button>`;
+}
+
+function setStatusFilter(f) {
+  currentFilter = f;
+  ['all','published','draft','pending','archived','needs-attention'].forEach(k => {
+    const btn = document.getElementById('filter-' + k);
+    if (btn) btn.className = 'filter-btn' + ((k === (f || 'all')) ? ' active' : '');
+  });
+  render();
+}
+
+function setVisibilityFilter(f) {
+  currentVisibilityFilter = f;
+  ['all','public','chapter','private'].forEach(k => {
+    const btn = document.getElementById('vis-filter-' + k);
+    if (btn) btn.className = 'filter-btn' + ((k === (f || 'all')) ? ' active' : '');
+  });
+  render();
+}
+
+const STATUS_FILTER_LABELS = { published: 'Published', draft: 'Draft', pending: 'Pending', archived: 'Archived', 'needs-attention': '⚠ Needs Attention' };
 
 function setSearch(v) {
   currentSearch = v.trim().toLowerCase();
@@ -321,12 +461,17 @@ function showBanner(msg) {
   el.textContent = msg;
 }
 
+// Matches dashboard.html's completenessGaps exactly, including the
+// deliberately mild audio wording — same tiles, same checks either page.
 function completenessGaps(t) {
   const gaps = [];
   if (!t.title || !t.title.trim()) gaps.push('title');
   if (!t.onda_url) gaps.push('linked file');
+  if ('onda_file' in t && (!t.onda_file || (t.onda_file.size || 0) < 1000)) gaps.push('no audio (may just be a text/link reference, not a recording)');
   if (!t.synopsis || !t.synopsis.trim()) gaps.push('synopsis');
   if (!Array.isArray(t.takeaways) || !t.takeaways.filter(Boolean).length) gaps.push('takeaways');
+  if ('presenter_phone' in t && !t.presenter_phone) gaps.push('presenter phone (won\'t appear in their My Presentations)');
+  if ('transcript' in t && !t.transcript) gaps.push('transcript');
   return gaps;
 }
 
@@ -370,23 +515,47 @@ function render() {
     `${myTiles.length} submission${myTiles.length !== 1 ? 's' : ''} total`;
 
   const list = document.getElementById('list');
+  const needsAttention = currentFilter === 'needs-attention';
+  const q = currentSearch;
+  const matchesSearch = (t) => {
+    if (!q) return true;
+    const hay = [t.title, ...(Array.isArray(t.tags) ? t.tags : [])].join(' ').toLowerCase();
+    return hay.includes(q);
+  };
+  const matchesSelectedTags = (t) => {
+    if (!selectedTags.size) return true;
+    const tileTags = (Array.isArray(t.tags) ? t.tags : []).map(tag => (tag || '').toLowerCase());
+    return [...selectedTags].every(tag => tileTags.includes(tag.toLowerCase()));
+  };
+  const rows = myTiles.filter(t =>
+    (needsAttention ? completenessGaps(t).length > 0 : (!currentFilter || t.status === currentFilter)) &&
+    (!currentVisibilityFilter || t.visibility === currentVisibilityFilter) &&
+    matchesSearch(t) &&
+    matchesSelectedTags(t)
+  );
+  if (needsAttention) {
+    rows.sort((a, b) => completenessGaps(b).length - completenessGaps(a).length);
+  } else {
+    rows.sort((a, b) => sortAZ
+      ? (a.title || '').toLowerCase().localeCompare((b.title || '').toLowerCase())
+      : new Date(b.created_at || 0) - new Date(a.created_at || 0));
+  }
+
+  renderTagZones(rows);
+
+  const activeChips = [];
+  if (currentFilter) activeChips.push(STATUS_FILTER_LABELS[currentFilter] || currentFilter);
+  if (currentVisibilityFilter) activeChips.push(VISIBILITY_LABELS[currentVisibilityFilter] || currentVisibilityFilter);
+  document.getElementById('active-filter-chips').innerHTML = activeChips
+    .map(label => `<span class="filter-btn active" style="cursor:pointer;" onclick="toggleFiltersPanel()" title="Tap to open Filters &amp; Tools">${label}</span>`)
+    .join('');
+
   if (!myTiles.length) {
     list.innerHTML = '<div class="empty-state">Nothing submitted yet.</div>';
     return;
   }
-
-  const q = currentSearch;
-  const rows = myTiles.filter(t => {
-    if (!q) return true;
-    const hay = [t.title, ...(Array.isArray(t.tags) ? t.tags : [])].join(' ').toLowerCase();
-    return hay.includes(q);
-  });
-  rows.sort((a, b) => sortAZ
-    ? (a.title || '').toLowerCase().localeCompare((b.title || '').toLowerCase())
-    : new Date(b.created_at || 0) - new Date(a.created_at || 0));
-
   if (!rows.length) {
-    list.innerHTML = '<div class="empty-state">Nothing matches that search.</div>';
+    list.innerHTML = `<div class="empty-state">${q ? 'Nothing matches that search.' : (needsAttention ? 'Nothing missing anything — all clear.' : 'Nothing matches those filters.')}</div>`;
     return;
   }
 
