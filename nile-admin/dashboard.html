@@ -129,7 +129,7 @@
   .tc-header { padding: 14px 18px 10px; cursor: pointer; }
   .tc-title-row { display: flex; align-items: flex-start; gap: 10px; margin-bottom: 4px; }
   .tc-title { font-size: 15px; font-weight: 700; color: var(--ink); flex: 1; }
-  .tc-chevron { color: var(--muted); font-size: 13px; flex-shrink: 0; transition: transform .15s; margin-top: 2px; }
+  .tc-chevron { color: var(--ink); font-weight: 700; font-size: 13px; flex-shrink: 0; transition: transform .15s; margin-top: 2px; }
   .tile-card.open .tc-chevron { transform: rotate(90deg); }
 
   .tc-body { display: none; padding: 4px 18px 16px; border-top: 1px solid #f0f0f0; }
@@ -604,7 +604,10 @@ function completenessGaps(t) {
   const gaps = [];
   if (!t.title || !t.title.trim()) gaps.push('title');
   if (!t.onda_url) gaps.push('linked file');
-  if ('onda_file' in t && (!t.onda_file || (t.onda_file.size || 0) < 1000)) gaps.push('real audio (file looks empty)');
+  // Worded deliberately mild — a huge share of tiles are text/link
+  // references by design (deck_url pointing elsewhere), not a recording
+  // that failed. This flags the state for visibility, not as an alarm.
+  if ('onda_file' in t && (!t.onda_file || (t.onda_file.size || 0) < 1000)) gaps.push('no audio (may just be a text/link reference, not a recording)');
   if (!t.synopsis || !t.synopsis.trim()) gaps.push('synopsis');
   if (!Array.isArray(t.takeaways) || !t.takeaways.filter(Boolean).length) gaps.push('takeaways');
   if ('presenter_phone' in t && !t.presenter_phone) gaps.push('presenter phone (won\'t appear in their My Presentations)');
