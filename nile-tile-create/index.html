@@ -606,8 +606,13 @@ function applyLoadedTile(d) {
   selectType(currentType);
   tagList.forEach(t => addTagValue(t, false)); // no-op for tags already added (locked ones), fills in the rest
 
-  (d.takeaways || []).forEach(t => addArrowLine('takeaway-list', 'One key takeaway…', t, false));
-  (d.headings  || []).forEach(h => addArrowLine('heading-list', 'e.g. What you can do', h, false));
+  // /nile/tile/detail returns an empty list as {} (an object), not [] —
+  // confirmed on tile 177, where headings:{} silently crashed this whole
+  // function via ({}).forEach, leaving the page blank (step-form never
+  // got unhidden since the exception happened before that line ran).
+  // Array.isArray guards against that regardless of which fields it hits.
+  (Array.isArray(d.takeaways) ? d.takeaways : []).forEach(t => addArrowLine('takeaway-list', 'One key takeaway…', t, false));
+  (Array.isArray(d.headings) ? d.headings : []).forEach(h => addArrowLine('heading-list', 'e.g. What you can do', h, false));
 }
 
 // ── Generic click-to-edit fields (title, presenter, synopsis, etc.) ────────
