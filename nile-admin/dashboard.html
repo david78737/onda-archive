@@ -90,6 +90,22 @@
   .filter-btn.active { background: var(--teal); color: #fff; border-color: var(--teal); }
   .filter-btn:hover:not(.active) { border-color: var(--teal); color: var(--teal); }
 
+  /* Tag pills — ported from chapter/index.html's tag-btn zones (selected /
+     favorite / related / remaining), kept as wrapped pills instead of a
+     full-width list to match this page's existing filter-row convention.
+     The zones are the actual point: as tags get selected, the "related"
+     zone floats up whatever still co-occurs with the current result set —
+     tags are attractors, not a fixed bucket list. David, 2026-10-06. */
+  .tag-pill { display: inline-flex; align-items: center; gap: 5px; }
+  .tag-pill .tag-star { cursor: pointer; font-size: 12px; color: var(--border); line-height: 1; }
+  .tag-pill .tag-star:hover { color: var(--muted); }
+  .tag-pill .tag-star.active { color: #e0b400; }
+  .tag-pill.active { background: #FDF3D0; border-color: #e0b400; color: #7A5D00; }
+  .tag-pill.favorite:not(.active) { border-color: #e0b400; }
+  .tag-pill.remaining { opacity: .55; }
+  .tag-pill .tag-count { opacity: .6; font-size: 11px; }
+  .tag-divider { flex-basis: 100%; height: 0; border: none; border-top: 1px dashed var(--border); margin: 2px 0; }
+
   .empty-state { text-align: center; padding: 40px 20px; color: var(--muted); font-size: 14px; }
 
   .tile-card {
@@ -342,12 +358,16 @@
     <button class="filter-btn" onclick="toggleAuthorTitleSort()" id="sort-author-title">Sort: Author, Title</button>
   </div>
 
-  <!-- The chapter archive page (chapter/index.html) has a real Tags browse
-       drawer with favorites/related tags; this is the proportionate version
-       for the Dashboard — just the top tags as clickable pills, feeding the
-       same search box/matchesSearch logic above rather than new filter
-       state. David, 2026-10-06: "a way to select by tag, like the other
-       pages" was missing here. -->
+  <!-- Ported from chapter/index.html's tag drawer: selected / favorite /
+       related / remaining zones, computed fresh on every render from the
+       tile set after every other active filter — "related" is whatever
+       still co-occurs with the current selection, so it floats up as tags
+       get picked. Tags are attractors, not a fixed bucket list (see
+       project_onda_tagging_philosophy.md). Pills instead of the chapter
+       page's full-width list, to match this page's existing filter-row
+       convention. David, 2026-10-06: "a way to select by tag, like the
+       other pages" — first pass here wrongly rendered a static top-N
+       frequency list instead of this. -->
   <div class="filter-row" id="tag-cloud"></div>
 
   <div class="prompt-tuner">
@@ -389,18 +409,41 @@ function setSearch(v) {
   render();
 }
 
-// Clicking a tag pill reuses the existing search box/matchesSearch logic
-// in render() rather than adding separate tag-filter state — one search
-// path, two ways to fill it in.
-function selectTagFilter(tag) {
-  const box = document.getElementById('search-box');
-  const next = currentSearch === tag.toLowerCase() ? '' : tag;
-  if (box) box.value = next;
-  setSearch(next);
+// Tags selected as filters — a Set, AND-matched (every selected tag must be
+// on the tile), case-insensitive, exactly matching chapter/index.html's
+// state.tags/filtered() logic rather than reusing the free-text search box.
+const selectedTags = new Set();
+// Favorites share chapter/index.html's exact key format and station scope,
+// so starring a tag on either page shows up on both. stationId resolves
+// async (unlike chapter/index.html's URL-param STATION_ID), so this loads
+// lazily via loadFavoriteTags() once stationId is actually known, instead
+// of freezing on the null it'd have at script-parse time.
+let favoriteTags = new Set();
+function favTagKey() { return 'onda_favorite_tags_' + (stationId || 'default'); }
+function loadFavoriteTags() {
+  try { favoriteTags = new Set(JSON.parse(localStorage.getItem(favTagKey()) || '[]')); }
+  catch (_) { favoriteTags = new Set(); }
 }
 
-const TAG_CLOUD_MAX = 24;
-function renderTagCloud() {
+function toggleFavoriteTag(tag) {
+  if (favoriteTags.has(tag)) favoriteTags.delete(tag); else favoriteTags.add(tag);
+  try { localStorage.setItem(favTagKey(), JSON.stringify([...favoriteTags])); } catch (_) {}
+  render();
+}
+
+function toggleSelectedTag(tag) {
+  if (selectedTags.has(tag)) selectedTags.delete(tag); else selectedTags.add(tag);
+  render();
+}
+
+// rows = the tile set after every OTHER active filter (status, visibility,
+// search) has already been applied — tag zones are computed from that, not
+// from allTiles, so "related" reflects the current neighborhood, not a
+// fixed global ranking.
+function renderTagZones(rows) {
+  const el = document.getElementById('tag-cloud');
+  if (!el) return;
+
   const counts = {};
   for (const t of allTiles) {
     for (const tag of (Array.isArray(t.tags) ? t.tags : [])) {
@@ -408,17 +451,46 @@ function renderTagCloud() {
       counts[tag] = (counts[tag] || 0) + 1;
     }
   }
-  const top = Object.entries(counts)
+  const allTagsList = Object.entries(counts)
     .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))
-    .slice(0, TAG_CLOUD_MAX);
-  const cloud = document.getElementById('tag-cloud');
-  if (!cloud) return;
-  if (!top.length) { cloud.innerHTML = ''; return; }
-  cloud.innerHTML = top.map(([tag, n]) => {
-    const active = currentSearch === tag.toLowerCase();
-    const safe = tag.replace(/'/g, "\\'");
-    return `<button class="filter-btn${active ? ' active' : ''}" onclick="selectTagFilter('${safe}')">${tag} <span style="opacity:.6;">${n}</span></button>`;
-  }).join('');
+    .map(([tag, n]) => ({ tag, n }));
+
+  const visible = new Set(rows.flatMap(t => Array.isArray(t.tags) ? t.tags : []));
+
+  const selected  = allTagsList.filter(({tag}) => selectedTags.has(tag));
+  const favs      = allTagsList.filter(({tag}) => favoriteTags.has(tag) && !selectedTags.has(tag));
+  const related   = allTagsList.filter(({tag}) => !selectedTags.has(tag) && !favoriteTags.has(tag) && visible.has(tag));
+  const remaining = allTagsList.filter(({tag}) => !selectedTags.has(tag) && !favoriteTags.has(tag) && !visible.has(tag));
+
+  const zones = [['active', selected], ['favorite', favs], ['', related], ['remaining', remaining]];
+  const pieces = [];
+  let prevNonEmpty = false;
+  for (const [cls, zone] of zones) {
+    if (!zone.length) continue;
+    if (prevNonEmpty) pieces.push('<hr class="tag-divider">');
+    for (const {tag, n} of zone) pieces.push(makeTagPillHtml(tag, n, cls));
+    prevNonEmpty = true;
+  }
+  el.innerHTML = pieces.join('');
+
+  el.querySelectorAll('.tag-pill').forEach(pill => {
+    const tag = pill.dataset.tag;
+    pill.querySelector('.tag-star').addEventListener('click', (e) => {
+      e.stopPropagation();
+      toggleFavoriteTag(tag);
+    });
+    pill.addEventListener('click', () => toggleSelectedTag(tag));
+  });
+}
+
+function makeTagPillHtml(tag, n, cls) {
+  const isFav = favoriteTags.has(tag);
+  const safe = String(tag).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  return `<button type="button" class="filter-btn tag-pill ${cls}" data-tag="${safe}">` +
+    `<span class="tag-star${isFav ? ' active' : ''}">${isFav ? '★' : '☆'}</span>` +
+    `<span>${safe}</span>` +
+    `<span class="tag-count">${n}</span>` +
+  `</button>`;
 }
 
 function toggleAuthorTitleSort() {
@@ -482,6 +554,7 @@ function playerUrlFor(url) {
     if (r.ok) {
       const skin = await r.json();
       stationId = skin.station_id || passedStationId || null;
+      loadFavoriteTags();
       if (skin.org_l1) {
         const newTileParams = new URLSearchParams({
           org_l1: skin.org_l1, org_l2: skin.org_l2 || '', org_l3: skin.org_l3 || '',
@@ -600,10 +673,19 @@ function render() {
     if ((t.presenter_name || t.presenter || '').toLowerCase().includes(q)) return true;
     return (Array.isArray(t.tags) ? t.tags : []).some(tag => (tag || '').toLowerCase().includes(q));
   };
+  // Case-insensitive, every selected tag must be present — matches
+  // chapter/index.html's filtered() exactly, same reasoning: a tag match
+  // is a real comparison, not a lookup key.
+  const matchesSelectedTags = (t) => {
+    if (!selectedTags.size) return true;
+    const tileTags = (Array.isArray(t.tags) ? t.tags : []).map(tag => (tag || '').toLowerCase());
+    return [...selectedTags].every(tag => tileTags.includes(tag.toLowerCase()));
+  };
   const rows = allTiles.filter(t =>
     (needsAttention ? completenessGaps(t).length > 0 : (!currentFilter || t.status === currentFilter)) &&
     (!currentVisibilityFilter || t.visibility === currentVisibilityFilter) &&
-    matchesSearch(t)
+    matchesSearch(t) &&
+    matchesSelectedTags(t)
   );
   if (needsAttention) {
     rows.sort((a, b) => completenessGaps(b).length - completenessGaps(a).length);
@@ -617,7 +699,7 @@ function render() {
   document.getElementById('dash-count').textContent =
     `${allTiles.length} tile${allTiles.length !== 1 ? 's' : ''} total`;
 
-  renderTagCloud();
+  renderTagZones(rows);
 
   const activeChips = [];
   if (currentFilter) activeChips.push(STATUS_FILTER_LABELS[currentFilter] || currentFilter);
