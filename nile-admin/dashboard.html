@@ -129,7 +129,14 @@
   .tc-header { padding: 14px 18px 10px; cursor: pointer; }
   .tc-title-row { display: flex; align-items: flex-start; gap: 10px; margin-bottom: 4px; }
   .tc-title { font-size: 15px; font-weight: 700; color: var(--ink); flex: 1; }
-  .tc-chevron { color: var(--ink); font-weight: 700; font-size: 13px; flex-shrink: 0; transition: transform .15s; margin-top: 2px; }
+  .tc-chevron { color: var(--muted); font-size: 13px; flex-shrink: 0; transition: transform .15s; margin-top: 2px; }
+  /* font-weight does nothing on ▶ — it's a symbol glyph, not a letter, so
+     most fonts have no bold variant for it. Size is the only lever that
+     actually changes how it looks. Scoped to just the per-tile chevron
+     (not the shared .tc-chevron class also used by the prompt-tuner
+     toggle) so that one isn't affected. David, 2026-10-06: confirmed the
+     weight-only version was invisible. */
+  .tc-title-row .tc-chevron { color: var(--ink); font-size: 20px; line-height: 1; margin-top: -1px; }
   .tile-card.open .tc-chevron { transform: rotate(90deg); }
 
   .tc-body { display: none; padding: 4px 18px 16px; border-top: 1px solid #f0f0f0; }
