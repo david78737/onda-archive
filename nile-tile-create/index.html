@@ -955,6 +955,15 @@ document.getElementById('tag-input').addEventListener('keydown', e => {
   if (e.key === 'Enter') { e.preventDefault(); addTag(); }
 });
 
+// ── More details panel (takeaways, section markers, event code, slides) ─
+// The toggle button that opens this panel had no handler wired to it at
+// all — onclick="toggleMoreDetails()" called a function that didn't exist
+// anywhere in this file, so the panel's fields (already fully wired to
+// load/submit, see applyLoadedTile/submitTile) were unreachable from the UI.
+function toggleMoreDetails() {
+  document.getElementById('more-details').classList.toggle('open');
+}
+
 // ── Takeaways / headings — arrow-bulleted lines, editable in place ──────
 function addArrowLine(listId, placeholder, value, autoEdit) {
   const li = document.createElement('li');
