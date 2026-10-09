@@ -131,6 +131,7 @@
   </div>
 </div>
 
+<script src="../nile-auth.js"></script>
 <script>
 const NILE_API  = 'https://xrxm-29on-xlyt.n7e.xano.io/api:onda-nile';
 const NILE_AUTH = 'https://xrxm-29on-xlyt.n7e.xano.io/api:nile';
@@ -178,16 +179,22 @@ const SKINS = {
 })();
 
 let authToken = null;
+let authedPhone = null;
 
-// Bootstrap: token passthrough from login.html — skip OTP if present
+// Bootstrap: prefers the shared, most-recently-known-good login over
+// whatever's frozen into this page's own URL — see nile-auth.js.
+// David + Ray Deck, 2026-10-09 — "log in once, good everywhere."
 (function bootstrap() {
-  const token = _p.get('token');
-  const phone = _p.get('phone');
+  const resolved = OndaNileAuth.resolveAuth(_p.get('phone'), _p.get('token'));
+  const token = resolved.token;
+  const phone = resolved.phone;
   if (!token || !phone) {
     window.location.href = 'login.html';
     return;
   }
   authToken = token;
+  authedPhone = phone;
+  OndaNileAuth.startActivityTouch(authedPhone, authToken);
   document.getElementById('back-link').href = `login.html?phone=${encodeURIComponent(phone)}&token=${encodeURIComponent(token)}`;
   document.getElementById('auth-section').style.display = 'none';
   document.getElementById('enroll-section').style.display = 'block';
@@ -250,6 +257,9 @@ async function authVerify(){
     const data=await r.json();
     authToken=(data.profile_url||'').split('?token=')[1]?.split('&')[0]||null;
     if(!authToken) throw new Error('Auth failed — token not returned');
+    authedPhone = normalizePhone(raw);
+    OndaNileAuth.saveAuth(authedPhone, authToken);
+    OndaNileAuth.startActivityTouch(authedPhone, authToken);
     document.getElementById('auth-section').style.display='none';
     document.getElementById('enroll-section').style.display='block';
     if (LOCKED_ORG) {

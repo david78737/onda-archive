@@ -320,6 +320,7 @@
 
 </div>
 
+<script src="../nile-auth.js"></script>
 <script>
 const NILE_AUTH = 'https://xrxm-29on-xlyt.n7e.xano.io/api:nile';
 const NILE_API  = 'https://xrxm-29on-xlyt.n7e.xano.io/api:onda-nile';
@@ -330,14 +331,18 @@ let orgData     = {};
 let userOrgs    = [];
 let selectedOrg = null;
 
-// Bootstrap from URL params — returning from station.html, event.html, cards.html
+// Bootstrap: prefers the shared, most-recently-known-good login over
+// whatever's frozen into this page's own URL — see nile-auth.js.
+// David + Ray Deck, 2026-10-09 — "log in once, good everywhere."
 (function bootstrap() {
   const p = new URLSearchParams(window.location.search);
-  const token = p.get('token');
-  const phone = p.get('phone');
+  const resolved = OndaNileAuth.resolveAuth(p.get('phone'), p.get('token'));
+  const token = resolved.token;
+  const phone = resolved.phone;
   if (token && phone) {
     authToken   = token;
     authedPhone = phone;
+    OndaNileAuth.startActivityTouch(authedPhone, authToken);
     if (p.get('saved') === 'station') {
       // Show a success toast after returning from station profile save
       const toast = document.createElement('div');
@@ -419,6 +424,8 @@ async function verifyOtp() {
     authToken = (data.profile_url || '').split('?token=')[1]?.split('&')[0] || data.token || null;
     if (!authToken) throw new Error('Verification failed — token not returned');
     authedPhone = phone;
+    OndaNileAuth.saveAuth(authedPhone, authToken);
+    OndaNileAuth.startActivityTouch(authedPhone, authToken);
     dbg('Auth OK for ' + phone);
     await loadOrgs();
   } catch(e) { dbg('Error: ' + e.message); showBanner('phone-banner', 'error', e.message); }

@@ -232,6 +232,7 @@
 
 </div>
 
+<script src="../nile-auth.js"></script>
 <script>
 const NILE_AUTH = 'https://xrxm-29on-xlyt.n7e.xano.io/api:nile';
 const NILE_API  = 'https://xrxm-29on-xlyt.n7e.xano.io/api:onda-nile';
@@ -241,18 +242,22 @@ let authedPhone = null;
 let TILE_DATA = []; // per-tile { role: [actions] }, indexed by render order — reset each loadWorkList() call
 let showArchived = false;
 
-// Bootstrap: arriving back from a spoke page with identity already in the URL
-// (e.g. Edit Profile's "Back to Hub" link) — skip OTP, go straight to the list.
+// Bootstrap: prefers a login already on record in this browser (any page,
+// any tab) over whatever phone/token happens to be frozen into this page's
+// own URL — that URL copy could be from an old link or an old tab, and the
+// shared one is always the most recently-known-good login. Falls back to
+// the URL for a genuinely first-ever visit via a fresh magic link.
+// David + Ray Deck, 2026-10-09 — "log in once, good everywhere."
 (function bootstrap() {
   const p = new URLSearchParams(window.location.search);
-  const token = p.get('token');
-  const phone = p.get('phone');
-  if (token && phone) {
-    authToken = token;
-    authedPhone = phone;
+  const resolved = OndaNileAuth.resolveAuth(p.get('phone'), p.get('token'));
+  if (resolved.token && resolved.phone) {
+    authToken = resolved.token;
+    authedPhone = resolved.phone;
+    OndaNileAuth.startActivityTouch(authedPhone, authToken);
     document.getElementById('screen-phone').style.display = 'none';
     document.getElementById('screen-list').style.display = 'block';
-    document.getElementById('signed-in-as').textContent = 'Signed in as ' + phone;
+    document.getElementById('signed-in-as').textContent = 'Signed in as ' + authedPhone;
     loadWorkList();
   }
 })();
@@ -315,6 +320,8 @@ async function verifyOtp() {
     authToken = (data.profile_url || '').split('?token=')[1]?.split('&')[0] || data.token || null;
     if (!authToken) throw new Error('Verification failed — token not returned');
     authedPhone = phone;
+    OndaNileAuth.saveAuth(authedPhone, authToken);
+    OndaNileAuth.startActivityTouch(authedPhone, authToken);
     document.getElementById('screen-phone').style.display = 'none';
     document.getElementById('screen-list').style.display = 'block';
     document.getElementById('signed-in-as').textContent = 'Signed in as ' + phone;

@@ -398,6 +398,7 @@
   <input type="file" id="thumb-file-input" accept="image/*" style="display:none" onchange="handleThumbnailFileChange(event)">
 </div>
 
+<script src="../nile-auth.js"></script>
 <script>
 const NILE_API = 'https://xrxm-29on-xlyt.n7e.xano.io/api:onda-nile';
 const IDENTITY_API = 'https://xrxm-29on-xlyt.n7e.xano.io/api:nile/org/identity';
@@ -538,8 +539,12 @@ function playerUrlFor(url) {
 
 (async function bootstrap() {
   const p = new URLSearchParams(window.location.search);
-  const token = p.get('token');
-  const phone = p.get('phone');
+  // Prefers the shared, most-recently-known-good login over whatever's
+  // frozen into this page's own URL — see nile-auth.js. David + Ray Deck,
+  // 2026-10-09 — "log in once, good everywhere."
+  const resolved = OndaNileAuth.resolveAuth(p.get('phone'), p.get('token'));
+  const token = resolved.token;
+  const phone = resolved.phone;
   const org_l1 = p.get('org_l1');
   const org_l2 = p.get('org_l2');
   const org_l3 = p.get('org_l3');
@@ -548,6 +553,7 @@ function playerUrlFor(url) {
   if (!token || !phone) { window.location.href = 'login.html'; return; }
   authToken = token;
   authedPhone = phone;
+  OndaNileAuth.startActivityTouch(authedPhone, authToken);
   document.getElementById('back-link').href = `login.html?phone=${encodeURIComponent(phone)}&token=${encodeURIComponent(token)}`;
 
   // Always resolve through identity (by station_id when we have it, else the

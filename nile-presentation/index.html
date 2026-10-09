@@ -310,12 +310,18 @@
   <input type="file" id="thumb-file-input" accept="image/*" style="display:none" onchange="handleThumbnailFileChange(event)">
 </div>
 
+<script src="../nile-auth.js"></script>
 <script>
 const NILE_API = 'https://xrxm-29on-xlyt.n7e.xano.io/api:onda-nile';
 
 const params = new URLSearchParams(location.search);
-const PHONE = params.get('phone');
-const TOKEN = params.get('token');
+// Prefers the shared, most-recently-known-good login over whatever's
+// frozen into this page's own URL — see nile-auth.js. David + Ray Deck,
+// 2026-10-09 — "log in once, good everywhere."
+const _resolvedAuth = OndaNileAuth.resolveAuth(params.get('phone'), params.get('token'));
+const PHONE = _resolvedAuth.phone;
+const TOKEN = _resolvedAuth.token;
+OndaNileAuth.startActivityTouch(PHONE, TOKEN);
 
 let myTiles = [];
 let selectedTileId = null;

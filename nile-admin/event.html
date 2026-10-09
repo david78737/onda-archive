@@ -246,6 +246,7 @@
 
 </div><!-- /wrap -->
 
+<script src="../nile-auth.js"></script>
 <script>
 const NILE_AUTH = 'https://xrxm-29on-xlyt.n7e.xano.io/api:nile';
 const NILE_API  = 'https://xrxm-29on-xlyt.n7e.xano.io/api:onda-nile';
@@ -253,14 +254,18 @@ const NILE_API  = 'https://xrxm-29on-xlyt.n7e.xano.io/api:onda-nile';
 let authToken = null;
 let authedPhone = null;
 
-// Read token + phone + org from URL params (passed from register.html picker)
+// Bootstrap: prefers the shared, most-recently-known-good login over
+// whatever's frozen into this page's own URL — see nile-auth.js.
+// David + Ray Deck, 2026-10-09 — "log in once, good everywhere."
 (function bootstrap() {
   const p = new URLSearchParams(window.location.search);
-  const token = p.get('token');
-  const phone = p.get('phone');
+  const resolved = OndaNileAuth.resolveAuth(p.get('phone'), p.get('token'));
+  const token = resolved.token;
+  const phone = resolved.phone;
   if (token && phone) {
     authToken   = token;
     authedPhone = phone;
+    OndaNileAuth.startActivityTouch(authedPhone, authToken);
     // Pre-fill org fields if passed
     ['org_l1', 'org_l2', 'org_l3'].forEach((key, i) => {
       const val = p.get(key);
@@ -341,6 +346,8 @@ async function verifyOtp() {
     dbg('authToken: ' + (authToken ? authToken.substring(0,20) + '...' : 'NULL — token not found in response'));
     if (!authToken) throw new Error('Auth failed — token not returned');
     authedPhone = phone;
+    OndaNileAuth.saveAuth(authedPhone, authToken);
+    OndaNileAuth.startActivityTouch(authedPhone, authToken);
     document.getElementById('screen-auth').style.display = 'none';
     document.getElementById('screen-main').style.display = 'block';
   } catch(e) { dbg('OTP verify error: ' + e.message); showBanner('auth-banner', 'error', e.message); }

@@ -350,6 +350,7 @@
 
 </div>
 
+<script src="../nile-auth.js"></script>
 <script>
 const NILE_AUTH = 'https://xrxm-29on-xlyt.n7e.xano.io/api:nile';
 const NILE_API  = 'https://xrxm-29on-xlyt.n7e.xano.io/api:onda-nile';
@@ -360,12 +361,16 @@ let currentOrg  = {};
 let currentEventCode = '';
 let currentFilter = 'submitted';
 
-// Bootstrap from register.html picker — skip OTP if token+phone in URL
+// Bootstrap: prefers the shared, most-recently-known-good login over
+// whatever's frozen into this page's own URL — see nile-auth.js.
+// David + Ray Deck, 2026-10-09 — "log in once, good everywhere."
 (function bootstrap() {
   const p = new URLSearchParams(window.location.search);
-  const token = p.get('token');
-  const phone = p.get('phone');
+  const resolved = OndaNileAuth.resolveAuth(p.get('phone'), p.get('token'));
+  const token = resolved.token;
+  const phone = resolved.phone;
   if (token && phone) {
+    OndaNileAuth.startActivityTouch(phone, token);
     authToken   = token;
     authedPhone = phone;
     if (p.get('org_l1')) {
@@ -434,6 +439,8 @@ async function verifyOtp() {
     authToken = (data.profile_url || '').split('?token=')[1]?.split('&')[0] || null;
     if (!authToken) throw new Error('Auth failed — check that your phone is registered as a Coordinator');
     authedPhone = phone;
+    OndaNileAuth.saveAuth(authedPhone, authToken);
+    OndaNileAuth.startActivityTouch(authedPhone, authToken);
     document.getElementById('screen-auth').style.display = 'none';
     document.getElementById('screen-event').style.display = 'block';
   } catch(e) { showBanner('auth-banner', 'error', e.message); }

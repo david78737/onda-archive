@@ -302,6 +302,7 @@
   </div>
 </div>
 
+<script src="../nile-auth.js"></script>
 <script>
 const NILE_API  = 'https://xrxm-29on-xlyt.n7e.xano.io/api:onda-nile';
 const NILE_AUTH = 'https://xrxm-29on-xlyt.n7e.xano.io/api:nile';
@@ -311,8 +312,13 @@ const SKIN    = _p.get('skin')    || null;
 const L1      = _p.get('org_l1') || null;
 const L2      = _p.get('org_l2') || null;
 const L3      = _p.get('org_l3') || null;
-let TOKEN     = _p.get('token')  || null;
-let PHONE     = _p.get('phone')  || null;
+// Prefers the shared, most-recently-known-good login over whatever's
+// frozen into this page's own URL — see nile-auth.js. David + Ray Deck,
+// 2026-10-09 — "log in once, good everywhere."
+const _resolvedAuth = OndaNileAuth.resolveAuth(_p.get('phone'), _p.get('token'));
+let TOKEN     = _resolvedAuth.token;
+let PHONE     = _resolvedAuth.phone;
+if (PHONE && TOKEN) OndaNileAuth.startActivityTouch(PHONE, TOKEN);
 const EVENT_CODE = _p.get('event_code') || null;
 const TILE_ID = _p.get('tile_id') || null;
 
@@ -523,6 +529,8 @@ async function verifyOtp() {
     if (!token) throw new Error('Verification failed — token not returned');
     TOKEN = token;
     PHONE = phone;
+    OndaNileAuth.saveAuth(PHONE, TOKEN);
+    OndaNileAuth.startActivityTouch(PHONE, TOKEN);
     document.getElementById('step-verify').style.display = 'none';
     proceedToForm();
   } catch (e) { msg.className = 'msg err'; msg.textContent = e.message; }
