@@ -537,7 +537,7 @@ function render() {
     return [...selectedTags].every(tag => tileTags.includes(tag.toLowerCase()));
   };
   const rows = myTiles.filter(t =>
-    (needsAttention ? completenessGaps(t).length > 0 : (!currentFilter || t.status === currentFilter)) &&
+    (needsAttention ? completenessGaps(t).length > 0 : (currentFilter ? t.status === currentFilter : t.status !== 'archived')) &&
     (!currentVisibilityFilter || t.visibility === currentVisibilityFilter) &&
     matchesSearch(t) &&
     matchesSelectedTags(t)
