@@ -517,8 +517,11 @@ function formatDate(ts) {
 }
 
 function render() {
+  // Archived tiles are a Contributor's own "that was bogus" cleanup — the
+  // headline count should reflect live submissions, not include them.
+  const liveCount = myTiles.filter(t => t.status !== 'archived').length;
   document.getElementById('dash-count').textContent =
-    `${myTiles.length} submission${myTiles.length !== 1 ? 's' : ''} total`;
+    `${liveCount} submission${liveCount !== 1 ? 's' : ''} total`;
 
   const list = document.getElementById('list');
   const needsAttention = currentFilter === 'needs-attention';
@@ -665,6 +668,7 @@ function render() {
                onda_file.size is the actual signal. David, 2026-10-05. -->
           ${(t.onda_file && t.onda_file.size > 16) ? `<a href="${playerUrlFor(t.onda_url)}" target="_blank" rel="noopener" onclick="event.stopPropagation()">Watch ONDA Viewer</a>` : '<span style="color:var(--muted);font-size:13px">No linked file</span>'}
           ${t.deck_url ? `<a href="${t.deck_url}" target="_blank" rel="noopener" onclick="event.stopPropagation()">View Full Document</a>` : ''}
+          ${status !== 'archived' ? `<a href="#" onclick="event.stopPropagation();event.preventDefault();archiveTile(${t.id})" style="color:var(--muted);">Archive</a>` : ''}
           ${(status === 'submitted' || gaps.length) ? `<a href="#" id="draft-btn-${t.id}" onclick="event.stopPropagation();event.preventDefault();generateDraft(${t.id})" style="margin-left:auto;">${t.synopsis ? 'Regenerate Draft' : 'Generate Draft'}</a>` : ''}
         </div>
       </div>`;
@@ -730,6 +734,16 @@ async function patchTile(id, fields) {
   } catch (e) {
     showApiError(e.message);
   }
+}
+
+// A Contributor's own "this was a bogus submission" cleanup — narrower
+// than the Curator's full status dropdown on Station Dashboard, just the
+// one status a Contributor should be able to set on their own work.
+// Reversible: still visible under the Archived filter, still has every
+// field intact, just out of the main count and the default view.
+// David, 2026-10-09.
+function archiveTile(id) {
+  patchTile(id, { status: 'archived' });
 }
 
 // This is the Contributor's own half of the same two-key approval the
