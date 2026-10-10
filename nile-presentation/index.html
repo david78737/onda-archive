@@ -324,6 +324,10 @@ const TOKEN = _resolvedAuth.token;
 OndaNileAuth.startActivityTouch(PHONE, TOKEN);
 
 let myTiles = [];
+// Stations this phone curates or coordinates — populated once at load,
+// used only to offer a destination list on an unassigned tile's "Send to
+// a Station" picker. Same lookup login.html already uses. David, 2026-10-09.
+let myStations = [];
 let selectedTileId = null;
 let openTileId = null;
 let currentSearch = '';
@@ -486,6 +490,48 @@ if (!PHONE || !TOKEN) {
 } else {
   document.getElementById('back-link').href = `../nile-admin/login.html?phone=${encodeURIComponent(PHONE)}&token=${encodeURIComponent(TOKEN)}`;
   loadMine();
+  loadMyStations();
+}
+
+function escapeHtml(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// Only used to populate the "Send to a Station" picker on an unassigned
+// tile — not shown anywhere if this fails or comes back empty, so a
+// contributor-only phone with no curated stations just never sees the
+// picker. David, 2026-10-09.
+async function loadMyStations() {
+  try {
+    const url = `${NILE_API}/nile/coordinator/orgs?phone=${encodeURIComponent(PHONE)}&magic_auth_token=${encodeURIComponent(TOKEN)}&include_archived=false`;
+    const r = await fetch(url);
+    if (!r.ok) return;
+    const data = await r.json();
+    const orgs = Array.isArray(data) ? data : (data.items || data.orgs || []);
+    myStations = orgs
+      .filter(o => o.role === 'curator' || o.role === 'coordinator')
+      .map(o => ({ l1: o.org_l1, l2: o.org_l2, l3: o.org_l3, name: o.org_name || o.org_l1 }));
+    render();
+  } catch (e) { /* picker just stays absent */ }
+}
+
+async function sendToStation(id, value) {
+  if (!value) return;
+  const [org_l1, org_l2, org_l3] = value.split('|');
+  try {
+    const r = await fetch(`${NILE_API}/nile/tile/reassign_station`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ tile_id: id, org_l1, org_l2, org_l3, phone: PHONE, magic_auth_token: TOKEN }),
+    });
+    if (!r.ok) {
+      const e = await r.json().catch(() => ({}));
+      throw new Error(e.message || 'Could not send this to that station.');
+    }
+    await loadMine();
+  } catch (e) {
+    showBanner(e.message);
+  }
 }
 
 async function loadMine() {
@@ -669,6 +715,10 @@ function render() {
           ${(t.onda_file && t.onda_file.size > 16) ? `<a href="${playerUrlFor(t.onda_url)}" target="_blank" rel="noopener" onclick="event.stopPropagation()">Watch ONDA Viewer</a>` : '<span style="color:var(--muted);font-size:13px">No linked file</span>'}
           ${t.deck_url ? `<a href="${t.deck_url}" target="_blank" rel="noopener" onclick="event.stopPropagation()">View Full Document</a>` : ''}
           ${status !== 'archived' ? `<a href="#" onclick="event.stopPropagation();event.preventDefault();archiveTile(${t.id})" style="color:var(--muted);">Archive</a>` : ''}
+          ${(!t.org_l1 && myStations.length) ? `<select onclick="event.stopPropagation()" onchange="event.stopPropagation();sendToStation(${t.id}, this.value)" style="font-size:13px;color:var(--teal);border:1px solid var(--border);border-radius:6px;padding:4px 6px;background:#fff;">` +
+            `<option value="" selected disabled>Send to a Station…</option>` +
+            myStations.map(s => `<option value="${escapeHtml(s.l1)}|${escapeHtml(s.l2 || '')}|${escapeHtml(s.l3 || '')}">${escapeHtml(s.name)}</option>`).join('') +
+            `</select>` : ''}
           ${(status === 'submitted' || gaps.length) ? `<a href="#" id="draft-btn-${t.id}" onclick="event.stopPropagation();event.preventDefault();generateDraft(${t.id})" style="margin-left:auto;">${t.synopsis ? 'Regenerate Draft' : 'Generate Draft'}</a>` : ''}
         </div>
       </div>`;
