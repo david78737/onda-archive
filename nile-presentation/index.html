@@ -639,7 +639,7 @@ function render() {
     const reviewPill = (text, idx, field, tappable) => {
       const greyedSet = field === 'headings' ? st.greyedHeadings : st.greyedTitles;
       const isGreyed = greyedSet.has(idx);
-      const bodyClick = tappable && !isGreyed ? `onclick="event.stopPropagation();useSuggestion(${t.id}, ${idx})" style="cursor:pointer;"` : '';
+      const bodyClick = tappable && !isGreyed ? `onclick="event.stopPropagation();useSuggestion(${t.id}, '${field}', ${idx})" style="cursor:pointer;"` : '';
       return `<span class="tc-tag${isGreyed ? ' greyed' : ''}" ${bodyClick}>${text}<span class="tc-tag-x${isGreyed ? ' confirm-delete' : ''}" onclick="event.stopPropagation();toggleListItemGrey(${t.id}, '${field}', ${idx})" title="${isGreyed ? 'Delete for good' : 'Reject'}">×</span></span>`;
     };
 
@@ -659,7 +659,7 @@ function render() {
         const checked = !st.uncheckedTakeaways.has(idx);
         return `<div class="tc-takeaway-row${checked ? '' : ' unchecked'}"><input type="checkbox" ${checked ? 'checked' : ''} onclick="event.stopPropagation()" onchange="toggleTakeawayChecked(${t.id}, ${idx}, this.checked)"><span>${x}</span></div>`;
       }).join('')}${st.uncheckedTakeaways.size ? `<button class="tc-edit-save" onclick="event.stopPropagation();saveTakeaways(${t.id})">Save Takeaways</button>` : ''}</div>` : '',
-      headings.length ? `<div class="tc-body-section"><div class="tc-body-label">Section Headings — × to reject</div><div class="tc-tags">${headings.map((h, idx) => reviewPill(h, idx, 'headings', false)).join('')}</div></div>` : '',
+      headings.length ? `<div class="tc-body-section"><div class="tc-body-label">Section Headings — tap to use, × to reject</div><div class="tc-tags">${headings.map((h, idx) => reviewPill(h, idx, 'headings', true)).join('')}</div></div>` : '',
     ].filter(Boolean).join('');
 
     const sleeveImg = t.photo_url || t.photo;
@@ -751,9 +751,14 @@ function showApiError(message) {
   alert(message);
 }
 
-async function swapTitle(id, suggestionIndex) {
+// Both title_suggestions and headings are draft output from the same
+// Generate Draft pass — neither is "locked in" structural data yet, so
+// either one can be tapped to become the title, same mechanic either way.
+// David, 2026-10-10: "A 'Section Heading' isn't a thing" at this stage —
+// it's just another AI suggestion, not yet a real jump-anchor.
+async function swapTitle(id, field, suggestionIndex) {
   const tile = myTiles.find(t => t.id === id);
-  const suggestions = Array.isArray(tile?.title_suggestions) ? tile.title_suggestions.filter(Boolean) : [];
+  const suggestions = Array.isArray(tile?.[field]) ? tile[field].filter(Boolean) : [];
   const newTitle = suggestions[suggestionIndex];
   if (!newTitle) return;
   await patchTile(id, { title: newTitle });
@@ -859,8 +864,8 @@ function toggleListItemGrey(tileId, field, idx) {
   }
 }
 
-function useSuggestion(tileId, idx) {
-  swapTitle(tileId, idx);
+function useSuggestion(tileId, field, idx) {
+  swapTitle(tileId, field, idx);
 }
 
 function startEditField(tileId, field) {

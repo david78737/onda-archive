@@ -781,7 +781,7 @@ function render() {
     const reviewPill = (text, idx, field, tappable) => {
       const greyedSet = field === 'headings' ? st.greyedHeadings : st.greyedTitles;
       const isGreyed = greyedSet.has(idx);
-      const bodyClick = tappable && !isGreyed ? `onclick="event.stopPropagation();useSuggestion(${t.id}, ${idx})" style="cursor:pointer;"` : '';
+      const bodyClick = tappable && !isGreyed ? `onclick="event.stopPropagation();useSuggestion(${t.id}, '${field}', ${idx})" style="cursor:pointer;"` : '';
       return `<span class="tc-tag${isGreyed ? ' greyed' : ''}" ${bodyClick}>${text}<span class="tc-tag-x${isGreyed ? ' confirm-delete' : ''}" onclick="event.stopPropagation();toggleListItemGrey(${t.id}, '${field}', ${idx})" title="${isGreyed ? 'Delete for good' : 'Reject'}">×</span></span>`;
     };
 
@@ -803,7 +803,7 @@ function render() {
         const checked = !st.uncheckedTakeaways.has(idx);
         return `<div class="tc-takeaway-row${checked ? '' : ' unchecked'}"><input type="checkbox" ${checked ? 'checked' : ''} onclick="event.stopPropagation()" onchange="toggleTakeawayChecked(${t.id}, ${idx}, this.checked)"><span>${x}</span></div>`;
       }).join('')}${st.uncheckedTakeaways.size ? `<button class="tc-edit-save" onclick="event.stopPropagation();saveTakeaways(${t.id})">Save Takeaways</button>` : ''}</div>` : '',
-      headings.length ? `<div class="tc-body-section"><div class="tc-body-label">Section Headings — × to reject</div><div class="tc-tags">${headings.map((h, idx) => reviewPill(h, idx, 'headings', false)).join('')}</div></div>` : '',
+      headings.length ? `<div class="tc-body-section"><div class="tc-body-label">Section Headings — tap to use, × to reject</div><div class="tc-tags">${headings.map((h, idx) => reviewPill(h, idx, 'headings', true)).join('')}</div></div>` : '',
     ].filter(Boolean).join('');
 
     const sleeveImg = t.photo_url || t.photo;
@@ -956,13 +956,17 @@ function showApiError(message) {
 
 // Swaps a suggested title in for the current one — only fires for the
 // specific tile+suggestion actually tapped, leaving the original title
-// (and every other tile) completely untouched otherwise.
-async function swapTitle(id, suggestionIndex) {
+// (and every other tile) completely untouched otherwise. Works for either
+// title_suggestions or headings — both are draft output from the same
+// Generate Draft pass, neither "locked in" yet, so either can become the
+// title the same way. David, 2026-10-10: "A 'Section Heading' isn't a
+// thing" at this stage — it's just another AI suggestion.
+async function swapTitle(id, field, suggestionIndex) {
   const tile = allTiles.find(t => t.id === id);
-  // Must filter the same way the pills were rendered (titleSuggestions in
-  // renderTile) — indexing the raw array here would point at the wrong
-  // title whenever any suggestion came back empty.
-  const suggestions = Array.isArray(tile?.title_suggestions) ? tile.title_suggestions.filter(Boolean) : [];
+  // Must filter the same way the pills were rendered (titleSuggestions/
+  // headings in renderTile) — indexing the raw array here would point at
+  // the wrong title whenever any suggestion came back empty.
+  const suggestions = Array.isArray(tile?.[field]) ? tile[field].filter(Boolean) : [];
   const newTitle = suggestions[suggestionIndex];
   if (!newTitle) return;
   // Routed through patchTile (not its own fetch) so it gets the same
@@ -1104,11 +1108,11 @@ function toggleListItemGrey(tileId, field, idx) {
   }
 }
 
-// Tapping a title suggestion's body (not its ×) promotes it to the real
-// title, same as before — greying out candidates and picking the winner
-// are independent actions on the same pill.
-function useSuggestion(tileId, idx) {
-  swapTitle(tileId, idx);
+// Tapping a suggestion's body (not its ×) promotes it to the real title —
+// greying out candidates and picking the winner are independent actions
+// on the same pill. Works the same for a title suggestion or a heading.
+function useSuggestion(tileId, field, idx) {
+  swapTitle(tileId, field, idx);
 }
 
 // Inline edit for a single text field (synopsis, brief, who) — toggles that
