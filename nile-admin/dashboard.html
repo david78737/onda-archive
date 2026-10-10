@@ -164,14 +164,6 @@
     margin: 6px 18px 0; padding: 6px 10px; border-radius: 6px;
     background: var(--warn-bg); color: var(--warn); font-size: 12px; font-weight: 600;
   }
-  /* A tag with no heading using the same word still filters the tile list,
-     but a tap on it from inside the app (ctx=<word>) lands nowhere specific
-     — this is exactly the bug that made the Storyboard help link show zero
-     results. Flagged the same way a missing-field gap is. David, 2026-10-10. */
-  .tc-vocab-flag {
-    margin: 6px 18px 0; padding: 6px 10px; border-radius: 6px;
-    background: var(--warn-bg); color: var(--warn); font-size: 12px; font-weight: 600;
-  }
   /* Per-tile "Publishing tools" accordion — same collapsed-by-default
      pattern as .prompt-tuner above, but scoped with its own class names
      (not .tc-chevron) since that class is already overloaded by the outer
@@ -781,13 +773,6 @@ function render() {
     const headings = Array.isArray(t.headings) ? t.headings.filter(Boolean) : [];
     const titleSuggestions = Array.isArray(t.title_suggestions) ? t.title_suggestions.filter(Boolean) : [];
     const gaps = completenessGaps(t);
-    // A tag with no heading sharing its exact word still filters this tile
-    // into a search, but a ctx-driven jump from inside the app lands on
-    // nothing specific for it — the same bug that made the Storyboard help
-    // link show zero results. David, 2026-10-10.
-    const tileTags = Array.isArray(t.tags) ? t.tags.filter(Boolean) : [];
-    const orphanTags = tileTags.filter(tag =>
-      !headings.some(h => h.toLowerCase().includes(tag.toLowerCase())));
     const st = getUiState(t.id);
 
     // A review pill for a title suggestion or a section heading: plain tap
@@ -862,7 +847,6 @@ function render() {
         </div>
         ${presenterDisplay || sleeveImg ? `<div class="tc-identity">${sleeveImg ? `<img class="tc-sleeve-img" src="${sleeveImg}">` : (presenterDisplay ? `<span class="tc-sleeve-placeholder">${presenterDisplay.trim().charAt(0).toUpperCase()}</span>` : '')}<span class="tc-identity-name">${presenterDisplay}</span><span class="tc-edit-btn" onclick="event.stopPropagation();startThumbnailUpload(${t.id})">Change thumbnail</span></div>` : ''}
         ${gaps.length ? `<div class="tc-gaps-flag">⚠ Missing: ${gaps.join(', ')}</div>` : ''}
-        ${orphanTags.length ? `<div class="tc-vocab-flag">⚠ Tag${orphanTags.length > 1 ? 's' : ''} with no matching heading, so an app help-link to ${orphanTags.length > 1 ? 'them' : 'it'} would land nowhere specific: ${orphanTags.join(', ')}</div>` : ''}
         ${(() => {
           const created = formatDate(t.created_at);
           const updated = formatDate(t.updated_at);
