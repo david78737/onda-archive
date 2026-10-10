@@ -205,12 +205,16 @@
         </div>
       </div>
 
-      <div class="media-label">Photos</div>
-      <div class="media-row" id="photo-row"></div>
-      <div id="photo-callouts-list"></div>
+      <div id="field-photos">
+        <div class="media-label">Photos</div>
+        <div class="media-row" id="photo-row"></div>
+        <div id="photo-callouts-list"></div>
+      </div>
 
-      <div class="media-label">Videos</div>
-      <div class="media-row" id="video-row"></div>
+      <div id="field-videos">
+        <div class="media-label">Videos</div>
+        <div class="media-row" id="video-row"></div>
+      </div>
 
       <div class="section">
         <div class="section-label" id="label-synopsis">Story</div>
@@ -225,19 +229,19 @@
       <button type="button" class="more-details-toggle" onclick="toggleMoreDetails()">+ More details (takeaways, section markers, event code, slides)</button>
 
       <div id="more-details">
-        <div class="section">
+        <div class="section" id="field-takeaways">
           <div class="section-label" id="label-takeaways">Key Takeaways</div>
           <ul class="arrow-list" id="takeaway-list"></ul>
           <button class="btn-add-line" type="button" onclick="addTakeaway()">+ Add a takeaway</button>
         </div>
 
-        <div class="section">
+        <div class="section" id="field-headings">
           <div class="section-label" id="label-headings">What's Covered</div>
           <ul class="arrow-list" id="heading-list"></ul>
           <button class="btn-add-line" type="button" onclick="addHeading()">+ Add a section</button>
         </div>
 
-        <div class="section">
+        <div class="section" id="field-bestfor">
           <div class="section-label">Best For</div>
           <div class="card-body-text editable" id="f-bestfor" data-field="bestfor" data-multiline="1" data-placeholder="Who gets the most from this (optional)"></div>
         </div>
@@ -248,11 +252,11 @@
         </div>
 
         <div class="section" id="field-deck">
-          <div class="section-label">Deck / Slides</div>
+          <div class="section-label" id="label-deck">Deck / Slides</div>
           <div class="card-body-text editable" id="f-deck" data-field="deck" data-placeholder="Google Slides, Canva, or PDF link (optional)"></div>
         </div>
 
-        <div class="section">
+        <div class="section" id="field-linkedin">
           <div class="section-label">LinkedIn</div>
           <div class="card-body-text editable" id="f-linkedin" data-field="linkedin" data-placeholder="https://linkedin.com/in/yourname (optional)"></div>
         </div>
@@ -346,11 +350,14 @@ let presenterPhotoUrl = null;
 // initialization" crash caught live, not just a style choice.
 const fieldValues = {};
 
+// 'article' used to be its own pill, separate from 'general_info' — merged
+// 2026-10-10 into one "Referenced Article" type, since both were ever just
+// a URL + tags. Reuses the existing 'general-info' typeTag rather than
+// inventing a new backend value — David: "general info is fine."
 const CONTENT_TYPES = {
-  presentation: { label: 'Presentation', typeTag: 'presentation', submitLabel: 'Submit Presentation', synopsisLabel: 'Story', presenterLabel: 'Presenter', takeawaysLabel: 'Key Takeaways' },
-  help_file:    { label: 'Help File',    typeTag: 'help-file',    submitLabel: 'Submit Help File',    synopsisLabel: 'What this covers', presenterLabel: 'Author', takeawaysLabel: 'Key Points' },
-  general_info: { label: 'General Info', typeTag: 'general-info', submitLabel: 'Submit',              synopsisLabel: 'What this is about', presenterLabel: 'Author', takeawaysLabel: 'Key Points' },
-  article:      { label: 'Article',      typeTag: 'article',      submitLabel: 'Submit Article',       synopsisLabel: 'What this article is about', presenterLabel: 'Author', takeawaysLabel: 'Key Points' },
+  presentation: { label: 'Presentation', typeTag: 'presentation', submitLabel: 'Submit Presentation', synopsisLabel: 'Story', presenterLabel: 'Presenter', takeawaysLabel: 'Key Takeaways', isReference: false },
+  help_file:    { label: 'Help File',    typeTag: 'help-file',    submitLabel: 'Submit Help File',    synopsisLabel: 'What this covers', presenterLabel: 'Author', takeawaysLabel: 'Key Points', isReference: false },
+  general_info: { label: 'Referenced Article', typeTag: 'general-info', submitLabel: 'Submit Reference', synopsisLabel: 'What this article is about', presenterLabel: 'Shared by', takeawaysLabel: 'Key Points', isReference: true },
 };
 let currentType = 'presentation';
 
@@ -387,6 +394,14 @@ function renderTypeRow() {
     `<button type="button" class="type-pill${key === currentType ? ' active' : ''}" onclick="selectType('${key}')">${t.label}</button>`
   ).join('');
 }
+// A Referenced Article is a pointer to someone else's content, not
+// original material — it has no recording, no photos of its own, and no
+// takeaways/what's-covered/best-for to write, because those all imply
+// content Nile is authoring, and this type deliberately never reproduces
+// or summarizes the source. David, 2026-10-10: "that's not a standalone
+// curated archive of third-party articles... tags, not scraping."
+const REFERENCE_ONLY_HIDDEN_IDS = ['field-photos', 'field-videos', 'field-takeaways', 'field-headings', 'field-bestfor', 'field-linkedin'];
+
 function selectType(key) {
   const prevTag = CONTENT_TYPES[currentType]?.typeTag;
   if (prevTag) userTags = userTags.filter(t => !(t.locked && t.value === prevTag));
@@ -398,6 +413,27 @@ function selectType(key) {
   document.getElementById('f-synopsis').dataset.placeholder = 'Tap to write ' + t.synopsisLabel.toLowerCase();
   document.getElementById('btn-submit').textContent = t.submitLabel;
   document.getElementById('field-event-code').style.display = key === 'presentation' ? 'block' : 'none';
+
+  REFERENCE_ONLY_HIDDEN_IDS.forEach(id => {
+    document.getElementById(id).style.display = t.isReference ? 'none' : '';
+  });
+  // onda-edit-row only ever opens via a click on onda-play-btn, so hiding
+  // the button alone is enough — no separate state to untangle here.
+  document.getElementById('onda-play-btn').style.display = t.isReference ? 'none' : '';
+  if (t.isReference) document.getElementById('onda-edit-row').style.display = 'none';
+
+  document.getElementById('f-title').dataset.placeholder = t.isReference
+    ? 'Article title — include the author, e.g. "Title — by Author Name"'
+    : 'Tap to add a title';
+
+  document.getElementById('label-deck').textContent = t.isReference ? 'Article URL' : 'Deck / Slides';
+  document.getElementById('f-deck').dataset.placeholder = t.isReference
+    ? 'The actual link to the article'
+    : 'Google Slides, Canva, or PDF link (optional)';
+
+  // Placeholders just changed above — refresh so an empty field shows its
+  // new hint immediately instead of waiting for the next click/blur cycle.
+  renderEditableFields();
   renderTypeRow();
   renderTags();
 }
