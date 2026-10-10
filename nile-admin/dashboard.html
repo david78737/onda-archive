@@ -727,6 +727,11 @@ function render() {
       const authorB = (b.presenter_name || b.presenter || '').toLowerCase();
       return authorA.localeCompare(authorB) || (a.title || '').toLowerCase().localeCompare((b.title || '').toLowerCase());
     });
+  } else {
+    // Default order: newest (highest id) first. Previously unsorted —
+    // whatever order the API happened to return, which read as random.
+    // David, 2026-10-10: "I don't see any order the tiles are in."
+    rows.sort((a, b) => b.id - a.id);
   }
   document.getElementById('dash-count').textContent =
     `${allTiles.length} tile${allTiles.length !== 1 ? 's' : ''} total`;
@@ -814,6 +819,7 @@ function render() {
         <div class="tc-header" onclick="selectTile(${t.id}, ${i})">
           <div class="tc-title-row">
             <span class="tc-chevron">▶</span>
+            <span style="font-size:12px;font-weight:700;color:var(--muted);font-variant-numeric:tabular-nums;flex-shrink:0;margin-top:3px;" title="Tile ID">#${t.id}</span>
             <div style="flex:1">
               <div class="tc-title">${t.title || '(untitled)'} <a href="../nile-tile-create/?org_l1=${encodeURIComponent(t.org_l1 || '')}&org_l2=${encodeURIComponent(t.org_l2 || '')}&org_l3=${encodeURIComponent(t.org_l3 || '')}&tile_id=${t.id}&phone=${encodeURIComponent(authedPhone)}&token=${encodeURIComponent(authToken)}" class="tc-edit-pencil" onclick="event.stopPropagation()" title="Edit this tile">✎</a></div>
               ${t.brief ? `<div class="tc-tagline">${t.brief}</div>` : ''}
