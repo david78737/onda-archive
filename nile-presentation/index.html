@@ -591,9 +591,12 @@ function render() {
   if (needsAttention) {
     rows.sort((a, b) => completenessGaps(b).length - completenessGaps(a).length);
   } else {
+    // "Newest" sorts by id, not created_at — same default as the Station
+    // Dashboard now, and unambiguous (id order can't drift the way two
+    // timestamps a moment apart sometimes can). David, 2026-10-10.
     rows.sort((a, b) => sortAZ
       ? (a.title || '').toLowerCase().localeCompare((b.title || '').toLowerCase())
-      : new Date(b.created_at || 0) - new Date(a.created_at || 0));
+      : b.id - a.id);
   }
 
   renderTagZones(rows);
@@ -670,6 +673,7 @@ function render() {
         <div class="tc-header" onclick="selectTile(${t.id}, ${i})">
           <div class="tc-title-row">
             <span class="tc-chevron">▶</span>
+            <span style="font-size:12px;font-weight:700;color:var(--muted);font-variant-numeric:tabular-nums;flex-shrink:0;margin-top:3px;" title="Tile ID">#${t.id}</span>
             <div style="flex:1">
               <div class="tc-title">${t.title || '(untitled)'} <a href="../nile-tile-create/?org_l1=${encodeURIComponent(t.org_l1 || '')}&org_l2=${encodeURIComponent(t.org_l2 || '')}&org_l3=${encodeURIComponent(t.org_l3 || '')}&tile_id=${t.id}&phone=${encodeURIComponent(PHONE)}&token=${encodeURIComponent(TOKEN)}" class="tc-edit-pencil" onclick="event.stopPropagation()" title="Edit this tile">✎</a></div>
               ${t.brief ? `<div style="font-size:13px;font-style:italic;color:var(--teal-dark);margin-top:2px;">${t.brief}</div>` : ''}
