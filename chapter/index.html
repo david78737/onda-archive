@@ -441,6 +441,11 @@ const LOCKED_PRESENTER = params.get('presenter') || '';
 // it, so every tap landed on the full, unfiltered station regardless of
 // which screen it came from.
 const CTX = (params.get('ctx') || '').toLowerCase();
+// Lets a "preview as a visitor" link from the Dashboard/My Archive land on
+// one specific tile, not just the whole filtered station — same seeding
+// pattern as ctx above, just feeding the free-text search instead of a tag.
+// David, 2026-10-10.
+const Q = params.get('q') || '';
 
 function humanizeStationId(id) {
   return id.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
@@ -454,8 +459,9 @@ function initialsForStationId(id) {
 // ── State ─────────────────────────────────────────────────────────────────────
 let allSessions = [];
 let allTags     = [];
-const state     = { speaker: LOCKED_PRESENTER || 'all', tags: new Set(CTX ? [CTX] : []), query: '' };
+const state     = { speaker: LOCKED_PRESENTER || 'all', tags: new Set(CTX ? [CTX] : []), query: Q };
 if (LOCKED_PRESENTER) document.getElementById('contributor-toggle').style.display = 'none';
+if (Q) document.getElementById('search-input').value = Q;
 
 // ── Avatar helpers ─────────────────────────────────────────────────────────────
 const _pal = ['#3a5a8a','#5a3a8a','#3a7a5a','#7a4a3a','#6a3a6a','#3a6a7a','#8a5a3a'];

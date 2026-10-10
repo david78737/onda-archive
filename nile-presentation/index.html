@@ -161,6 +161,10 @@
     margin: 6px 18px 0; padding: 6px 10px; border-radius: 6px;
     background: var(--warn-bg); color: var(--warn); font-size: 12px; font-weight: 600;
   }
+  .tc-vocab-flag {
+    margin: 6px 18px 0; padding: 6px 10px; border-radius: 6px;
+    background: var(--warn-bg); color: var(--warn); font-size: 12px; font-weight: 600;
+  }
 
   .tc-identity { display: flex; align-items: center; gap: 8px; padding: 0 18px 8px; }
   .tc-sleeve-img { width: 28px; height: 28px; border-radius: 50%; object-fit: cover; flex-shrink: 0; }
@@ -634,6 +638,12 @@ function render() {
     const headings = Array.isArray(t.headings) ? t.headings.filter(Boolean) : [];
     const titleSuggestions = Array.isArray(t.title_suggestions) ? t.title_suggestions.filter(Boolean) : [];
     const gaps = completenessGaps(t);
+    // Same check as dashboard.html — a tag with no heading sharing its
+    // exact word still filters this tile into a search, but an app
+    // help-link jump to it lands nowhere specific. David, 2026-10-10.
+    const myTileTags = Array.isArray(t.tags) ? t.tags.filter(Boolean) : [];
+    const orphanTags = myTileTags.filter(tag =>
+      !headings.some(h => h.toLowerCase().includes(tag.toLowerCase())));
     const st = getUiState(t.id);
 
     const reviewPill = (text, idx, field, tappable) => {
@@ -696,6 +706,7 @@ function render() {
         </div>
         ${presenterDisplay || sleeveImg ? `<div class="tc-identity">${sleeveImg ? `<img class="tc-sleeve-img" src="${sleeveImg}">` : (presenterDisplay ? `<span class="tc-sleeve-placeholder">${presenterDisplay.trim().charAt(0).toUpperCase()}</span>` : '')}<span class="tc-identity-name">${presenterDisplay}</span><span class="tc-edit-btn" onclick="event.stopPropagation();startThumbnailUpload(${t.id})">Change thumbnail</span></div>` : ''}
         ${gaps.length ? `<div class="tc-gaps-flag">⚠ Missing: ${gaps.join(', ')}</div>` : ''}
+        ${orphanTags.length ? `<div class="tc-vocab-flag">⚠ Tag${orphanTags.length > 1 ? 's' : ''} with no matching heading, so a help-link to ${orphanTags.length > 1 ? 'them' : 'it'} would land nowhere specific: ${orphanTags.join(', ')}</div>` : ''}
         ${(() => {
           const created = formatDate(t.created_at);
           const updated = formatDate(t.updated_at);
@@ -714,6 +725,7 @@ function render() {
                onda_file.size is the actual signal. David, 2026-10-05. -->
           ${(t.onda_file && t.onda_file.size > 16) ? `<a href="${playerUrlFor(t.onda_url)}" target="_blank" rel="noopener" onclick="event.stopPropagation()">Watch ONDA Viewer</a>` : '<span style="color:var(--muted);font-size:13px">No linked file</span>'}
           ${t.deck_url ? `<a href="${t.deck_url}" target="_blank" rel="noopener" onclick="event.stopPropagation()">View Full Document</a>` : ''}
+          ${t.station_id ? `<a href="../chapter/?station=${encodeURIComponent(t.station_id)}&q=${encodeURIComponent(t.title || '')}" target="_blank" rel="noopener" onclick="event.stopPropagation()">Preview as a visitor would see it</a>` : ''}
           ${status !== 'archived' ? `<a href="#" onclick="event.stopPropagation();event.preventDefault();archiveTile(${t.id})" style="color:var(--muted);">Archive</a>` : ''}
           ${(!t.org_l1 && myStations.length) ? `<select onclick="event.stopPropagation()" onchange="event.stopPropagation();sendToStation(${t.id}, this.value)" style="font-size:13px;color:var(--teal);border:1px solid var(--border);border-radius:6px;padding:4px 6px;background:#fff;">` +
             `<option value="" selected disabled>Send to a Station…</option>` +
