@@ -718,7 +718,7 @@ function render() {
                onda_file.size is the actual signal. David, 2026-10-05. -->
           ${(t.onda_file && t.onda_file.size > 16) ? `<a href="${playerUrlFor(t.onda_url)}" target="_blank" rel="noopener" onclick="event.stopPropagation()">Watch ONDA Viewer</a>` : '<span style="color:var(--muted);font-size:13px">No linked file</span>'}
           ${t.deck_url ? `<a href="${t.deck_url}" target="_blank" rel="noopener" onclick="event.stopPropagation()">View Full Document</a>` : ''}
-          ${t.station_id ? `<a href="../chapter/?station=${encodeURIComponent(t.station_id)}&q=${encodeURIComponent(t.title || '')}" target="_blank" rel="noopener" onclick="event.stopPropagation()">Preview as a visitor would see it</a>` : ''}
+          ${(t.onda_file && t.onda_file.size > 16) ? `<a href="${playerUrlFor(t.onda_url)}" target="_blank" rel="noopener" onclick="event.stopPropagation()">Preview as a visitor would see it</a>` : ''}
           ${status !== 'archived' ? `<a href="#" onclick="event.stopPropagation();event.preventDefault();archiveTile(${t.id})" style="color:var(--muted);">Archive</a>` : ''}
           ${(!t.org_l1 && myStations.length) ? `<select onclick="event.stopPropagation()" onchange="event.stopPropagation();sendToStation(${t.id}, this.value)" style="font-size:13px;color:var(--teal);border:1px solid var(--border);border-radius:6px;padding:4px 6px;background:#fff;">` +
             `<option value="" selected disabled>Send to a Station…</option>` +

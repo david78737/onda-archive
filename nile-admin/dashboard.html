@@ -164,22 +164,16 @@
     margin: 6px 18px 0; padding: 6px 10px; border-radius: 6px;
     background: var(--warn-bg); color: var(--warn); font-size: 12px; font-weight: 600;
   }
-  /* Per-tile "Publishing tools" accordion — same collapsed-by-default
-     pattern as .prompt-tuner above, but scoped with its own class names
-     (not .tc-chevron) since that class is already overloaded by the outer
-     tile-card's own expand/collapse and would rotate in sync with it by
-     accident if reused here. David, 2026-10-10. */
-  .pub-tools { margin: 10px 18px 0; border: 1px solid var(--border); border-radius: 8px; overflow: hidden; }
-  .pub-tools-header { padding: 8px 12px; cursor: pointer; display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 700; color: var(--teal); }
-  .pub-chevron { font-size: 12px; transition: transform .15s; }
-  .pub-chevron.open { transform: rotate(90deg); }
-  .pub-tools-body { display: none; padding: 0 12px 12px; }
-  .pub-tools-body.open { display: block; }
-  .pub-tools-body a, .pub-tools-body button {
-    font-size: 13px; font-weight: 600; color: var(--teal); text-decoration: none;
-    background: none; border: none; cursor: pointer; padding: 0; font-family: inherit;
-    display: block; margin-top: 6px;
+  /* Publishing tools — used to be a collapsed-by-default accordion (same
+     pattern as .prompt-tuner above); David found that hid two actions he
+     reaches for constantly behind a tap most people never noticed was
+     there. Always-visible real buttons now, 2026-10-12. */
+  .pub-tools { margin: 10px 18px 0; }
+  .pub-tools-label {
+    font-size: 11px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase;
+    color: var(--muted); margin-bottom: 6px;
   }
+  .pub-tools-body { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
 
   .tc-tagline { font-size: 13px; font-style: italic; color: var(--teal-dark); margin-top: 2px; }
   .tc-identity { display: flex; align-items: center; gap: 8px; padding: 0 18px 8px; }
@@ -874,13 +868,12 @@ function render() {
           ${status === 'submitted' ? `<a href="#" id="draft-btn-${t.id}" onclick="event.stopPropagation();event.preventDefault();generateDraft(${t.id})" style="margin-left:auto;">${t.synopsis ? 'Regenerate Draft' : 'Generate Draft'}</a>` : ''}
         </div>
         <div class="pub-tools" onclick="event.stopPropagation()">
-          <div class="pub-tools-header" onclick="document.getElementById('pub-body-${t.id}').classList.toggle('open');document.getElementById('pub-chevron-${t.id}').classList.toggle('open')">
-            <span class="pub-chevron" id="pub-chevron-${t.id}">▶</span>
-            <span>Publishing tools</span>
-          </div>
-          <div class="pub-tools-body" id="pub-body-${t.id}">
-            <a href="../chapter/?station=${encodeURIComponent(stationId || '')}&q=${encodeURIComponent(t.title || '')}" target="_blank" rel="noopener">Preview as a visitor would see it</a>
-            <button onclick="toggleVisible(${t.id}, ${!!t.is_visible})">${t.is_visible ? 'Hide from view' : 'Make visible now'}</button>
+          <div class="pub-tools-label">Publishing tools</div>
+          <div class="pub-tools-body">
+            ${(t.onda_file && t.onda_file.size > 16)
+              ? `<a class="refresh-btn" href="${playerUrlFor(t.onda_url)}" target="_blank" rel="noopener">Preview as a visitor would see it</a>`
+              : `<span style="color:var(--muted);font-size:13px">No linked file to preview</span>`}
+            <button class="refresh-btn" onclick="toggleVisible(${t.id}, ${!!t.is_visible})">${t.is_visible ? 'Hide from view' : 'Make visible now'}</button>
           </div>
         </div>
       </div>`;
