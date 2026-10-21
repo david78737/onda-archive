@@ -353,6 +353,14 @@ async function loadWorkList() {
 
   const merged = {}; // key: org_l1|org_l2|org_l3 -> { l1, l2, l3, name, roles:Set }
 
+  // 'expired' when the server refused the sign-in (401/403), otherwise a
+  // short description of the first other failure; null when both worked.
+  let lookupFailure = null;
+  function noteLookupFailure(status) {
+    if (status === 401 || status === 403) lookupFailure = 'expired';
+    else if (!lookupFailure) lookupFailure = status ? 'error ' + status : 'no connection';
+  }
+
   function mergeIn(l1, l2, l3, name, role, description) {
     const key = `${l1}|${l2}|${l3}`;
     if (!merged[key]) merged[key] = { l1, l2, l3, name: name || l1, description: description || null, roles: new Set() };
@@ -369,8 +377,10 @@ async function loadWorkList() {
       const data = await r.json();
       const orgs = Array.isArray(data) ? data : (data.items || data.orgs || []);
       orgs.forEach(o => mergeIn(o.org_l1, o.org_l2, o.org_l3, o.org_name, o.role === 'curator' ? 'curator' : 'coordinator', o.description));
+    } else {
+      noteLookupFailure(r.status);
     }
-  } catch (e) { /* endpoint may be unavailable — contributor-only accounts still work below */ }
+  } catch (e) { noteLookupFailure(0); }
 
   // Contributor stations
   try {
@@ -383,10 +393,25 @@ async function loadWorkList() {
       (Array.isArray(stations) ? stations : []).forEach(s =>
         mergeIn(s.org_l1, s.org_l2, s.org_l3, s.station_name, s.role === 'organizer' ? 'organizer' : 'presenter', s.description)
       );
+    } else {
+      noteLookupFailure(r.status);
     }
-  } catch (e) { /* contributor endpoint unavailable — curator-only accounts still work above */ }
+  } catch (e) { noteLookupFailure(0); }
 
   const entries = Object.values(merged);
+  // A failed lookup must not look like "you have no stations". Found
+  // 2026-10-21: signing in from the Replay app replaced this page's sign-in,
+  // both lookups were refused, and the page said "Nothing yet".
+  if (!entries.length && lookupFailure === 'expired') {
+    list.innerHTML = '<div class="empty-note">Your sign-in has expired — it may have been replaced by signing in on another device. ' +
+      '<a href="login.html" onclick="OndaNileAuth.logOut()">Sign in again</a>.</div>';
+    return;
+  }
+  if (!entries.length && lookupFailure) {
+    list.innerHTML = '<div class="empty-note">Couldn’t load your stations (' + lookupFailure + '). ' +
+      '<a href="#" onclick="loadWorkList(); return false;">Try again</a>.</div>';
+    return;
+  }
   if (!entries.length) {
     list.innerHTML = '<div class="empty-note">Nothing yet under this phone number — get started below.</div>';
     return;
