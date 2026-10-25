@@ -290,6 +290,73 @@
   .prompt-tuner-body.open { display: block; }
   #prompt-tuner-chevron.open { transform: rotate(90deg); }
 
+  /* ── Edit & Preview modal — WYSIWYG content + visual-identity editor,
+     with a live preview of the real public page. David, 2026-10-25. ── */
+  .epm-backdrop {
+    position: fixed; inset: 0; background: rgba(0,0,0,.5);
+    display: none; align-items: center; justify-content: center;
+    z-index: 2000; padding: 20px;
+  }
+  .epm-backdrop.open { display: flex; }
+  .epm-panel {
+    background: var(--surface); border-radius: 12px; width: 100%; max-width: 1140px;
+    max-height: 92vh; display: flex; flex-direction: column; overflow: hidden;
+    box-shadow: 0 20px 60px rgba(0,0,0,.35);
+  }
+  .epm-header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 14px 18px; border-bottom: 1px solid var(--border); flex-shrink: 0;
+  }
+  .epm-header h2 { font-size: 15px; font-weight: 700; }
+  .epm-close { background: none; border: none; font-size: 22px; cursor: pointer; color: var(--muted); line-height: 1; padding: 4px 8px; }
+  .epm-close:hover { color: var(--ink); }
+  .epm-body { display: flex; flex: 1; min-height: 0; }
+  .epm-preview { flex: 1 1 50%; background: #0f1117; border-right: 1px solid var(--border); display: flex; flex-direction: column; min-width: 0; }
+  .epm-preview-toolbar { display: flex; gap: 8px; padding: 10px 14px; background: var(--surface); border-bottom: 1px solid var(--border); flex-shrink: 0; }
+  .epm-preview-toolbar button {
+    font-size: 12px; padding: 5px 12px; border-radius: 6px; border: 1px solid var(--border);
+    background: var(--surface); cursor: pointer; font-family: inherit;
+  }
+  .epm-preview-toolbar button.active { background: var(--teal); color: #fff; border-color: var(--teal); }
+  .epm-preview iframe { flex: 1; width: 100%; border: none; }
+  .epm-fields { flex: 1 1 50%; overflow-y: auto; padding: 16px 20px 20px; min-width: 0; }
+  .epm-section-title {
+    font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .08em;
+    color: var(--teal); margin: 18px 0 10px;
+  }
+  .epm-section-title:first-child { margin-top: 0; }
+  .epm-section-desc { font-size: 11px; color: var(--muted); margin: -6px 0 10px; }
+  .epm-field { margin-bottom: 10px; }
+  .epm-field label { display: block; font-size: 12px; font-weight: 600; color: var(--ink); margin-bottom: 4px; }
+  .epm-field label .opt { font-weight: 400; color: var(--muted); }
+  .epm-field input[type="text"], .epm-field select, .epm-field textarea {
+    width: 100%; padding: 7px 9px; font-size: 13px; border: 1px solid var(--border);
+    border-radius: 6px; font-family: inherit; color: var(--ink);
+  }
+  .epm-field textarea { min-height: 54px; resize: vertical; }
+  .epm-field .hint { font-size: 11px; color: var(--muted); margin-top: 3px; }
+  .epm-check-row { display: flex; align-items: center; gap: 6px; margin-top: 5px; font-size: 12px; color: var(--muted); }
+  .epm-row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .epm-color-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px 16px; }
+  .epm-color-row { display: flex; align-items: center; gap: 8px; }
+  .epm-color-row input[type="color"] { width: 36px; height: 30px; border: 1px solid var(--border); border-radius: 6px; padding: 2px; cursor: pointer; flex-shrink: 0; }
+  .epm-color-row span { font-size: 12px; color: var(--ink); }
+  .epm-icon-row { display: flex; align-items: center; gap: 12px; }
+  .epm-icon-preview {
+    width: 44px; height: 44px; border-radius: 8px; border: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: center; overflow: hidden;
+    background: var(--bg); font-size: 18px; color: var(--muted); flex-shrink: 0;
+  }
+  .epm-icon-preview img { width: 100%; height: 100%; object-fit: cover; }
+  .epm-footer { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 12px 18px; border-top: 1px solid var(--border); flex-shrink: 0; }
+  .epm-status { font-size: 12px; color: var(--muted); }
+  .epm-status.err { color: var(--error); }
+  .epm-status.ok { color: var(--success); }
+  @media (max-width: 820px) {
+    .epm-body { flex-direction: column; overflow-y: auto; }
+    .epm-preview { flex: 0 0 320px; }
+  }
+
   /* Collapsed by default so a long tile list isn't permanently pushed down
      by filters/search/sort/prompt-tuner. The toggle lives on the sticky
      .dash-header card itself (a chevron button, not a separate bar) —
@@ -406,6 +473,130 @@
 
   <div id="tiles-list"></div>
   <input type="file" id="thumb-file-input" accept="image/*" style="display:none" onchange="handleThumbnailFileChange(event)">
+</div>
+
+<!-- ── Edit & Preview modal ── -->
+<div class="epm-backdrop" id="epm-backdrop">
+  <div class="epm-panel">
+    <div class="epm-header">
+      <h2 id="epm-title">Edit &amp; Preview</h2>
+      <button class="epm-close" onclick="closeEditPreview()" aria-label="Close">&times;</button>
+    </div>
+    <div class="epm-body">
+      <div class="epm-preview">
+        <div class="epm-preview-toolbar">
+          <button type="button" id="epm-view-collapsed" class="active" onclick="epmToggleView(false)">Collapsed</button>
+          <button type="button" id="epm-view-expanded" onclick="epmToggleView(true)">Expanded</button>
+        </div>
+        <iframe id="epm-iframe" src="about:blank" title="Live preview"></iframe>
+      </div>
+      <div class="epm-fields">
+        <div class="epm-section-title">Content</div>
+        <div class="epm-field">
+          <label for="epm-f-title">Title</label>
+          <input type="text" id="epm-f-title" oninput="epmQueuePreview()">
+        </div>
+        <div class="epm-field">
+          <label for="epm-f-synopsis">Synopsis</label>
+          <textarea id="epm-f-synopsis" oninput="epmQueuePreview()"></textarea>
+        </div>
+        <div class="epm-field">
+          <label for="epm-f-who">Who it's for</label>
+          <textarea id="epm-f-who" oninput="epmQueuePreview()"></textarea>
+        </div>
+        <div class="epm-field">
+          <label for="epm-f-brief">One-liner <span class="opt">shown under the title, collapsed view</span></label>
+          <input type="text" id="epm-f-brief" oninput="epmQueuePreview()">
+        </div>
+        <div class="epm-field">
+          <label for="epm-f-tags">Tags <span class="opt">comma-separated</span></label>
+          <input type="text" id="epm-f-tags" oninput="epmQueuePreview()">
+        </div>
+        <div class="epm-field">
+          <label for="epm-f-takeaways">Key Takeaways <span class="opt">one per line</span></label>
+          <textarea id="epm-f-takeaways" oninput="epmQueuePreview()"></textarea>
+        </div>
+        <div class="epm-field">
+          <label for="epm-f-takeaways-label">Key Takeaways heading</label>
+          <input type="text" id="epm-f-takeaways-label" placeholder="Key Takeaways" oninput="epmQueuePreview()">
+          <div class="epm-check-row">
+            <input type="checkbox" id="epm-f-takeaways-nohead" onchange="document.getElementById('epm-f-takeaways-label').disabled=this.checked;epmQueuePreview()">
+            <label for="epm-f-takeaways-nohead" style="margin:0;font-weight:400;">No heading — hide this line entirely</label>
+          </div>
+        </div>
+        <div class="epm-field">
+          <label for="epm-f-headings">What's Covered <span class="opt">section headings, one per line</span></label>
+          <textarea id="epm-f-headings" oninput="epmQueuePreview()"></textarea>
+        </div>
+
+        <div class="epm-section-title">Station look</div>
+        <div class="epm-section-desc" id="epm-skin-status">Loading…</div>
+
+        <div class="epm-field">
+          <label>Station icon <span class="opt">optional</span></label>
+          <div class="epm-icon-row">
+            <div class="epm-icon-preview" id="epm-icon-preview"><span id="epm-icon-fallback">◆</span><img id="epm-icon-img" style="display:none"></div>
+            <input type="file" id="epm-icon-file" accept="image/*" style="display:none">
+            <button type="button" class="refresh-btn" id="epm-icon-upload-btn">Upload Icon…</button>
+          </div>
+          <div class="hint" id="epm-icon-status"></div>
+        </div>
+
+        <div class="epm-color-grid">
+          <div class="epm-color-row"><input type="color" id="epm-c-accent" value="#009688" oninput="epmQueuePreview()"><span>Accent</span></div>
+          <div class="epm-color-row"><input type="color" id="epm-c-page" value="#F1F6F6" oninput="epmQueuePreview()"><span>Page background</span></div>
+          <div class="epm-color-row"><input type="color" id="epm-c-tile" value="#FFFFFF" oninput="epmQueuePreview()"><span>Tile background</span></div>
+          <div class="epm-color-row"><input type="color" id="epm-c-border" value="#E0E0E0" oninput="epmQueuePreview()"><span>Border</span></div>
+        </div>
+
+        <div class="epm-field" style="margin-top:12px">
+          <label for="epm-font-select">Font <span class="opt">optional</span></label>
+          <select id="epm-font-select" onchange="epmOnFontChange()">
+            <option value="">Default (system font)</option>
+            <option value="sans">Sans-serif — Inter</option>
+            <option value="serif">Serif — Merriweather</option>
+            <option value="mono">Monospace — Roboto Mono</option>
+            <option value="__custom__">Custom Google Font…</option>
+          </select>
+          <input type="text" id="epm-font-custom" placeholder="e.g. Poppins, Roboto Slab" style="display:none;margin-top:6px" oninput="epmQueuePreview()">
+        </div>
+
+        <div class="epm-section-title">Station identity <span style="color:var(--muted);text-transform:none;font-weight:400;letter-spacing:normal">— required by Xano to save anything above</span></div>
+        <div class="epm-row2">
+          <div class="epm-field">
+            <label for="epm-id-name">Station name</label>
+            <input type="text" id="epm-id-name">
+          </div>
+          <div class="epm-field">
+            <label for="epm-id-curator">Your name</label>
+            <input type="text" id="epm-id-curator">
+          </div>
+        </div>
+        <div class="epm-row2">
+          <div class="epm-field">
+            <label for="epm-id-city">City</label>
+            <input type="text" id="epm-id-city">
+          </div>
+          <div class="epm-field">
+            <label for="epm-id-region">Region</label>
+            <input type="text" id="epm-id-region">
+          </div>
+        </div>
+        <div class="epm-field">
+          <label for="epm-id-linkedin">Your LinkedIn URL</label>
+          <input type="text" id="epm-id-linkedin" placeholder="https://linkedin.com/in/...">
+          <div class="hint">Xano requires this on every station profile save — not used anywhere public on a memorial-style station, but the field can't be skipped today.</div>
+        </div>
+      </div>
+    </div>
+    <div class="epm-footer">
+      <span class="epm-status" id="epm-status"></span>
+      <div style="display:flex;gap:8px">
+        <button class="refresh-btn" onclick="closeEditPreview()">Cancel</button>
+        <button class="refresh-btn" style="background:var(--teal);color:#fff;border-color:var(--teal)" onclick="epmSaveAll()">Save Changes</button>
+      </div>
+    </div>
+  </div>
 </div>
 
 <script src="../nile-auth.js"></script>
@@ -820,7 +1011,7 @@ function render() {
             <span class="tc-chevron">▶</span>
             <span style="font-size:12px;font-weight:700;color:var(--muted);font-variant-numeric:tabular-nums;flex-shrink:0;margin-top:3px;" title="Tile ID">#${t.id}</span>
             <div style="flex:1">
-              <div class="tc-title">${t.title || '(untitled)'} <a href="../nile-tile-create/?org_l1=${encodeURIComponent(t.org_l1 || '')}&org_l2=${encodeURIComponent(t.org_l2 || '')}&org_l3=${encodeURIComponent(t.org_l3 || '')}&tile_id=${t.id}&phone=${encodeURIComponent(authedPhone)}&token=${encodeURIComponent(authToken)}" class="tc-edit-pencil" onclick="event.stopPropagation()" title="Edit this tile">✎</a></div>
+              <div class="tc-title">${t.title || '(untitled)'} <a href="../nile-tile-create/?org_l1=${encodeURIComponent(t.org_l1 || '')}&org_l2=${encodeURIComponent(t.org_l2 || '')}&org_l3=${encodeURIComponent(t.org_l3 || '')}&tile_id=${t.id}&phone=${encodeURIComponent(authedPhone)}&token=${encodeURIComponent(authToken)}" class="tc-edit-pencil" onclick="event.stopPropagation()" title="Edit this tile">✎</a> <a href="#" class="tc-edit-pencil" onclick="event.stopPropagation();event.preventDefault();openEditPreview(${t.id})" title="Edit &amp; Preview — see exactly how this looks on the public page while you edit it">◧</a></div>
               ${t.brief ? `<div class="tc-tagline">${t.brief}</div>` : ''}
             </div>
             <div class="tc-header-controls">
@@ -1190,6 +1381,315 @@ async function generateDraft(id) {
     btn.textContent = original;
     btn.style.pointerEvents = '';
     showApiError(e.message);
+  }
+}
+
+// ════════════════════════════════════════════════════════════════════════
+// Edit & Preview modal — WYSIWYG content + station-look editor, with a
+// live, pixel-true preview (the real chapter/index.html, embedded in an
+// iframe in its own "preview" mode, driven entirely by postMessage — see
+// that file's PREVIEW_MODE block). David, 2026-10-25.
+// ════════════════════════════════════════════════════════════════════════
+
+let epmTileId = null;
+let epmExpanded = false;
+let epmIconUrl = null;
+let epmPreviewTimer = null;
+
+const EPM_FONT_CATEGORY_MAP = { sans: 'Inter', serif: 'Merriweather', mono: 'Roboto Mono' };
+function epmResolveFontFamily() {
+  const choice = document.getElementById('epm-font-select').value;
+  if (choice === '__custom__') return document.getElementById('epm-font-custom').value.trim() || null;
+  return EPM_FONT_CATEGORY_MAP[choice] || null;
+}
+function epmOnFontChange() {
+  const v = document.getElementById('epm-font-select').value;
+  document.getElementById('epm-font-custom').style.display = v === '__custom__' ? 'block' : 'none';
+  epmQueuePreview();
+}
+
+async function openEditPreview(tileId) {
+  const tile = allTiles.find(t => t.id === tileId);
+  if (!tile) return;
+  epmTileId = tileId;
+  epmExpanded = false;
+  epmIconUrl = null;
+
+  document.getElementById('epm-view-collapsed').classList.add('active');
+  document.getElementById('epm-view-expanded').classList.remove('active');
+  document.getElementById('epm-backdrop').classList.add('open');
+  document.getElementById('epm-status').className = 'epm-status';
+  document.getElementById('epm-status').textContent = '';
+  document.getElementById('epm-title').textContent = 'Edit & Preview — ' + (tile.title || '(untitled)');
+
+  document.getElementById('epm-f-title').value = tile.title || '';
+  document.getElementById('epm-f-synopsis').value = tile.synopsis || '';
+  document.getElementById('epm-f-who').value = tile.who || '';
+  document.getElementById('epm-f-brief').value = tile.brief || '';
+  document.getElementById('epm-f-tags').value = (Array.isArray(tile.tags) ? tile.tags : []).join(', ');
+  document.getElementById('epm-f-takeaways').value = (Array.isArray(tile.takeaways) ? tile.takeaways : []).join('\n');
+  document.getElementById('epm-f-headings').value = (Array.isArray(tile.headings) ? tile.headings : []).join('\n');
+  // '' (explicitly cleared) vs null/undefined (never set) are different
+  // states on the public page — '' means "show no heading at all" — so
+  // the checkbox, not just the text box, carries that distinction here.
+  const tlabel = tile.takeaways_label;
+  document.getElementById('epm-f-takeaways-nohead').checked = (tlabel === '');
+  document.getElementById('epm-f-takeaways-label').disabled = (tlabel === '');
+  document.getElementById('epm-f-takeaways-label').value = (tlabel && tlabel !== '') ? tlabel : '';
+
+  const org = { l1: tile.org_l1 || '', l2: tile.org_l2 || '', l3: tile.org_l3 || '' };
+  document.getElementById('epm-iframe').src =
+    `../chapter/index.html?preview=1&org_l1=${encodeURIComponent(org.l1)}&org_l2=${encodeURIComponent(org.l2)}&org_l3=${encodeURIComponent(org.l3)}`;
+
+  await epmLoadSkin(org);
+}
+
+function closeEditPreview() {
+  document.getElementById('epm-backdrop').classList.remove('open');
+  document.getElementById('epm-iframe').src = 'about:blank';
+  epmTileId = null;
+}
+
+function epmToggleView(expanded) {
+  epmExpanded = expanded;
+  document.getElementById('epm-view-collapsed').classList.toggle('active', !expanded);
+  document.getElementById('epm-view-expanded').classList.toggle('active', expanded);
+  epmPostPreview();
+}
+
+async function epmLoadSkin(org) {
+  const statusEl = document.getElementById('epm-skin-status');
+  statusEl.textContent = 'Loading station look…';
+
+  document.getElementById('epm-c-accent').value = '#009688';
+  document.getElementById('epm-c-page').value = '#F1F6F6';
+  document.getElementById('epm-c-tile').value = '#FFFFFF';
+  document.getElementById('epm-c-border').value = '#E0E0E0';
+  document.getElementById('epm-font-select').value = '';
+  document.getElementById('epm-font-custom').style.display = 'none';
+  document.getElementById('epm-font-custom').value = '';
+  document.getElementById('epm-id-name').value = '';
+  document.getElementById('epm-id-city').value = '';
+  document.getElementById('epm-id-region').value = '';
+  document.getElementById('epm-id-curator').value = '';
+  document.getElementById('epm-id-linkedin').value = '';
+  document.getElementById('epm-icon-img').style.display = 'none';
+  document.getElementById('epm-icon-fallback').style.display = 'flex';
+  epmIconUrl = null;
+
+  try {
+    const url = `${NILE_API}/nile/station/profile?phone=${encodeURIComponent(authedPhone)}&magic_auth_token=${encodeURIComponent(authToken)}&org_l1=${encodeURIComponent(org.l1)}&org_l2=${encodeURIComponent(org.l2)}&org_l3=${encodeURIComponent(org.l3)}`;
+    const r = await fetch(url);
+    if (r.status === 404) {
+      statusEl.textContent = 'No station profile saved yet — fill in Station Identity below to create one.';
+    } else if (r.ok) {
+      const d = await r.json();
+      if (d.station_name)   document.getElementById('epm-id-name').value = d.station_name;
+      if (d.city)            document.getElementById('epm-id-city').value = d.city;
+      if (d.region)          document.getElementById('epm-id-region').value = d.region;
+      if (d.curator_name)    document.getElementById('epm-id-curator').value = d.curator_name;
+      if (d.linkedin_url)    document.getElementById('epm-id-linkedin').value = d.linkedin_url;
+      if (d.custom_page_bg)  document.getElementById('epm-c-page').value = d.custom_page_bg;
+      if (d.custom_tile_bg)  document.getElementById('epm-c-tile').value = d.custom_tile_bg;
+      if (d.custom_border)   document.getElementById('epm-c-border').value = d.custom_border;
+      if (d.custom_accent)   document.getElementById('epm-c-accent').value = d.custom_accent;
+      if (d.badge_icon_url) {
+        epmIconUrl = d.badge_icon_url;
+        document.getElementById('epm-icon-img').src = d.badge_icon_url;
+        document.getElementById('epm-icon-img').style.display = 'block';
+        document.getElementById('epm-icon-fallback').style.display = 'none';
+      }
+      if (d.font_family) {
+        const known = Object.keys(EPM_FONT_CATEGORY_MAP).find(k => EPM_FONT_CATEGORY_MAP[k] === d.font_family);
+        if (known) {
+          document.getElementById('epm-font-select').value = known;
+        } else {
+          document.getElementById('epm-font-select').value = '__custom__';
+          document.getElementById('epm-font-custom').value = d.font_family;
+          document.getElementById('epm-font-custom').style.display = 'block';
+        }
+      }
+      statusEl.textContent = '';
+    } else {
+      statusEl.textContent = 'Could not load the current station look — showing defaults.';
+    }
+  } catch (e) {
+    statusEl.textContent = 'Could not load the current station look — showing defaults.';
+  }
+  epmQueuePreview();
+}
+
+// ── Icon upload — same endpoint station.html's own uploader uses ──
+document.getElementById('epm-icon-upload-btn').addEventListener('click', () => {
+  document.getElementById('epm-icon-file').click();
+});
+document.getElementById('epm-icon-file').addEventListener('change', async (e) => {
+  const file = e.target.files[0];
+  if (!file) return;
+  const statusEl = document.getElementById('epm-icon-status');
+  statusEl.textContent = 'Uploading…';
+  try {
+    const form = new FormData();
+    form.append('content', file);
+    const resp = await fetch('https://xrxm-29on-xlyt.n7e.xano.io/api:nile/upload-headshot', { method: 'POST', body: form });
+    const data = await resp.json();
+    if (!resp.ok || !data.url) throw new Error(data.message || 'Upload failed.');
+    epmIconUrl = data.url;
+    document.getElementById('epm-icon-img').src = data.url;
+    document.getElementById('epm-icon-img').style.display = 'block';
+    document.getElementById('epm-icon-fallback').style.display = 'none';
+    statusEl.textContent = 'Uploaded ✓';
+    setTimeout(() => { statusEl.textContent = ''; }, 2500);
+    epmQueuePreview();
+  } catch (err) {
+    statusEl.textContent = err.message;
+  } finally {
+    e.target.value = '';
+  }
+});
+
+// ── Live preview wiring ──
+// Builds the exact shape chapter/index.html's normalizePresentation()
+// produces, and applyTheme() expects — see that file's PREVIEW_MODE
+// handler, which renders these with the SAME functions the real page uses.
+function epmBuildDraftTile() {
+  const tile = allTiles.find(t => t.id === epmTileId) || {};
+  const takeaways = document.getElementById('epm-f-takeaways').value.split('\n').map(s => s.trim()).filter(Boolean);
+  const headings  = document.getElementById('epm-f-headings').value.split('\n').map(s => s.trim()).filter(Boolean);
+  const tags      = document.getElementById('epm-f-tags').value.split(',').map(s => s.trim()).filter(Boolean);
+  const noHead    = document.getElementById('epm-f-takeaways-nohead').checked;
+  const labelText = document.getElementById('epm-f-takeaways-label').value.trim();
+  return {
+    id: 'preview-' + epmTileId,
+    title: document.getElementById('epm-f-title').value,
+    presenter: tile.presenter_name || tile.presenter || '',
+    tags,
+    synopsis: document.getElementById('epm-f-synopsis').value,
+    takeaways,
+    headings,
+    who: document.getElementById('epm-f-who').value,
+    brief: document.getElementById('epm-f-brief').value,
+    takeaways_label: noHead ? '' : (labelText || null),
+    photo: tile.photo_url || tile.photo || null,
+    onda_url: tile.onda_url || null,
+    status: tile.status || null,
+  };
+}
+function epmBuildDraftSkin() {
+  return {
+    accent_color:  document.getElementById('epm-c-accent').value,
+    bg_color:      document.getElementById('epm-c-page').value,
+    surface_color: document.getElementById('epm-c-tile').value,
+    border_color:  document.getElementById('epm-c-border').value,
+    display_name:  document.getElementById('epm-id-name').value || null,
+    tagline:       null,
+    logo_url:      epmIconUrl,
+    font_family:   epmResolveFontFamily(),
+  };
+}
+function epmPostPreview() {
+  const iframe = document.getElementById('epm-iframe');
+  if (!iframe.contentWindow) return;
+  iframe.contentWindow.postMessage({
+    type: 'ondaPreviewUpdate',
+    tile: epmBuildDraftTile(),
+    skin: epmBuildDraftSkin(),
+    expanded: epmExpanded,
+  }, '*');
+}
+function epmQueuePreview() {
+  clearTimeout(epmPreviewTimer);
+  epmPreviewTimer = setTimeout(epmPostPreview, 150);
+}
+// The iframe posts this once its own message listener is ready (right after
+// (re)load) — without waiting for it, a postMessage sent before the iframe
+// finished loading would just be lost.
+window.addEventListener('message', (e) => {
+  if (e.data && e.data.type === 'ondaPreviewReady') epmPostPreview();
+});
+
+// ── Save ──
+// Two real writes under one button: the tile's content (patchTile, same
+// endpoint/pattern as every other field on this dashboard) and the
+// station's visual identity (nile/station/profile — the same endpoint
+// station.html uses, which is why Station Identity below is required: that
+// endpoint won't save a color or logo without a complete profile attached).
+async function epmSaveAll() {
+  const statusEl = document.getElementById('epm-status');
+  statusEl.className = 'epm-status';
+  statusEl.textContent = 'Saving…';
+
+  const tile = allTiles.find(t => t.id === epmTileId);
+  if (!tile) { statusEl.className = 'epm-status err'; statusEl.textContent = 'Lost track of which tile this was — close and reopen.'; return; }
+
+  const stationName = document.getElementById('epm-id-name').value.trim();
+  const city         = document.getElementById('epm-id-city').value.trim();
+  const region       = document.getElementById('epm-id-region').value.trim();
+  const curatorName  = document.getElementById('epm-id-curator').value.trim();
+  const linkedin     = document.getElementById('epm-id-linkedin').value.trim();
+  if (!stationName || !city || !region || !curatorName || !linkedin || !linkedin.includes('linkedin.com')) {
+    statusEl.className = 'epm-status err';
+    statusEl.textContent = 'Station Identity (name, city, region, your name, and a real linkedin.com URL) is required before anything in Station Look can save — Xano\'s rule, not this page\'s.';
+    return;
+  }
+
+  try {
+    // Content — a direct call, not the shared patchTile() helper: that
+    // helper swallows its own errors into the global error toast, which
+    // would leave this modal claiming success even if the content half
+    // failed. This needs both halves to genuinely succeed before saying so.
+    const draft = epmBuildDraftTile();
+    const contentResp = await fetch(`${NILE_API}/nile/tile/update`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        id: epmTileId, phone: authedPhone, magic_auth_token: authToken,
+        title: draft.title, synopsis: draft.synopsis, who: draft.who, brief: draft.brief,
+        tags: draft.tags, takeaways: draft.takeaways, headings: draft.headings,
+        takeaways_label: draft.takeaways_label,
+        // Not editable here, but omitting a key entirely (vs sending null)
+        // isn't reliably a no-op on Xano's side — confirmed 2026-09-17, the
+        // same reason patchTile() always resends this. Drop this and a
+        // manual tag-merge could silently un-hide here.
+        tags_hidden: tile.tags_hidden,
+      }),
+    });
+    if (!contentResp.ok) {
+      const e = await contentResp.json().catch(() => ({}));
+      throw new Error(e.message || 'Content save failed.');
+    }
+
+    // Station look
+    const payload = {
+      phone: authedPhone,
+      magic_auth_token: authToken,
+      org_l1: tile.org_l1 || '',
+      org_l2: tile.org_l2 || '',
+      org_l3: tile.org_l3 || '',
+      station_name: stationName,
+      city, region,
+      curator_name: curatorName,
+      linkedin_url: linkedin,
+      skin: 'custom',
+      badge_icon_url: epmIconUrl,
+      custom_page_bg: document.getElementById('epm-c-page').value,
+      custom_tile_bg: document.getElementById('epm-c-tile').value,
+      custom_border: document.getElementById('epm-c-border').value,
+      custom_accent: document.getElementById('epm-c-accent').value,
+      font_family: epmResolveFontFamily(),
+    };
+    const r = await fetch(NILE_API + '/nile/station/profile', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload),
+    });
+    const data = await r.json().catch(() => ({}));
+    if (!r.ok) throw new Error(data.message || 'Station look save failed.');
+
+    statusEl.className = 'epm-status ok';
+    statusEl.textContent = '✓ Saved';
+    await loadTiles();
+  } catch (e) {
+    statusEl.className = 'epm-status err';
+    statusEl.textContent = e.message || 'Save failed.';
   }
 }
 </script>

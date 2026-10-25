@@ -365,6 +365,12 @@
 
   /* ── Pending tile ── */
   .card.pending { opacity: .7; }
+
+  /* ── Preview mode (embedded in the Dashboard's Edit & Preview modal) —
+     only the one tile card matters here, not the browse chrome around it. ── */
+  .preview-mode .search-bar,
+  .preview-mode footer,
+  .preview-mode #status { display: none; }
 </style>
 </head>
 <body>
@@ -457,6 +463,13 @@ const CTX = (params.get('ctx') || '').toLowerCase();
 // pattern as ctx above, just feeding the free-text search instead of a tag.
 // David, 2026-10-10.
 const Q = params.get('q') || '';
+// Embedded by the Station Dashboard's Edit & Preview modal (dashboard.html)
+// instead of loaded standalone — skips the live Xano fetch entirely and
+// renders whatever draft tile/skin the parent window posts in, live, as the
+// curator types. This is the SAME render()/applyTheme() the real page uses,
+// so the preview is pixel-true, not a second copy that can drift.
+// David, 2026-10-25.
+const PREVIEW_MODE = params.get('preview') === '1';
 
 function humanizeStationId(id) {
   return id.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
@@ -947,7 +960,37 @@ function normalizePresentation(p) {
   };
 }
 
+// Preview mode: no Xano fetch at all — just listen for the parent window
+// (dashboard.html's Edit & Preview modal) posting draft data, and render it
+// with the exact same render()/applyTheme() the live page uses. The parent
+// sends { type:'ondaPreviewUpdate', tile: {...one normalizePresentation-
+// shaped object...}, skin: {...applyTheme-shaped object...} } on every
+// edit; this posts { type:'ondaPreviewReady' } once so the parent knows
+// it's safe to start sending (avoids a race on first load).
+if (PREVIEW_MODE) {
+  document.body.classList.add('preview-mode');
+  window.addEventListener('message', (e) => {
+    const data = e.data;
+    if (!data || data.type !== 'ondaPreviewUpdate') return;
+    if (data.skin) applyTheme(data.skin);
+    if (data.tile) {
+      allSessions = [data.tile];
+      state.tags = new Set();
+      state.speaker = 'all';
+      state.query = '';
+      render();
+      // Match whichever card state (collapsed/expanded) the modal's own
+      // toggle is currently showing, so switching it there updates here too.
+      const card = document.querySelector('#sessions .card');
+      if (card) card.classList.toggle('open', !!data.expanded);
+    }
+  });
+  if (window.parent !== window) window.parent.postMessage({ type: 'ondaPreviewReady' }, '*');
+}
+
 (async () => {
+  if (PREVIEW_MODE) return; // parent drives everything via postMessage above
+
   // Set default title from URL params while loading — same org_l3-first
   // fallback as applyTheme's real title, so there's no flash of the raw
   // breadcrumb before the skin loads (or if it never does).
