@@ -826,16 +826,13 @@ function render() {
                 <span class="status-pill" style="background:var(--teal-light);color:var(--teal)">${VISIBILITY_LABELS[visibility] || visibility}</span>
               </div>
               <div class="tc-approval-grid" onclick="event.stopPropagation()">
+                ${isSelfAuthored ? '' : `
                 <div class="tc-approval-box">
-                  <div class="tc-approval-col-label">Contributor${isSelfAuthored ? ' (you)' : ''}</div>
-                  ${isSelfAuthored ? `
-                  <label class="tc-approve-check"><input type="checkbox" ${contributorNileApproved ? 'checked' : ''} onchange="toggleApprovalSelf(${t.id}, 'nile', ${contributorNileApproved})">Nile</label>
-                  <label class="tc-approve-check"><input type="checkbox" ${contributorStationApproved ? 'checked' : ''} onchange="toggleApprovalSelf(${t.id}, 'station', ${contributorStationApproved})">Station</label>
-                  ` : `
+                  <div class="tc-approval-col-label">Contributor</div>
                   <label class="tc-approve-check readonly"><input type="checkbox" disabled ${contributorNileApproved ? 'checked' : ''}>Nile</label>
                   <label class="tc-approve-check readonly"><input type="checkbox" disabled ${contributorStationApproved ? 'checked' : ''}>Station</label>
-                  `}
                 </div>
+                `}
                 <div class="tc-approval-box">
                   <div class="tc-approval-col-label">Curator</div>
                   <label class="tc-approve-check"><input type="checkbox" ${nileApproved ? 'checked' : ''} onchange="${isSelfAuthored ? `toggleApprovalSelf(${t.id}, 'nile', ${nileApproved})` : `toggleApproval(${t.id}, 'nile', ${nileApproved})`}">Nile</label>
