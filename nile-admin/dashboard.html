@@ -538,6 +538,7 @@ function getUiState(tileId) {
     uiState[tileId] = {
       greyedTitles: new Set(), greyedHeadings: new Set(),
       uncheckedTakeaways: new Set(), editingField: null,
+      editingTakeawaysLabel: false,
     };
   }
   return uiState[tileId];
@@ -798,7 +799,11 @@ function render() {
       titleSuggestions.length ? `<div class="tc-body-section"><div class="tc-body-label">Suggested Titles — tap to use, × to reject</div><div class="tc-tags">${titleSuggestions.map((s, idx) => reviewPill(s, idx, 'title_suggestions', true)).join('')}</div></div>` : '',
       editableField("Who it's for", 'who', t.who),
       editableField('Synopsis', 'synopsis', t.synopsis),
-      takeaways.length ? `<div class="tc-body-section"><div class="tc-body-label">${t.takeaways_label || 'Key Takeaways'} — uncheck to drop</div>${takeaways.map((x, idx) => {
+      takeaways.length ? `<div class="tc-body-section"><div class="tc-body-label">${
+        st.editingTakeawaysLabel
+          ? `<input type="text" id="edit-takeaways_label-${t.id}" value="${t.takeaways_label || ''}" placeholder="Key Takeaways (shown to visitors as this, or blank for none)" onclick="event.stopPropagation()" style="font-size:12px;padding:4px 7px;border:1px solid var(--border);border-radius:5px;width:260px;max-width:60%"><span class="tc-edit-btn" onclick="event.stopPropagation();saveTakeawaysLabel(${t.id})">Save</span><span class="tc-edit-btn" onclick="event.stopPropagation();cancelTakeawaysLabelEdit(${t.id})">Cancel</span>`
+          : `${t.takeaways_label || 'Key Takeaways'}<span class="tc-edit-btn" onclick="event.stopPropagation();startTakeawaysLabelEdit(${t.id})">Edit label</span> — uncheck to drop`
+      }</div>${takeaways.map((x, idx) => {
         const checked = !st.uncheckedTakeaways.has(idx);
         return `<div class="tc-takeaway-row${checked ? '' : ' unchecked'}"><input type="checkbox" ${checked ? 'checked' : ''} onclick="event.stopPropagation()" onchange="toggleTakeawayChecked(${t.id}, ${idx}, this.checked)"><span>${x}</span></div>`;
       }).join('')}${st.uncheckedTakeaways.size ? `<button class="tc-edit-save" onclick="event.stopPropagation();saveTakeaways(${t.id})">Save Takeaways</button>` : ''}</div>` : '',
@@ -1121,6 +1126,25 @@ function saveEditField(tileId, field) {
   if (!textarea) return;
   getUiState(tileId).editingField = null;
   patchTile(tileId, { [field]: textarea.value });
+}
+
+// Lets the "Key Takeaways" heading itself be renamed per tile ("Lessons",
+// blank, etc.) — chapter/index.html (the public page) already reads
+// t.takeaways_label and falls back to "Key Takeaways", but nothing
+// anywhere could actually set it until now. David, 2026-10-25.
+function startTakeawaysLabelEdit(tileId) {
+  getUiState(tileId).editingTakeawaysLabel = true;
+  render();
+}
+function cancelTakeawaysLabelEdit(tileId) {
+  getUiState(tileId).editingTakeawaysLabel = false;
+  render();
+}
+function saveTakeawaysLabel(tileId) {
+  const input = document.getElementById(`edit-takeaways_label-${tileId}`);
+  if (!input) return;
+  getUiState(tileId).editingTakeawaysLabel = false;
+  patchTile(tileId, { takeaways_label: input.value });
 }
 
 // Takeaways: checkbox per item, checked = keep. Unchecking is local/visual
