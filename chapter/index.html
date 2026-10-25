@@ -959,8 +959,14 @@ function normalizePresentation(p) {
   const filtered = allData.filter(p =>
     // visibility 'public' or 'chapter' show on the station's own page;
     // 'private' (curator/admin-only) never does — that's what the Station
-    // Dashboard is for.
-    p.status === 'published' && p.visibility !== 'private' &&
+    // Dashboard is for. visibility is itself derived server-side from the
+    // two-key Contributor+Curator approval, which IS publishing — a
+    // separate status === 'published' requirement used to gate this too,
+    // a second unrequested switch on top of approval (removed 2026-10-25,
+    // same fix as dashboard.html's "Make Visible" button). `status` is a
+    // workflow-stage label (draft/submitted/pending/etc), not a publish
+    // flag, and is no longer part of this check.
+    p.visibility !== 'private' &&
       (!resolvedStationId || p.station_id === resolvedStationId)
   );
 
