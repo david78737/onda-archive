@@ -34,6 +34,13 @@
   header { background: var(--teal); padding: 16px 24px; }
   .wordmark { font-size: 18px; font-weight: 700; color: #fff; letter-spacing: .03em; }
   .header-sub { font-size: 12px; color: rgba(255,255,255,.75); margin-top: 1px; }
+  .back-link { color: rgba(255,255,255,0.75); text-decoration: none; font-size: 13px; font-weight: 600; margin-right: 4px; }
+
+  .toast {
+    position: fixed; top: 16px; left: 50%; transform: translateX(-50%);
+    background: var(--teal); color: #fff; padding: 10px 20px; border-radius: 8px;
+    font-size: 14px; font-weight: 600; z-index: 999; box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+  }
 
   .wrap { max-width: 560px; margin: 0 auto; padding: 32px 20px 0; }
 
@@ -127,9 +134,9 @@
     background: var(--teal-light); margin-top: 4px;
   }
   .org-actions-label { font-size: 12px; font-weight: 700; color: var(--teal); margin-bottom: 4px; text-transform: uppercase; letter-spacing: .08em; }
-  .action-row { display: flex; gap: 8px; }
+  .action-row { display: flex; flex-wrap: wrap; gap: 8px; }
   .btn-action {
-    flex: 1; padding: 10px 14px; font-size: 14px; font-weight: 600;
+    flex: 1 1 calc(50% - 4px); padding: 10px 14px; font-size: 14px; font-weight: 600;
     border: none; border-radius: 7px; cursor: pointer; font-family: inherit;
     text-decoration: none; text-align: center; display: inline-block;
     transition: opacity .15s;
@@ -176,8 +183,13 @@
 <body>
 
 <header>
-  <div class="wordmark">ONDA Nile · Admin</div>
-  <div class="header-sub">Curator &amp; coordinator access</div>
+  <div style="display:flex;align-items:center;gap:12px">
+    <a class="back-link" id="back-link" href="login.html">← Hub</a>
+    <div>
+      <div class="wordmark">ONDA Nile · Admin</div>
+      <div class="header-sub">Curator &amp; coordinator access</div>
+    </div>
+  </div>
 </header>
 
 <div class="wrap">
@@ -343,13 +355,9 @@ let selectedOrg = null;
     authToken   = token;
     authedPhone = phone;
     OndaNileAuth.startActivityTouch(authedPhone, authToken);
+    document.getElementById('back-link').href = `login.html?phone=${encodeURIComponent(phone)}&token=${encodeURIComponent(token)}`;
     if (p.get('saved') === 'station') {
-      // Show a success toast after returning from station profile save
-      const toast = document.createElement('div');
-      toast.textContent = '✓ Station profile saved';
-      toast.style.cssText = 'position:fixed;top:16px;left:50%;transform:translateX(-50%);background:#008B82;color:white;padding:10px 20px;border-radius:8px;font-size:14px;font-weight:600;z-index:999;box-shadow:0 2px 8px rgba(0,0,0,0.2)';
-      document.body.appendChild(toast);
-      setTimeout(() => toast.remove(), 3000);
+      showToast('✓ Station profile saved');
     }
     if (p.get('action') === 'new') {
       show('screen-org');
@@ -362,6 +370,34 @@ let selectedOrg = null;
 })();
 
 function dbg(msg) { console.log('[register]', msg); }
+
+function showToast(msg) {
+  const toast = document.createElement('div');
+  toast.className = 'toast';
+  toast.textContent = msg;
+  document.body.appendChild(toast);
+  setTimeout(() => toast.remove(), 3000);
+}
+
+// The public page anyone — no sign-in — can open to actually see a
+// station's content. Curators had no way to find this link at all before
+// 2026-10-25; it lives under ../chapter/, not anything in nile-admin/.
+function publicStationUrl(org_l1, org_l2, org_l3) {
+  const params = `?org_l1=${encodeURIComponent(org_l1)}&org_l2=${encodeURIComponent(org_l2)}&org_l3=${encodeURIComponent(org_l3)}`;
+  return new URL(`../chapter/${params}`, window.location.href).href;
+}
+
+async function copyStationLink(org_l1, org_l2, org_l3) {
+  const url = publicStationUrl(org_l1, org_l2, org_l3);
+  try {
+    await navigator.clipboard.writeText(url);
+    showToast('✓ Link copied');
+  } catch (e) {
+    // Clipboard API can be blocked (permissions, non-HTTPS, older browser) —
+    // fall back to a prompt so the link is still usable, never a dead end.
+    window.prompt('Copy this link:', url);
+  }
+}
 
 function show(id) {
   ['screen-phone','screen-picker','screen-org','screen-coordinator','screen-success']
@@ -521,11 +557,15 @@ function selectOrg(org, tile) {
   const authParams = `&phone=${encodeURIComponent(authedPhone)}&token=${encodeURIComponent(authToken)}`;
 
   if (org.role === 'curator') {
+    const viewUrl = publicStationUrl(org.org_l1, org.org_l2, org.org_l3);
     rowEl.innerHTML = `
-      <a class="btn-action btn-action-primary" href="event.html${params}${authParams}">Create Event</a>
+      <a class="btn-action btn-action-primary" href="dashboard.html${params}${authParams}">Station Dashboard</a>
+      <a class="btn-action btn-action-secondary" href="event.html${params}${authParams}">Create Event</a>
       <a class="btn-action btn-action-secondary" href="cards.html${params}${authParams}">Review Cards</a>
       <a class="btn-action btn-action-secondary" href="station.html${params}${authParams}">Edit Station Profile</a>
       <a class="btn-action btn-action-secondary" href="bulk-upload.html${params}${authParams}">Bulk Upload</a>
+      <a class="btn-action btn-action-secondary" href="${viewUrl}" target="_blank" rel="noopener">View Station</a>
+      <button type="button" class="btn-action btn-action-secondary" onclick="copyStationLink('${org.org_l1}','${org.org_l2}','${org.org_l3}')">Copy Link</button>
     `;
   } else {
     rowEl.innerHTML = `

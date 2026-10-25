@@ -135,6 +135,13 @@
   .action-label-primary { background: var(--teal); color: #fff; }
   .action-label-secondary { background: #fff; color: var(--teal); border: 1px solid var(--teal); }
   .action-desc { font-size: 13px; color: var(--muted); }
+  button.action-item { border: none; background: none; width: 100%; cursor: pointer; font: inherit; text-align: left; }
+
+  .toast {
+    position: fixed; top: 16px; left: 50%; transform: translateX(-50%);
+    background: var(--teal); color: #fff; padding: 10px 20px; border-radius: 8px;
+    font-size: 14px; font-weight: 600; z-index: 999; box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+  }
 
   .get-started-tile {
     display: block; text-decoration: none;
@@ -261,6 +268,33 @@ let showArchived = false;
     loadWorkList();
   }
 })();
+
+function showToast(msg) {
+  const toast = document.createElement('div');
+  toast.className = 'toast';
+  toast.textContent = msg;
+  document.body.appendChild(toast);
+  setTimeout(() => toast.remove(), 3000);
+}
+
+// The public page anyone — no sign-in — can open to actually see a
+// station's content. Curators had no way to find this link at all before
+// 2026-10-25; it lives under ../chapter/, not anything in nile-admin/.
+function publicStationUrl(org_l1, org_l2, org_l3) {
+  const params = `?org_l1=${encodeURIComponent(org_l1)}&org_l2=${encodeURIComponent(org_l2)}&org_l3=${encodeURIComponent(org_l3)}`;
+  return new URL(`../chapter/${params}`, window.location.href).href;
+}
+
+async function copyToClipboard(url) {
+  try {
+    await navigator.clipboard.writeText(url);
+    showToast('✓ Link copied');
+  } catch (e) {
+    // Clipboard API can be blocked (permissions, non-HTTPS, older browser) —
+    // fall back to a prompt so the link is still usable, never a dead end.
+    window.prompt('Copy this link:', url);
+  }
+}
 
 function normalizePhone(raw) {
   const d = raw.replace(/\D/g, '');
@@ -433,6 +467,7 @@ async function loadWorkList() {
     // also curates this station. Each role pill reveals only its own bucket.
     const actionsByRole = {};
     if (isCurator) {
+      const publicUrl = publicStationUrl(org.l1, org.l2, org.l3);
       actionsByRole.curator = [
         { label: 'Station Dashboard', desc: 'Every tile under your station, at every status',            href: `dashboard.html?${params}`,   primary: true  },
         { label: 'Create Event',      desc: 'Create a new event',                                        href: `event.html?${params}`,       primary: false },
@@ -440,6 +475,8 @@ async function loadWorkList() {
         { label: 'Station Profile',   desc: 'Select colors and skin of this station',                     href: `station.html?${params}`,     primary: false },
         { label: 'Bulk Upload',       desc: 'Upload multiple .onda files to your station at once',        href: `bulk-upload.html?${params}`, primary: false },
         { label: 'Enroll Contributor',desc: 'Add a contributor and assign their station directly',        href: `enroll.html?${params}`,      primary: false },
+        { label: 'View Station',      desc: 'The public page others see — no sign-in needed',             href: publicUrl, primary: false, newTab: true },
+        { label: 'Copy Link',         desc: 'Copy the public link so you can share it with anyone',        copy: publicUrl, primary: false },
       ];
     } else if (isCoordinator) {
       actionsByRole.coordinator = [
@@ -518,11 +555,17 @@ function selectRole(tileIdx, role, pillEl) {
   pillEl.classList.add('active');
   tile.classList.add('open');
   const actions = TILE_DATA[tileIdx][role] || [];
-  actionsCol.innerHTML = actions.map(a => `
-    <a class="action-item" href="${a.href}">
-      <span class="action-label ${a.primary ? 'action-label-primary' : 'action-label-secondary'}">${a.label}</span>
-      <span class="action-desc">${a.desc}</span>
-    </a>`).join('');
+  actionsCol.innerHTML = actions.map(a => {
+    const labelSpan = `<span class="action-label ${a.primary ? 'action-label-primary' : 'action-label-secondary'}">${a.label}</span>
+      <span class="action-desc">${a.desc}</span>`;
+    if (a.copy) {
+      // Single-quoted attribute + JSON.stringify's double-quoted output —
+      // deliberately mismatched delimiters so the URL can't break out of
+      // the onclick attribute no matter what characters it contains.
+      return `<button type="button" class="action-item" onclick='copyToClipboard(${JSON.stringify(a.copy)})'>${labelSpan}</button>`;
+    }
+    return `<a class="action-item" href="${a.href}"${a.newTab ? ' target="_blank" rel="noopener"' : ''}>${labelSpan}</a>`;
+  }).join('');
 }
 </script>
 </body>
