@@ -873,7 +873,6 @@ function render() {
             ${(t.onda_file && t.onda_file.size > 16)
               ? `<a class="refresh-btn" href="${playerUrlFor(t.onda_url)}" target="_blank" rel="noopener">Preview as a visitor would see it</a>`
               : `<span style="color:var(--muted);font-size:13px">No linked file to preview</span>`}
-            <button class="refresh-btn" onclick="toggleVisible(${t.id}, ${!!t.is_visible})">${t.is_visible ? 'Hide from view' : 'Make visible now'}</button>
           </div>
         </div>
       </div>`;
@@ -1063,14 +1062,6 @@ function toggleApprovalSelf(id, level, isCurrentlyActive) {
   const curatorField = level === 'station' ? 'curator_approved_station' : 'curator_approved_nile';
   const contributorField = level === 'station' ? 'contributor_approved_station' : 'contributor_approved_nile';
   patchTile(id, { [curatorField]: !isCurrentlyActive, [contributorField]: !isCurrentlyActive });
-}
-
-// The approval checkboxes above set visibility's tier (private/chapter/
-// public) but not whether the tile actually shows — is_visible is a real,
-// separate on/off switch with no UI control anywhere until now. Checking
-// both approval boxes does NOT flip this; confirmed live, 2026-10-10.
-function toggleVisible(id, isCurrentlyVisible) {
-  patchTile(id, { is_visible: !isCurrentlyVisible });
 }
 
 // Soft hide/restore — the tag is never removed from the real tags array,
