@@ -307,7 +307,10 @@
 
   /* Collapsed row: avatar, title, author, Play — all on one line; the
      one-liner sits on its own line below. David, 2026-10-25. */
-  .card-row-top { display: flex; align-items: center; gap: 10px; min-width: 0; }
+  /* padding-right clears the absolutely-positioned .chevron (15px wide,
+     sitting at right:14px off .card-header) — without it, Play's right
+     edge ran underneath/behind the chevron. David, 2026-10-25. */
+  .card-row-top { display: flex; align-items: center; gap: 10px; min-width: 0; padding-right: 26px; }
   .card-row-top .card-title { margin-bottom: 0; flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .card-row-top .card-presenter-name { flex-shrink: 0; font-size: 12px; color: var(--muted); cursor: pointer; }
   .card-row-top .card-presenter-name:hover { color: var(--accent); text-decoration: underline; }
