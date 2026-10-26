@@ -117,10 +117,6 @@
     background: var(--surface); border: 1px solid var(--border); border-radius: 10px;
     padding: 16px 24px;
   }
-  .station-notice-label {
-    font-size: 11px; letter-spacing: .06em; text-transform: uppercase; font-weight: 700;
-    color: var(--muted); margin-bottom: 6px;
-  }
   .station-notice-text { font-size: 13.5px; color: var(--ink-mid); line-height: 1.6; white-space: pre-line; }
   @media (max-width: 600px) {
     .masthead { padding: 12px 14px; }
@@ -404,7 +400,6 @@
 
 <div class="station-notice" id="station-notice" hidden>
   <div class="station-notice-inner">
-    <div class="station-notice-label">About this station</div>
     <div class="station-notice-text" id="station-notice-text"></div>
   </div>
 </div>
@@ -634,10 +629,11 @@ function applyMasthead(org) {
   if (org.masthead_quote) { quoteEl.textContent = org.masthead_quote; quoteEl.hidden = false; }
   else quoteEl.hidden = true;
 
-  // David, 2026-10-26: "Do not display 'About this station'." Not called —
-  // the field, the modal input, and the Xano column all still exist
-  // (nothing lost), this just stops it from rendering publicly. The
-  // element stays hidden since nothing ever un-hides it now.
+  // David, 2026-10-26: "I didn't mean not to display the text — just don't
+  // display the words 'About this station' above it." The text itself
+  // shows; only the eyebrow label was removed (from the HTML, not just
+  // hidden).
+  applyStationNotice(org);
   applyArchiveHeading(org);
 
   const photoUrl = org.photo_url || org.badge_icon_url || null;
