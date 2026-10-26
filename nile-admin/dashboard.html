@@ -308,8 +308,19 @@
     padding: 14px 18px; border-bottom: 1px solid var(--border); flex-shrink: 0;
   }
   .epm-header h2 { font-size: 15px; font-weight: 700; }
+  .epm-header-text { display: flex; flex-direction: column; gap: 1px; }
+  .epm-header-sub { font-size: 11.5px; color: var(--muted); }
   .epm-close { background: none; border: none; font-size: 22px; cursor: pointer; color: var(--muted); line-height: 1; padding: 4px 8px; }
   .epm-close:hover { color: var(--ink); }
+  /* Full-width masthead strip — the real masthead sits full-width on the
+     actual station page, but the tile-card preview below it is boxed and
+     halved with the fields column. This gives the masthead its own real
+     estate so it isn't squeezed into that narrow box. Same real iframe,
+     same live postMessage data as the tile preview — not a second,
+     approximated copy — just a second window onto the one real render,
+     cropped to its own height via overflow:hidden. David, 2026-10-26. */
+  .epm-masthead-strip { flex-shrink: 0; width: 100%; height: 190px; overflow: hidden; background: #0f1117; border-bottom: 1px solid var(--border); }
+  .epm-masthead-strip iframe { width: 100%; height: 100%; border: none; display: block; }
   .epm-body { display: flex; flex: 1; min-height: 0; }
   .epm-preview { flex: 1 1 50%; background: #0f1117; border-right: 1px solid var(--border); display: flex; flex-direction: column; min-width: 0; }
   .epm-preview-toolbar { display: flex; gap: 8px; padding: 10px 14px; background: var(--surface); border-bottom: 1px solid var(--border); flex-shrink: 0; }
@@ -479,8 +490,14 @@
 <div class="epm-backdrop" id="epm-backdrop">
   <div class="epm-panel">
     <div class="epm-header">
-      <h2 id="epm-title">Edit &amp; Preview</h2>
+      <div class="epm-header-text">
+        <h2 id="epm-title">Edit &amp; Preview</h2>
+        <div class="epm-header-sub" id="epm-title-sub"></div>
+      </div>
       <button class="epm-close" onclick="closeEditPreview()" aria-label="Close">&times;</button>
+    </div>
+    <div class="epm-masthead-strip">
+      <iframe id="epm-masthead-iframe" src="about:blank" title="Masthead live preview"></iframe>
     </div>
     <div class="epm-body">
       <div class="epm-preview">
@@ -1456,7 +1473,13 @@ async function openEditPreview(tileId) {
   document.getElementById('epm-backdrop').classList.add('open');
   document.getElementById('epm-status').className = 'epm-status';
   document.getElementById('epm-status').textContent = '';
-  document.getElementById('epm-title').textContent = 'Edit & Preview — ' + (tile.title || '(untitled)');
+  // Station name (set below, once epmLoadSkin resolves it) is the real
+  // headline here — this modal edits the whole station's masthead and
+  // look, not just this one tile, which "Edit & Preview — <tile title>"
+  // was misleadingly implying. The tile stays visible as a subtitle,
+  // since Content below still only applies to this one tile.
+  document.getElementById('epm-title').textContent = 'Edit & Preview';
+  document.getElementById('epm-title-sub').textContent = 'Opened from: ' + (tile.title || '(untitled)');
 
   document.getElementById('epm-f-title').value = tile.title || '';
   document.getElementById('epm-f-synopsis').value = tile.synopsis || '';
@@ -1476,8 +1499,10 @@ async function openEditPreview(tileId) {
   // Tile records never carry org_l1/l2/l3 themselves (tiles are looked up
   // purely by station_id) — this is the one resolved at boot, not per tile.
   const org = { l1: resolvedOrgL1 || '', l2: resolvedOrgL2 || '', l3: resolvedOrgL3 || '' };
-  document.getElementById('epm-iframe').src =
+  const previewSrc =
     `../chapter/index.html?preview=1&org_l1=${encodeURIComponent(org.l1)}&org_l2=${encodeURIComponent(org.l2)}&org_l3=${encodeURIComponent(org.l3)}`;
+  document.getElementById('epm-iframe').src = previewSrc;
+  document.getElementById('epm-masthead-iframe').src = previewSrc;
 
   await epmLoadSkin(org);
 }
@@ -1485,6 +1510,7 @@ async function openEditPreview(tileId) {
 function closeEditPreview() {
   document.getElementById('epm-backdrop').classList.remove('open');
   document.getElementById('epm-iframe').src = 'about:blank';
+  document.getElementById('epm-masthead-iframe').src = 'about:blank';
   epmTileId = null;
 }
 
@@ -1528,7 +1554,10 @@ async function epmLoadSkin(org) {
       statusEl.textContent = 'No station profile saved yet — fill in Station Identity below to create one.';
     } else if (r.ok) {
       const d = await r.json();
-      if (d.station_name)   document.getElementById('epm-id-name').value = d.station_name;
+      if (d.station_name) {
+        document.getElementById('epm-id-name').value = d.station_name;
+        document.getElementById('epm-title').textContent = 'Edit & Preview — ' + d.station_name;
+      }
       if (d.city)            document.getElementById('epm-id-city').value = d.city;
       if (d.region)          document.getElementById('epm-id-region').value = d.region;
       if (d.curator_name)    document.getElementById('epm-id-curator').value = d.curator_name;
@@ -1675,14 +1704,19 @@ function epmBuildDraftSkin() {
   };
 }
 function epmPostPreview() {
-  const iframe = document.getElementById('epm-iframe');
-  if (!iframe.contentWindow) return;
-  iframe.contentWindow.postMessage({
+  const message = {
     type: 'ondaPreviewUpdate',
     tile: epmBuildDraftTile(),
     skin: epmBuildDraftSkin(),
     expanded: epmExpanded,
-  }, '*');
+  };
+  // Two iframes, same real page, same live data — the masthead strip and
+  // the tile-card preview are two windows onto one actual render, not a
+  // second approximated copy.
+  ['epm-iframe', 'epm-masthead-iframe'].forEach(id => {
+    const iframe = document.getElementById(id);
+    if (iframe.contentWindow) iframe.contentWindow.postMessage(message, '*');
+  });
 }
 function epmQueuePreview() {
   clearTimeout(epmPreviewTimer);

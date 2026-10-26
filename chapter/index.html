@@ -76,12 +76,19 @@
     width: 84px; height: 84px; border-radius: 50%; object-fit: cover; flex-shrink: 0;
     border: 3px solid var(--bg); box-shadow: 0 0 0 1px var(--border);
   }
+  .masthead-photo[hidden] { display: none; }
   .masthead-photo-placeholder {
     width: 84px; height: 84px; border-radius: 50%; flex-shrink: 0;
     background: var(--accent-dim); border: 1px solid var(--accent);
     display: flex; align-items: center; justify-content: center;
     color: var(--accent); font-size: 26px; font-weight: 700;
   }
+  /* The class's own `display: flex` above otherwise beats the browser's
+     default [hidden]{display:none} rule on a tie — same bug class as the
+     Dashboard's tag/contributor drawer panels. Without this, setting
+     placeholder.hidden = true in JS silently did nothing, so the empty
+     placeholder circle stayed visible right next to the real photo. */
+  .masthead-photo-placeholder[hidden] { display: none; }
   .masthead-text { min-width: 0; flex: 1; }
   .masthead-name { font-size: 24px; font-weight: 700; color: var(--ink); line-height: 1.2; }
   .masthead-dates { font-size: 13px; color: var(--muted); margin-top: 3px; }
