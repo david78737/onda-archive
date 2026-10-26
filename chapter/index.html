@@ -132,9 +132,13 @@
      Station Profile (name / description / photo). Hidden until that data
      arrives so there's no empty flash; every station gets this, not just
      memorial-style ones. David, 2026-10-25. ── */
-  .masthead { background: var(--surface); border-bottom: 1px solid var(--border); padding: 28px 24px; }
+  .masthead { padding: 16px 24px 0; }
   .masthead[hidden] { display: none; }
-  .masthead-inner { max-width: 650px; margin: 0 auto; display: flex; align-items: center; gap: 18px; flex-wrap: wrap; }
+  .masthead-inner {
+    max-width: 650px; margin: 0 auto; display: flex; align-items: center; gap: 18px; flex-wrap: wrap;
+    background: var(--surface); border: 1px solid var(--border); border-radius: 10px;
+    padding: 20px 24px;
+  }
   .masthead-photo {
     width: 84px; height: 84px; border-radius: 50%; object-fit: cover; flex-shrink: 0;
     border: 3px solid var(--bg); box-shadow: 0 0 0 1px var(--border);
@@ -150,7 +154,8 @@
   .masthead-quote { font-size: 13.5px; color: var(--ink-mid); margin-top: 8px; line-height: 1.6; font-style: italic; max-width: 560px; }
   .masthead-quote[hidden] { display: none; }
   @media (max-width: 600px) {
-    .masthead { padding: 18px 14px; }
+    .masthead { padding: 12px 14px 0; }
+    .masthead-inner { padding: 16px; }
     .masthead-photo, .masthead-photo-placeholder { width: 60px; height: 60px; font-size: 20px; }
     .masthead-name { font-size: 18px; }
   }
@@ -200,7 +205,7 @@
     background: var(--surface); border: 1px solid var(--border);
     color: var(--ink-mid); border-radius: 5px; padding: 8px 14px;
     font-size: 14px; cursor: pointer; white-space: nowrap; flex-shrink: 0;
-    font-family: inherit;
+    font-family: inherit; text-decoration: none;
     transition: background .12s, color .12s, border-color .12s;
   }
   .topics-toggle:hover { background: var(--surface2); color: var(--ink); }
@@ -431,6 +436,9 @@
       <span>Tags</span>
       <span class="count" id="topics-toggle-count" hidden></span>
     </button>
+    <a class="topics-toggle" href="https://archive.ondareplay.com/chapter/?station=onda-replay-help" target="_blank" rel="noopener">
+      <span>Help</span>
+    </a>
   </div>
 </div>
 
