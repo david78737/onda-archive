@@ -79,7 +79,7 @@
     color: #888888;
   }
   .header-title {
-    font-size: 17px; font-weight: 700; color: var(--accent);
+    font-size: 17px; font-weight: 700; color: var(--header-ink);
     line-height: 1.2;
   }
   .header-tagline {
@@ -127,6 +127,33 @@
   }
   .search-bar input:focus { border-color: var(--accent); }
   .search-bar input::placeholder { color: var(--muted-dim); }
+
+  /* ── Masthead — the station's own identity, read straight from the
+     Station Profile (name / description / photo). Hidden until that data
+     arrives so there's no empty flash; every station gets this, not just
+     memorial-style ones. David, 2026-10-25. ── */
+  .masthead { background: var(--surface); border-bottom: 1px solid var(--border); padding: 28px 24px; }
+  .masthead[hidden] { display: none; }
+  .masthead-inner { max-width: 650px; margin: 0 auto; display: flex; align-items: center; gap: 18px; flex-wrap: wrap; }
+  .masthead-photo {
+    width: 84px; height: 84px; border-radius: 50%; object-fit: cover; flex-shrink: 0;
+    border: 3px solid var(--bg); box-shadow: 0 0 0 1px var(--border);
+  }
+  .masthead-photo-placeholder {
+    width: 84px; height: 84px; border-radius: 50%; flex-shrink: 0;
+    background: var(--accent-dim); border: 1px solid var(--accent);
+    display: flex; align-items: center; justify-content: center;
+    color: var(--accent); font-size: 26px; font-weight: 700;
+  }
+  .masthead-text { min-width: 0; flex: 1; }
+  .masthead-name { font-size: 24px; font-weight: 700; color: var(--ink); line-height: 1.2; }
+  .masthead-quote { font-size: 13.5px; color: var(--ink-mid); margin-top: 8px; line-height: 1.6; font-style: italic; max-width: 560px; }
+  .masthead-quote[hidden] { display: none; }
+  @media (max-width: 600px) {
+    .masthead { padding: 18px 14px; }
+    .masthead-photo, .masthead-photo-placeholder { width: 60px; height: 60px; font-size: 20px; }
+    .masthead-name { font-size: 18px; }
+  }
 
   /* ── Compact header on phones — the identity block was taking up
      too much vertical space before the search/filter row even
@@ -407,6 +434,17 @@
   </div>
 </div>
 
+<div class="masthead" id="masthead" hidden>
+  <div class="masthead-inner">
+    <img class="masthead-photo" id="masthead-photo" alt="" hidden>
+    <div class="masthead-photo-placeholder" id="masthead-photo-placeholder" hidden></div>
+    <div class="masthead-text">
+      <div class="masthead-name" id="masthead-name"></div>
+      <div class="masthead-quote" id="masthead-quote" hidden></div>
+    </div>
+  </div>
+</div>
+
 <main class="right-panel">
   <div id="status"></div>
   <div class="sessions" id="sessions"><div class="loading">Loading archive…</div></div>
@@ -611,6 +649,38 @@ function applyTheme(org) {
     document.getElementById('logo-placeholder').textContent =
       STATION_ID ? initialsForStationId(STATION_ID) : (ORG_L1 || 'O')[0].toUpperCase();
   }
+}
+
+// ── Masthead — station_name / description / photo straight from the
+// Station Profile record. All three already exist on every org's identity
+// row (photo_url can be null, falls back to the badge icon) — nothing new
+// to add in Xano for this first pass. David, 2026-10-25.
+function applyMasthead(org) {
+  const el = document.getElementById('masthead');
+  if (!org || !org.station_name) { el.hidden = true; return; }
+
+  document.getElementById('masthead-name').textContent = org.station_name;
+
+  const quoteEl = document.getElementById('masthead-quote');
+  if (org.description) { quoteEl.textContent = org.description; quoteEl.hidden = false; }
+  else quoteEl.hidden = true;
+
+  const photoUrl = org.photo_url || org.badge_icon_url || null;
+  const img = document.getElementById('masthead-photo');
+  const placeholder = document.getElementById('masthead-photo-placeholder');
+  if (photoUrl) {
+    img.src = photoUrl;
+    img.alt = org.station_name;
+    img.onerror = () => { img.hidden = true; placeholder.hidden = false; placeholder.textContent = initials(org.station_name); };
+    img.hidden = false;
+    placeholder.hidden = true;
+  } else {
+    placeholder.textContent = initials(org.station_name);
+    placeholder.hidden = false;
+    img.hidden = true;
+  }
+
+  el.hidden = false;
 }
 
 // ── Filter ─────────────────────────────────────────────────────────────────────
@@ -1032,6 +1102,7 @@ if (PREVIEW_MODE) {
         logo_url:        skin.logo_url || skin.badge_icon_url,
         font_family:     skin.font_family,
       });
+      applyMasthead(skin);
     } catch(_) {}
   } else {
     document.getElementById('header-title').textContent = defaultTitle;
