@@ -561,6 +561,30 @@
           <input type="text" id="epm-font-custom" placeholder="e.g. Poppins, Roboto Slab" style="display:none;margin-top:6px" oninput="epmQueuePreview()">
         </div>
 
+        <div class="epm-section-title">Masthead <span class="opt">shown at the top of your station page</span></div>
+        <div class="epm-field">
+          <label>Photo <span class="opt">optional</span></label>
+          <div class="epm-icon-row">
+            <div class="epm-icon-preview" id="epm-mh-photo-preview"><span id="epm-mh-photo-fallback">◆</span><img id="epm-mh-photo-img" style="display:none"></div>
+            <input type="file" id="epm-mh-photo-file" accept="image/*" style="display:none">
+            <button type="button" class="refresh-btn" id="epm-mh-photo-upload-btn">Upload Photo…</button>
+          </div>
+          <div class="hint" id="epm-mh-photo-status">A headshot or photo shown at the top of the station page — distinct from the small station icon above.</div>
+        </div>
+        <div class="epm-field">
+          <label for="epm-mh-dates">Dates <span class="opt">optional</span></label>
+          <input type="text" id="epm-mh-dates" placeholder="e.g. 1958 — 2026" oninput="epmQueuePreview()">
+        </div>
+        <div class="epm-field">
+          <label for="epm-mh-quote">Family's words <span class="opt">optional — a short line, not the full bio</span></label>
+          <textarea id="epm-mh-quote" oninput="epmQueuePreview()"></textarea>
+        </div>
+        <div class="epm-field">
+          <label for="epm-mh-desc">About this station</label>
+          <textarea id="epm-mh-desc" placeholder="What you curate and why. Who your listeners are. What makes this station worth following." oninput="epmQueuePreview()"></textarea>
+          <div class="hint">Shown under Family's words if that's blank — same field station.html calls "About this station."</div>
+        </div>
+
         <div class="epm-section-title">Station identity <span style="color:var(--muted);text-transform:none;font-weight:400;letter-spacing:normal">— required by Xano to save anything above</span></div>
         <div class="epm-row2">
           <div class="epm-field">
@@ -1394,6 +1418,7 @@ async function generateDraft(id) {
 let epmTileId = null;
 let epmExpanded = false;
 let epmIconUrl = null;
+let epmPhotoUrl = null;
 let epmPreviewTimer = null;
 
 const EPM_FONT_CATEGORY_MAP = { sans: 'Inter', serif: 'Merriweather', mono: 'Roboto Mono' };
@@ -1476,6 +1501,12 @@ async function epmLoadSkin(org) {
   document.getElementById('epm-icon-img').style.display = 'none';
   document.getElementById('epm-icon-fallback').style.display = 'flex';
   epmIconUrl = null;
+  document.getElementById('epm-mh-dates').value = '';
+  document.getElementById('epm-mh-quote').value = '';
+  document.getElementById('epm-mh-desc').value = '';
+  document.getElementById('epm-mh-photo-img').style.display = 'none';
+  document.getElementById('epm-mh-photo-fallback').style.display = 'flex';
+  epmPhotoUrl = null;
 
   try {
     const url = `${NILE_API}/nile/station/profile?phone=${encodeURIComponent(authedPhone)}&magic_auth_token=${encodeURIComponent(authToken)}&org_l1=${encodeURIComponent(org.l1)}&org_l2=${encodeURIComponent(org.l2)}&org_l3=${encodeURIComponent(org.l3)}`;
@@ -1498,6 +1529,15 @@ async function epmLoadSkin(org) {
         document.getElementById('epm-icon-img').src = d.badge_icon_url;
         document.getElementById('epm-icon-img').style.display = 'block';
         document.getElementById('epm-icon-fallback').style.display = 'none';
+      }
+      if (d.description)    document.getElementById('epm-mh-desc').value = d.description;
+      if (d.masthead_dates) document.getElementById('epm-mh-dates').value = d.masthead_dates;
+      if (d.masthead_quote) document.getElementById('epm-mh-quote').value = d.masthead_quote;
+      if (d.photo_url) {
+        epmPhotoUrl = d.photo_url;
+        document.getElementById('epm-mh-photo-img').src = d.photo_url;
+        document.getElementById('epm-mh-photo-img').style.display = 'block';
+        document.getElementById('epm-mh-photo-fallback').style.display = 'none';
       }
       if (d.font_family) {
         const known = Object.keys(EPM_FONT_CATEGORY_MAP).find(k => EPM_FONT_CATEGORY_MAP[k] === d.font_family);
@@ -1548,6 +1588,35 @@ document.getElementById('epm-icon-file').addEventListener('change', async (e) =>
   }
 });
 
+// ── Masthead photo upload — same endpoint, separate from the station icon ──
+document.getElementById('epm-mh-photo-upload-btn').addEventListener('click', () => {
+  document.getElementById('epm-mh-photo-file').click();
+});
+document.getElementById('epm-mh-photo-file').addEventListener('change', async (e) => {
+  const file = e.target.files[0];
+  if (!file) return;
+  const statusEl = document.getElementById('epm-mh-photo-status');
+  statusEl.textContent = 'Uploading…';
+  try {
+    const form = new FormData();
+    form.append('content', file);
+    const resp = await fetch('https://xrxm-29on-xlyt.n7e.xano.io/api:nile/upload-headshot', { method: 'POST', body: form });
+    const data = await resp.json();
+    if (!resp.ok || !data.url) throw new Error(data.message || 'Upload failed.');
+    epmPhotoUrl = data.url;
+    document.getElementById('epm-mh-photo-img').src = data.url;
+    document.getElementById('epm-mh-photo-img').style.display = 'block';
+    document.getElementById('epm-mh-photo-fallback').style.display = 'none';
+    statusEl.textContent = 'Uploaded ✓';
+    setTimeout(() => { statusEl.textContent = 'A headshot or photo shown at the top of the station page — distinct from the small station icon above.'; }, 2500);
+    epmQueuePreview();
+  } catch (err) {
+    statusEl.textContent = err.message;
+  } finally {
+    e.target.value = '';
+  }
+});
+
 // ── Live preview wiring ──
 // Builds the exact shape chapter/index.html's normalizePresentation()
 // produces, and applyTheme() expects — see that file's PREVIEW_MODE
@@ -1585,6 +1654,11 @@ function epmBuildDraftSkin() {
     tagline:       null,
     logo_url:      epmIconUrl,
     font_family:   epmResolveFontFamily(),
+    station_name:  document.getElementById('epm-id-name').value || null,
+    description:   document.getElementById('epm-mh-desc').value || null,
+    masthead_dates: document.getElementById('epm-mh-dates').value || null,
+    masthead_quote: document.getElementById('epm-mh-quote').value || null,
+    photo_url:     epmPhotoUrl,
   };
 }
 function epmPostPreview() {
@@ -1672,6 +1746,10 @@ async function epmSaveAll() {
       linkedin_url: linkedin,
       skin: 'custom',
       badge_icon_url: epmIconUrl,
+      description: document.getElementById('epm-mh-desc').value.trim() || null,
+      photo_url: epmPhotoUrl,
+      masthead_dates: document.getElementById('epm-mh-dates').value.trim() || null,
+      masthead_quote: document.getElementById('epm-mh-quote').value.trim() || null,
       custom_page_bg: document.getElementById('epm-c-page').value,
       custom_tile_bg: document.getElementById('epm-c-tile').value,
       custom_border: document.getElementById('epm-c-border').value,

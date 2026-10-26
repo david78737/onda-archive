@@ -84,6 +84,8 @@
   }
   .masthead-text { min-width: 0; flex: 1; }
   .masthead-name { font-size: 24px; font-weight: 700; color: var(--ink); line-height: 1.2; }
+  .masthead-dates { font-size: 13px; color: var(--muted); margin-top: 3px; }
+  .masthead-dates[hidden] { display: none; }
   .masthead-quote { font-size: 13.5px; color: var(--ink-mid); margin-top: 8px; line-height: 1.6; font-style: italic; max-width: 560px; }
   .masthead-quote[hidden] { display: none; }
   @media (max-width: 600px) {
@@ -353,6 +355,7 @@
     <div class="masthead-photo-placeholder" id="masthead-photo-placeholder" hidden></div>
     <div class="masthead-text">
       <div class="masthead-name" id="masthead-name"></div>
+      <div class="masthead-dates" id="masthead-dates" hidden></div>
       <div class="masthead-quote" id="masthead-quote" hidden></div>
     </div>
   </div>
@@ -542,18 +545,25 @@ function applyTheme(org) {
   document.title = 'ONDA Archive — ' + title;
 }
 
-// ── Masthead — station_name / description / photo straight from the
-// Station Profile record. All three already exist on every org's identity
-// row (photo_url can be null, falls back to the badge icon) — nothing new
-// to add in Xano for this first pass. David, 2026-10-25.
+// ── Masthead — station_name / photo straight from the Station Profile
+// record, plus two memorial-specific fields (masthead_dates, masthead_quote)
+// added 2026-10-26 for stations that want a short quote distinct from the
+// longer "About this station" bio. masthead_quote wins when both are set;
+// description is the fallback so stations that only filled in the generic
+// bio still show something. David, 2026-10-26.
 function applyMasthead(org) {
   const el = document.getElementById('masthead');
   if (!org || !org.station_name) { el.hidden = true; return; }
 
   document.getElementById('masthead-name').textContent = org.station_name;
 
+  const datesEl = document.getElementById('masthead-dates');
+  if (org.masthead_dates) { datesEl.textContent = org.masthead_dates; datesEl.hidden = false; }
+  else datesEl.hidden = true;
+
+  const quote = org.masthead_quote || org.description || null;
   const quoteEl = document.getElementById('masthead-quote');
-  if (org.description) { quoteEl.textContent = org.description; quoteEl.hidden = false; }
+  if (quote) { quoteEl.textContent = quote; quoteEl.hidden = false; }
   else quoteEl.hidden = true;
 
   const photoUrl = org.photo_url || org.badge_icon_url || null;
@@ -920,17 +930,18 @@ function normalizePresentation(p) {
 
 // Preview mode: no Xano fetch at all — just listen for the parent window
 // (dashboard.html's Edit & Preview modal) posting draft data, and render it
-// with the exact same render()/applyTheme() the live page uses. The parent
-// sends { type:'ondaPreviewUpdate', tile: {...one normalizePresentation-
-// shaped object...}, skin: {...applyTheme-shaped object...} } on every
-// edit; this posts { type:'ondaPreviewReady' } once so the parent knows
-// it's safe to start sending (avoids a race on first load).
+// with the exact same render()/applyTheme()/applyMasthead() the live page
+// uses. The parent sends { type:'ondaPreviewUpdate', tile: {...one
+// normalizePresentation-shaped object...}, skin: {...applyTheme+
+// applyMasthead-shaped object...} } on every edit; this posts
+// { type:'ondaPreviewReady' } once so the parent knows it's safe to start
+// sending (avoids a race on first load).
 if (PREVIEW_MODE) {
   document.body.classList.add('preview-mode');
   window.addEventListener('message', (e) => {
     const data = e.data;
     if (!data || data.type !== 'ondaPreviewUpdate') return;
-    if (data.skin) applyTheme(data.skin);
+    if (data.skin) { applyTheme(data.skin); applyMasthead(data.skin); }
     if (data.tile) {
       allSessions = [data.tile];
       state.tags = new Set();
