@@ -72,17 +72,20 @@
     background: var(--surface); border: 1px solid var(--border); border-radius: 10px;
     padding: 20px 24px;
   }
-  .masthead-row { display: flex; align-items: center; gap: 18px; flex-wrap: wrap; }
+  .masthead-row {
+    display: flex; align-items: center; gap: 18px; flex-wrap: wrap;
+    margin-left: var(--photo-position, 0%); transition: margin-left .1s;
+  }
   .masthead-photo {
-    width: 84px; height: 84px; border-radius: 50%; object-fit: cover; flex-shrink: 0;
-    border: 3px solid var(--bg); box-shadow: 0 0 0 1px var(--border);
+    width: var(--photo-size, 84px); height: var(--photo-size, 84px); border-radius: 50%; object-fit: cover; flex-shrink: 0;
+    border: 3px solid var(--bg); box-shadow: 0 0 0 1px var(--border); transition: width .1s, height .1s;
   }
   .masthead-photo[hidden] { display: none; }
   .masthead-photo-placeholder {
-    width: 84px; height: 84px; border-radius: 50%; flex-shrink: 0;
+    width: var(--photo-size, 84px); height: var(--photo-size, 84px); border-radius: 50%; flex-shrink: 0;
     background: var(--accent-dim); border: 1px solid var(--accent);
     display: flex; align-items: center; justify-content: center;
-    color: var(--accent); font-size: 26px; font-weight: 700;
+    color: var(--accent); font-size: 26px; font-weight: 700; transition: width .1s, height .1s;
   }
   /* The class's own `display: flex` above otherwise beats the browser's
      default [hidden]{display:none} rule on a tie — same bug class as the
@@ -387,7 +390,7 @@
 
 <div class="masthead" id="masthead" hidden>
   <div class="masthead-inner">
-    <div class="masthead-row">
+    <div class="masthead-row" id="masthead-row">
       <img class="masthead-photo" id="masthead-photo" alt="" hidden>
       <div class="masthead-photo-placeholder" id="masthead-photo-placeholder" hidden></div>
       <div class="masthead-text">
@@ -615,6 +618,14 @@ function applyMasthead(org) {
 
   document.getElementById('masthead-name').textContent = org.station_name;
 
+  // Photo size (px) and position (0-80%, shifts the whole photo+name/dates
+  // row right via margin-left — stays in normal document flow, so the
+  // masthead's own height always follows the photo's real size). Both
+  // optional; sensible defaults when a curator hasn't touched them.
+  const row = document.getElementById('masthead-row');
+  row.style.setProperty('--photo-size', (org.masthead_photo_size || 84) + 'px');
+  row.style.setProperty('--photo-position', (org.masthead_photo_position || 0) + '%');
+
   const datesEl = document.getElementById('masthead-dates');
   if (org.masthead_dates) { datesEl.textContent = org.masthead_dates; datesEl.hidden = false; }
   else datesEl.hidden = true;
@@ -623,7 +634,10 @@ function applyMasthead(org) {
   if (org.masthead_quote) { quoteEl.textContent = org.masthead_quote; quoteEl.hidden = false; }
   else quoteEl.hidden = true;
 
-  applyStationNotice(org);
+  // David, 2026-10-26: "Do not display 'About this station'." Not called —
+  // the field, the modal input, and the Xano column all still exist
+  // (nothing lost), this just stops it from rendering publicly. The
+  // element stays hidden since nothing ever un-hides it now.
   applyArchiveHeading(org);
 
   const photoUrl = org.photo_url || org.badge_icon_url || null;

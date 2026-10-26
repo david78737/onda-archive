@@ -606,6 +606,15 @@
           <div class="hint" id="epm-mh-photo-status">A headshot or photo shown at the top of the station page — distinct from the small station icon above.</div>
         </div>
         <div class="epm-field">
+          <label for="epm-mh-photo-size">Photo size — <span id="epm-mh-photo-size-val">84</span>px</label>
+          <input type="range" id="epm-mh-photo-size" min="60" max="220" step="4" value="84" oninput="document.getElementById('epm-mh-photo-size-val').textContent=this.value;epmQueuePreview()">
+        </div>
+        <div class="epm-field">
+          <label for="epm-mh-photo-position">Photo position</label>
+          <input type="range" id="epm-mh-photo-position" min="0" max="80" step="1" value="0" oninput="epmQueuePreview()">
+          <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--muted)"><span>Left</span><span>Right</span></div>
+        </div>
+        <div class="epm-field">
           <label for="epm-mh-dates">Dates <span class="opt">optional</span></label>
           <input type="text" id="epm-mh-dates" placeholder="e.g. 1958 — 2026" oninput="epmQueuePreview()">
         </div>
@@ -1616,6 +1625,9 @@ async function epmLoadSkin(org) {
   document.getElementById('epm-mh-desc').value = '';
   document.getElementById('epm-mh-photo-img').style.display = 'none';
   document.getElementById('epm-mh-photo-fallback').style.display = 'flex';
+  document.getElementById('epm-mh-photo-size').value = 84;
+  document.getElementById('epm-mh-photo-size-val').textContent = 84;
+  document.getElementById('epm-mh-photo-position').value = 0;
   epmPhotoUrl = null;
 
   try {
@@ -1652,6 +1664,11 @@ async function epmLoadSkin(org) {
       if (d.masthead_dates) document.getElementById('epm-mh-dates').value = d.masthead_dates;
       if (d.masthead_quote) document.getElementById('epm-mh-quote').value = d.masthead_quote;
       if (d.archive_heading) document.getElementById('epm-mh-archive-heading').value = d.archive_heading;
+      if (d.masthead_photo_size) {
+        document.getElementById('epm-mh-photo-size').value = d.masthead_photo_size;
+        document.getElementById('epm-mh-photo-size-val').textContent = d.masthead_photo_size;
+      }
+      if (d.masthead_photo_position != null) document.getElementById('epm-mh-photo-position').value = d.masthead_photo_position;
       if (d.photo_url) {
         epmPhotoUrl = d.photo_url;
         document.getElementById('epm-mh-photo-img').src = d.photo_url;
@@ -1780,6 +1797,8 @@ function epmBuildDraftSkin() {
     masthead_dates: document.getElementById('epm-mh-dates').value || null,
     masthead_quote: document.getElementById('epm-mh-quote').value || null,
     archive_heading: document.getElementById('epm-mh-archive-heading').value || null,
+    masthead_photo_size: Number(document.getElementById('epm-mh-photo-size').value),
+    masthead_photo_position: Number(document.getElementById('epm-mh-photo-position').value),
     photo_url:     epmPhotoUrl,
   };
 }
@@ -1897,6 +1916,8 @@ async function epmSaveAll() {
       masthead_dates: document.getElementById('epm-mh-dates').value.trim() || null,
       masthead_quote: document.getElementById('epm-mh-quote').value.trim() || null,
       archive_heading: document.getElementById('epm-mh-archive-heading').value.trim() || null,
+      masthead_photo_size: Number(document.getElementById('epm-mh-photo-size').value),
+      masthead_photo_position: Number(document.getElementById('epm-mh-photo-position').value),
       custom_page_bg: document.getElementById('epm-c-page').value,
       custom_tile_bg: document.getElementById('epm-c-tile').value,
       custom_border: document.getElementById('epm-c-border').value,
