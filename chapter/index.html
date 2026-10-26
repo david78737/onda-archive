@@ -34,73 +34,6 @@
     min-height: 100vh;
   }
 
-  /* ── Header ── */
-  header {
-    background: var(--header-bg);
-    border-bottom: 1px solid var(--header-border);
-    padding: 0 24px;
-  }
-  .header-inner {
-    max-width: 650px;
-    margin: 0 auto;
-    display: flex;
-    align-items: stretch;
-    gap: 16px;
-    flex-wrap: wrap;
-    min-height: 64px;
-  }
-  .header-logo {
-    display: flex;
-    align-items: center;
-    flex-shrink: 0;
-  }
-  .header-logo img {
-    height: 36px;
-    width: auto;
-    display: block;
-  }
-  .header-logo-placeholder {
-    min-width: 36px; height: 36px; border-radius: 6px;
-    padding: 0 8px;
-    background: var(--accent-dim);
-    border: 1px solid var(--accent);
-    display: flex; align-items: center; justify-content: center;
-    font-size: 13px; font-weight: 700; color: var(--accent);
-    letter-spacing: .05em;
-  }
-  .header-text {
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    gap: 1px;
-  }
-  .eyebrow {
-    font-size: 9px; text-transform: uppercase; letter-spacing: .14em;
-    color: #888888;
-  }
-  .header-title {
-    font-size: 17px; font-weight: 700; color: var(--header-ink);
-    line-height: 1.2;
-  }
-  .header-tagline {
-    font-size: 11px; color: #444444;
-  }
-  .header-right {
-    margin-left: auto;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-  }
-  .header-count {
-    font-size: 11px; color: var(--muted);
-    white-space: nowrap;
-  }
-  .powered-by {
-    font-size: 10px; color: var(--muted-dim);
-    text-decoration: none; white-space: nowrap;
-  }
-  .powered-by span { color: var(--accent); }
-
   /* ── Search bar ── */
   .search-bar {
     background: var(--surface);
@@ -160,16 +93,7 @@
     .masthead-name { font-size: 18px; }
   }
 
-  /* ── Compact header on phones — the identity block was taking up
-     too much vertical space before the search/filter row even
-     appeared, pushing the actual archive content below the fold. ── */
   @media (max-width: 600px) {
-    .header-inner { min-height: 44px; gap: 10px; }
-    header { padding: 0 14px; }
-    .header-logo img { height: 24px; }
-    .header-logo-placeholder { min-width: 24px; height: 24px; font-size: 11px; }
-    .header-tagline { display: none; }
-    .powered-by { display: none; }
     .search-bar { padding: 6px 14px; }
   }
 
@@ -407,25 +331,6 @@
 </head>
 <body>
 
-<header>
-  <div class="header-inner">
-    <div class="header-logo" id="header-logo">
-      <div class="header-logo-placeholder" id="logo-placeholder">O</div>
-    </div>
-    <div class="header-text">
-      <div class="eyebrow">ONDA Replay · Chapter Archive</div>
-      <div class="header-title" id="header-title">Loading…</div>
-      <div class="header-tagline" id="header-tagline"></div>
-    </div>
-    <div class="header-right">
-      <span class="header-count" id="header-count"></span>
-      <a class="powered-by" href="https://ondareplay.com" target="_blank" rel="noopener">
-        Powered by <span>ONDA Replay</span>
-      </a>
-    </div>
-  </div>
-</header>
-
 <div class="search-bar">
   <div class="search-bar-inner">
     <input type="search" id="search-input" placeholder="Search sessions, contributors, tags…" autocomplete="off">
@@ -535,12 +440,6 @@ function titleCase(s) {
     return w.charAt(0).toUpperCase() + w.slice(1);
   }).join(' ');
 }
-function initialsForStationId(id) {
-  const parts = id.split('-').filter(Boolean);
-  if (parts.length <= 1) return id.slice(0, 4).toUpperCase();
-  return parts.map(p => /^\d+$/.test(p) ? p : p[0].toUpperCase()).join('');
-}
-
 // ── State ─────────────────────────────────────────────────────────────────────
 let allSessions = [];
 let allTags     = [];
@@ -618,9 +517,6 @@ function applyTheme(org) {
     r.style.setProperty('--ink-mid',       ink);
     r.style.setProperty('--muted',         blendHex(ink, surface, 0.45));
     r.style.setProperty('--muted-dim',     blendHex(ink, chipBg, 0.4));
-    r.style.setProperty('--header-bg',     surface);
-    r.style.setProperty('--header-border', border);
-    r.style.setProperty('--header-ink',    ink);
   }
   if (org.font_family) {
     const linkId = 'custom-font-link';
@@ -644,19 +540,6 @@ function applyTheme(org) {
         : ORG_L3 ? humanizeStationId(ORG_L3.replace(/_/g, '-'))
         : [ORG_L1, ORG_L2, ORG_L3].filter(Boolean).join(' › '));
   document.title = 'ONDA Archive — ' + title;
-  document.getElementById('header-title').textContent = title;
-  if (org.tagline) document.getElementById('header-tagline').textContent = org.tagline;
-
-  if (org.logo_url) {
-    const placeholder = document.getElementById('logo-placeholder');
-    const img = document.createElement('img');
-    img.src = org.logo_url;
-    img.alt = title;
-    placeholder.parentNode.replaceChild(img, placeholder);
-  } else {
-    document.getElementById('logo-placeholder').textContent =
-      STATION_ID ? initialsForStationId(STATION_ID) : (ORG_L1 || 'O')[0].toUpperCase();
-  }
 }
 
 // ── Masthead — station_name / description / photo straight from the
@@ -728,12 +611,11 @@ function filtered() {
 // ── Drawer — shared shell for both Tags and Contributor, only one panel
 // visible at a time depending on which button opened it. ─────────────────────
 function openDrawer(mode) {
-  // Computed fresh each open (not a fixed CSS value) so the header+search-bar
-  // stay fully visible and tappable even when the header wraps to two lines
-  // on a narrow screen — a hardcoded pixel offset would break in that case.
-  const headerH = document.querySelector('header').offsetHeight;
+  // Computed fresh each open (not a fixed CSS value) so the search bar
+  // stays fully visible and tappable even when it wraps to two lines on a
+  // narrow screen — a hardcoded pixel offset would break in that case.
   const searchH = document.querySelector('.search-bar').offsetHeight;
-  const topOffset = headerH + searchH + 'px';
+  const topOffset = searchH + 'px';
   const drawer = document.getElementById('tag-drawer');
   const backdrop = document.getElementById('tag-drawer-backdrop');
   drawer.style.top = topOffset;
@@ -884,8 +766,6 @@ function render() {
   const isFiltered = state.speaker !== 'all' || state.tags.size > 0 || state.query;
   document.getElementById('status').textContent =
     isFiltered ? `${rows.length} of ${allSessions.length} sessions` : `${allSessions.length} sessions`;
-  document.getElementById('header-count').textContent =
-    `${allSessions.length} session${allSessions.length !== 1 ? 's' : ''}`;
 
   renderTags(rows);
   document.getElementById('contributor-toggle').classList.toggle('has-active', state.speaker !== 'all');
@@ -1076,7 +956,6 @@ if (PREVIEW_MODE) {
     ? humanizeStationId(STATION_ID)
     : ORG_L3 ? humanizeStationId(ORG_L3.replace(/_/g, '-'))
     : [ORG_L1, ORG_L2, ORG_L3].filter(Boolean).join(' › ') || 'Chapter Archive';
-  document.getElementById('header-title').textContent = defaultTitle;
   document.title = 'ONDA Archive — ' + defaultTitle;
 
   // Fetch live presentations + org identity/skin in parallel — both from Xano.
@@ -1106,18 +985,10 @@ if (PREVIEW_MODE) {
         surface_color:   isCustom ? skin.custom_tile_bg : skin.surface_color,
         border_color:    isCustom ? skin.custom_border : null,
         display_name:    skin.wordmark,
-        tagline:         skin.tagline,
-        logo_url:        skin.logo_url || skin.badge_icon_url,
         font_family:     skin.font_family,
       });
       applyMasthead(skin);
     } catch(_) {}
-  } else {
-    document.getElementById('header-title').textContent = defaultTitle;
-    document.getElementById('logo-placeholder').textContent = STATION_ID
-      ? initialsForStationId(STATION_ID)
-      : ORG_L3 ? initialsForStationId(ORG_L3.replace(/_/g, '-'))
-      : (ORG_L1 || 'O')[0].toUpperCase();
   }
 
   if (!presResp || !presResp.ok) {
