@@ -235,9 +235,17 @@
     padding: 16px 20px 48px;
   }
 
+  /* Needs its own card background, same as the masthead quote and station
+     notice — --ink-mid is only ever computed for contrast against
+     --surface, never against the bare page background (--bg), which can
+     be anything a curator picks. Sitting directly on --bg with no card
+     (the original version) read fine by accident on a near-black default
+     --bg, then broke hard on a station with a vivid, lighter page color.
+     David, 2026-10-26: "text that does not have a place to live." */
   .archive-heading {
-    font-style: italic; font-size: 16px; color: var(--ink-mid);
-    padding: 10px 0 2px; line-height: 1.4;
+    font-style: italic; font-size: 16px; color: var(--ink-mid); line-height: 1.4;
+    background: var(--surface); border: 1px solid var(--border); border-radius: 10px;
+    padding: 14px 20px; margin: 10px 0 14px;
   }
   .archive-heading[hidden] { display: none; }
   #status { font-size: 12px; color: var(--muted); padding: 6px 0 8px; }

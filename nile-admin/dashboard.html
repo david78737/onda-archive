@@ -319,7 +319,17 @@
      same live postMessage data as the tile preview — not a second,
      approximated copy — just a second window onto the one real render,
      cropped to its own height via overflow:hidden. David, 2026-10-26. */
-  .epm-masthead-strip { flex-shrink: 0; width: 100%; height: 190px; overflow: hidden; background: #0f1117; border-bottom: 1px solid var(--border); }
+  /* Resizable, not a fixed crop — David, 2026-10-26: "that needs to be
+     adjustable like a window shade. I can't see the whole thing when I
+     need to." overflow:auto (not hidden) so content past the current
+     height scrolls instead of silently vanishing, and the native resize
+     handle (bottom-right corner) lets a curator drag it open when the
+     masthead itself is tall. min/max keep it from collapsing to nothing
+     or swallowing the whole modal. */
+  .epm-masthead-strip {
+    flex-shrink: 0; width: 100%; height: 260px; min-height: 100px; max-height: 70vh;
+    overflow: auto; resize: vertical; background: #0f1117; border-bottom: 1px solid var(--border);
+  }
   .epm-masthead-strip iframe { width: 100%; height: 100%; border: none; display: block; }
   .epm-body { display: flex; flex: 1; min-height: 0; }
   .epm-preview { flex: 1 1 50%; background: #0f1117; border-right: 1px solid var(--border); display: flex; flex-direction: column; min-width: 0; }
@@ -337,11 +347,11 @@
   .epm-fields { flex: 1 1 50%; overflow-y: auto; padding: 16px 20px 20px; min-width: 0; }
   .epm-section-title {
     font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .08em;
-    color: var(--teal); margin: 18px 0 10px;
+    color: var(--teal); margin: 14px 0 8px;
   }
   .epm-section-title:first-child { margin-top: 0; }
-  .epm-section-desc { font-size: 11px; color: var(--muted); margin: -6px 0 10px; }
-  .epm-field { margin-bottom: 10px; }
+  .epm-section-desc { font-size: 11px; color: var(--muted); margin: -4px 0 8px; }
+  .epm-field { margin-bottom: 8px; }
   .epm-field label { display: block; font-size: 12px; font-weight: 600; color: var(--ink); margin-bottom: 4px; }
   .epm-field label .opt { font-weight: 400; color: var(--muted); }
   .epm-field input[type="text"], .epm-field select, .epm-field textarea {
@@ -1569,7 +1579,19 @@ function epmToggleView(expanded) {
   epmPostPreview();
 }
 
+// David, 2026-10-26: "the date keeps getting reset. Are you doing that?
+// Please stop. If I set it, leave it alone." Two real mechanisms could
+// cause that and neither is deliberate: (1) a slower, superseded call to
+// this function applying its own stale result after a newer call already
+// loaded the real values — guarded below via epmLoadToken; (2) Save
+// proceeding after a failed load, sending blank fields over real saved
+// ones — guarded via epmSkinLoadOk, checked in epmSaveAll.
+let epmLoadToken = 0;
+let epmSkinLoadOk = false;
+
 async function epmLoadSkin(org) {
+  const myToken = ++epmLoadToken;
+  epmSkinLoadOk = false;
   const statusEl = document.getElementById('epm-skin-status');
   statusEl.textContent = 'Loading station look…';
 
@@ -1599,8 +1621,12 @@ async function epmLoadSkin(org) {
   try {
     const url = `${NILE_API}/nile/station/profile?phone=${encodeURIComponent(authedPhone)}&magic_auth_token=${encodeURIComponent(authToken)}&org_l1=${encodeURIComponent(org.l1)}&org_l2=${encodeURIComponent(org.l2)}&org_l3=${encodeURIComponent(org.l3)}`;
     const r = await fetch(url);
+    // A newer call already took over (double-open, fast re-click) — our
+    // result is stale either way, don't let it clobber what's on screen.
+    if (myToken !== epmLoadToken) return;
     if (r.status === 404) {
       statusEl.textContent = 'No station profile saved yet — fill in Station Identity below to create one.';
+      epmSkinLoadOk = true; // a real, known state — just an empty one
     } else if (r.ok) {
       const d = await r.json();
       if (d.station_name) {
@@ -1643,13 +1669,15 @@ async function epmLoadSkin(org) {
         }
       }
       statusEl.textContent = '';
+      epmSkinLoadOk = true;
     } else {
-      statusEl.textContent = 'Could not load the current station look — showing defaults.';
+      statusEl.textContent = 'Could not load the current station look — Save is disabled until this loads correctly. Close and reopen to retry.';
     }
   } catch (e) {
-    statusEl.textContent = 'Could not load the current station look — showing defaults.';
+    if (myToken !== epmLoadToken) return;
+    statusEl.textContent = 'Could not load the current station look — Save is disabled until this loads correctly. Close and reopen to retry.';
   }
-  epmQueuePreview();
+  if (myToken === epmLoadToken) epmQueuePreview();
 }
 
 // ── Icon upload — same endpoint station.html's own uploader uses ──
@@ -1795,6 +1823,16 @@ async function epmSaveAll() {
   const statusEl = document.getElementById('epm-status');
   statusEl.className = 'epm-status';
   statusEl.textContent = 'Saving…';
+
+  // The Station Look / Masthead fields below only reflect reality if their
+  // load actually succeeded — saving after a failed load would send blank
+  // fields over real saved values. David, 2026-10-26: "If I set it, leave
+  // it alone."
+  if (!epmSkinLoadOk) {
+    statusEl.className = 'epm-status err';
+    statusEl.textContent = 'Station look never finished loading — saving now would overwrite real values with blanks. Close and reopen, then try again.';
+    return;
+  }
 
   const tile = epmStationLookMode ? null : allTiles.find(t => t.id === epmTileId);
   if (!epmStationLookMode && !tile) { statusEl.className = 'epm-status err'; statusEl.textContent = 'Lost track of which tile this was — close and reopen.'; return; }
