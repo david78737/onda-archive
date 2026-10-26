@@ -333,6 +333,18 @@
 </head>
 <body>
 
+<div class="masthead" id="masthead" hidden>
+  <div class="masthead-inner">
+    <img class="masthead-photo" id="masthead-photo" alt="" hidden>
+    <div class="masthead-photo-placeholder" id="masthead-photo-placeholder" hidden></div>
+    <div class="masthead-text">
+      <div class="masthead-name" id="masthead-name"></div>
+      <div class="masthead-dates" id="masthead-dates" hidden></div>
+      <div class="masthead-quote" id="masthead-quote" hidden></div>
+    </div>
+  </div>
+</div>
+
 <div class="search-bar">
   <div class="search-bar-inner">
     <input type="search" id="search-input" placeholder="Search sessions, contributors, tags…" autocomplete="off">
@@ -346,18 +358,6 @@
     <a class="topics-toggle" href="https://archive.ondareplay.com/chapter/?station=onda-replay-help" target="_blank" rel="noopener">
       <span>Help</span>
     </a>
-  </div>
-</div>
-
-<div class="masthead" id="masthead" hidden>
-  <div class="masthead-inner">
-    <img class="masthead-photo" id="masthead-photo" alt="" hidden>
-    <div class="masthead-photo-placeholder" id="masthead-photo-placeholder" hidden></div>
-    <div class="masthead-text">
-      <div class="masthead-name" id="masthead-name"></div>
-      <div class="masthead-dates" id="masthead-dates" hidden></div>
-      <div class="masthead-quote" id="masthead-quote" hidden></div>
-    </div>
   </div>
 </div>
 
@@ -621,11 +621,12 @@ function filtered() {
 // ── Drawer — shared shell for both Tags and Contributor, only one panel
 // visible at a time depending on which button opened it. ─────────────────────
 function openDrawer(mode) {
-  // Computed fresh each open (not a fixed CSS value) so the search bar
-  // stays fully visible and tappable even when it wraps to two lines on a
-  // narrow screen — a hardcoded pixel offset would break in that case.
-  const searchH = document.querySelector('.search-bar').offsetHeight;
-  const topOffset = searchH + 'px';
+  // The search bar's actual bottom edge right now, not a summed height —
+  // it sits below the (non-sticky) masthead on an unscrolled page, but
+  // once scrolled, the masthead is gone and the sticky search bar alone
+  // sits at the top. getBoundingClientRect reflects whichever is true at
+  // the moment the drawer opens instead of guessing.
+  const topOffset = document.querySelector('.search-bar').getBoundingClientRect().bottom + 'px';
   const drawer = document.getElementById('tag-drawer');
   const backdrop = document.getElementById('tag-drawer-backdrop');
   drawer.style.top = topOffset;
