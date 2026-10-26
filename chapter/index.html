@@ -137,8 +137,14 @@
     display: flex; align-items: center; justify-content: center; gap: 6px;
     background: var(--surface); border: 1px solid var(--border);
     color: var(--ink-mid); border-radius: 5px; padding: 8px 14px;
-    font-size: 14px; cursor: pointer; white-space: nowrap; flex-shrink: 0;
+    font-size: 14px; line-height: 1.2; cursor: pointer; white-space: nowrap; flex-shrink: 0;
     font-family: inherit; text-decoration: none;
+    /* Contributor/Tags are <button>, Help is <a> — without this, the
+       browser's own button chrome (-webkit-appearance in particular) can
+       render a <button> a couple px taller than an <a> with identical
+       padding/border/font-size, even though both inherit this same
+       class. */
+    appearance: none; -webkit-appearance: none; box-sizing: border-box;
     transition: background .12s, color .12s, border-color .12s;
   }
   .topics-toggle:hover { background: var(--surface2); color: var(--ink); }
