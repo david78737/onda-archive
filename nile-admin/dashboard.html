@@ -323,6 +323,10 @@
   .epm-masthead-strip iframe { width: 100%; height: 100%; border: none; display: block; }
   .epm-body { display: flex; flex: 1; min-height: 0; }
   .epm-preview { flex: 1 1 50%; background: #0f1117; border-right: 1px solid var(--border); display: flex; flex-direction: column; min-width: 0; }
+  /* Same display:X-beats-[hidden] trap as the masthead placeholder circle —
+     caught it this time before shipping it. */
+  .epm-preview[hidden] { display: none; }
+  #epm-content-section[hidden] { display: none; }
   .epm-preview-toolbar { display: flex; gap: 8px; padding: 10px 14px; background: var(--surface); border-bottom: 1px solid var(--border); flex-shrink: 0; }
   .epm-preview-toolbar button {
     font-size: 12px; padding: 5px 12px; border-radius: 6px; border: 1px solid var(--border);
@@ -420,6 +424,7 @@
       </div>
     </div>
     <div style="display:flex;align-items:center;gap:8px">
+      <button class="refresh-btn" style="background:var(--teal);color:#fff;border-color:var(--teal)" onclick="openStationLookEditor()">◧ Edit Station Look</button>
       <a class="refresh-btn" id="new-tile-btn" href="#" style="display:none;text-decoration:none">+ New Tile</a>
       <button class="refresh-btn" onclick="loadTiles()">↻ Refresh</button>
       <button class="filters-chevron-btn" onclick="toggleFiltersPanel()" title="Filters & Tools">
@@ -500,7 +505,7 @@
       <iframe id="epm-masthead-iframe" src="about:blank" title="Masthead live preview"></iframe>
     </div>
     <div class="epm-body">
-      <div class="epm-preview">
+      <div class="epm-preview" id="epm-preview-col">
         <div class="epm-preview-toolbar">
           <button type="button" id="epm-view-collapsed" class="active" onclick="epmToggleView(false)">Collapsed</button>
           <button type="button" id="epm-view-expanded" onclick="epmToggleView(true)">Expanded</button>
@@ -508,6 +513,7 @@
         <iframe id="epm-iframe" src="about:blank" title="Live preview"></iframe>
       </div>
       <div class="epm-fields">
+        <div id="epm-content-section">
         <div class="epm-section-title">Content</div>
         <div class="epm-field">
           <label for="epm-f-title">Title</label>
@@ -544,6 +550,7 @@
         <div class="epm-field">
           <label for="epm-f-headings">What's Covered <span class="opt">section headings, one per line</span></label>
           <textarea id="epm-f-headings" oninput="epmQueuePreview()"></textarea>
+        </div>
         </div>
 
         <div class="epm-section-title">Station look</div>
@@ -1453,6 +1460,13 @@ let epmExpanded = false;
 let epmIconUrl = null;
 let epmPhotoUrl = null;
 let epmPreviewTimer = null;
+// Opened from the dashboard header's "Edit Station Look" button instead of
+// a specific tile's ◧ icon — same modal, Content section + tile-card
+// preview hidden since there's no tile in play, save skips the tile/
+// content write entirely. David, 2026-10-26: curators were opening a
+// random tile's row to find station-wide settings, which read as "this
+// isn't the right place" even though it was.
+let epmStationLookMode = false;
 
 const EPM_FONT_CATEGORY_MAP = { sans: 'Inter', serif: 'Merriweather', mono: 'Roboto Mono' };
 function epmResolveFontFamily() {
@@ -1470,9 +1484,12 @@ async function openEditPreview(tileId) {
   const tile = allTiles.find(t => t.id === tileId);
   if (!tile) return;
   epmTileId = tileId;
+  epmStationLookMode = false;
   epmExpanded = false;
   epmIconUrl = null;
 
+  document.getElementById('epm-content-section').hidden = false;
+  document.getElementById('epm-preview-col').hidden = false;
   document.getElementById('epm-view-collapsed').classList.add('active');
   document.getElementById('epm-view-expanded').classList.remove('active');
   document.getElementById('epm-backdrop').classList.add('open');
@@ -1512,10 +1529,35 @@ async function openEditPreview(tileId) {
   await epmLoadSkin(org);
 }
 
+// Opened from the dashboard header, not a tile row — same modal, but there's
+// no single tile in play: hides Content and the tile-card preview, loads
+// and saves only Station Look / Masthead / Station Identity.
+async function openStationLookEditor() {
+  epmTileId = null;
+  epmStationLookMode = true;
+  epmExpanded = false;
+  epmIconUrl = null;
+
+  document.getElementById('epm-content-section').hidden = true;
+  document.getElementById('epm-preview-col').hidden = true;
+  document.getElementById('epm-backdrop').classList.add('open');
+  document.getElementById('epm-status').className = 'epm-status';
+  document.getElementById('epm-status').textContent = '';
+  document.getElementById('epm-title').textContent = 'Edit Station Look';
+  document.getElementById('epm-title-sub').textContent = '';
+
+  const org = { l1: resolvedOrgL1 || '', l2: resolvedOrgL2 || '', l3: resolvedOrgL3 || '' };
+  document.getElementById('epm-masthead-iframe').src =
+    `../chapter/index.html?preview=1&org_l1=${encodeURIComponent(org.l1)}&org_l2=${encodeURIComponent(org.l2)}&org_l3=${encodeURIComponent(org.l3)}`;
+
+  await epmLoadSkin(org);
+}
+
 function closeEditPreview() {
   document.getElementById('epm-backdrop').classList.remove('open');
   document.getElementById('epm-iframe').src = 'about:blank';
   document.getElementById('epm-masthead-iframe').src = 'about:blank';
+  epmStationLookMode = false;
   epmTileId = null;
 }
 
@@ -1562,7 +1604,8 @@ async function epmLoadSkin(org) {
       const d = await r.json();
       if (d.station_name) {
         document.getElementById('epm-id-name').value = d.station_name;
-        document.getElementById('epm-title').textContent = 'Edit & Preview — ' + d.station_name;
+        document.getElementById('epm-title').textContent =
+          (epmStationLookMode ? 'Edit Station Look — ' : 'Edit & Preview — ') + d.station_name;
       }
       if (d.city)            document.getElementById('epm-id-city').value = d.city;
       if (d.region)          document.getElementById('epm-id-region').value = d.region;
@@ -1714,10 +1757,14 @@ function epmBuildDraftSkin() {
 function epmPostPreview() {
   const message = {
     type: 'ondaPreviewUpdate',
-    tile: epmBuildDraftTile(),
     skin: epmBuildDraftSkin(),
     expanded: epmExpanded,
   };
+  // No tile in play in station-look mode — chapter/index.html's preview
+  // listener only touches the session list when `tile` is present, so
+  // leaving it out just means the (hidden anyway) tile-card iframe shows
+  // nothing, which is correct here.
+  if (!epmStationLookMode) message.tile = epmBuildDraftTile();
   // Two iframes, same real page, same live data — the masthead strip and
   // the tile-card preview are two windows onto one actual render, not a
   // second approximated copy.
@@ -1748,8 +1795,8 @@ async function epmSaveAll() {
   statusEl.className = 'epm-status';
   statusEl.textContent = 'Saving…';
 
-  const tile = allTiles.find(t => t.id === epmTileId);
-  if (!tile) { statusEl.className = 'epm-status err'; statusEl.textContent = 'Lost track of which tile this was — close and reopen.'; return; }
+  const tile = epmStationLookMode ? null : allTiles.find(t => t.id === epmTileId);
+  if (!epmStationLookMode && !tile) { statusEl.className = 'epm-status err'; statusEl.textContent = 'Lost track of which tile this was — close and reopen.'; return; }
 
   const stationName = document.getElementById('epm-id-name').value.trim();
   const city         = document.getElementById('epm-id-city').value.trim();
@@ -1763,29 +1810,33 @@ async function epmSaveAll() {
   }
 
   try {
-    // Content — a direct call, not the shared patchTile() helper: that
-    // helper swallows its own errors into the global error toast, which
-    // would leave this modal claiming success even if the content half
-    // failed. This needs both halves to genuinely succeed before saying so.
-    const draft = epmBuildDraftTile();
-    const contentResp = await fetch(`${NILE_API}/nile/tile/update`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        id: epmTileId, phone: authedPhone, magic_auth_token: authToken,
-        title: draft.title, synopsis: draft.synopsis, who: draft.who, brief: draft.brief,
-        tags: draft.tags, takeaways: draft.takeaways, headings: draft.headings,
-        takeaways_label: draft.takeaways_label,
-        // Not editable here, but omitting a key entirely (vs sending null)
-        // isn't reliably a no-op on Xano's side — confirmed 2026-09-17, the
-        // same reason patchTile() always resends this. Drop this and a
-        // manual tag-merge could silently un-hide here.
-        tags_hidden: tile.tags_hidden,
-      }),
-    });
-    if (!contentResp.ok) {
-      const e = await contentResp.json().catch(() => ({}));
-      throw new Error(e.message || 'Content save failed.');
+    // Content — skipped entirely in station-look mode (opened from the
+    // dashboard header, no specific tile involved). A direct call, not the
+    // shared patchTile() helper: that helper swallows its own errors into
+    // the global error toast, which would leave this modal claiming success
+    // even if the content half failed. This needs both halves to genuinely
+    // succeed before saying so.
+    if (!epmStationLookMode) {
+      const draft = epmBuildDraftTile();
+      const contentResp = await fetch(`${NILE_API}/nile/tile/update`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          id: epmTileId, phone: authedPhone, magic_auth_token: authToken,
+          title: draft.title, synopsis: draft.synopsis, who: draft.who, brief: draft.brief,
+          tags: draft.tags, takeaways: draft.takeaways, headings: draft.headings,
+          takeaways_label: draft.takeaways_label,
+          // Not editable here, but omitting a key entirely (vs sending null)
+          // isn't reliably a no-op on Xano's side — confirmed 2026-09-17, the
+          // same reason patchTile() always resends this. Drop this and a
+          // manual tag-merge could silently un-hide here.
+          tags_hidden: tile.tags_hidden,
+        }),
+      });
+      if (!contentResp.ok) {
+        const e = await contentResp.json().catch(() => ({}));
+        throw new Error(e.message || 'Content save failed.');
+      }
     }
 
     // Station look — org_l1/l2/l3 resolved once at boot, not read off the
