@@ -497,16 +497,6 @@ function playerUrlFor(url) {
   return 'https://default-dev-51573d-xrxm-29on-xlyt.n7e.xano.io/index.html?src=' + encodeURIComponent(url);
 }
 
-function openOnda(event, url) {
-  const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
-  if (!isIOS) return true; // desktop/Android: the <a href> already points at the player
-  event.preventDefault();
-  // iOS: try the app first (it needs the raw .onda file, not the player page);
-  // if it's not installed, fall back to the web player, not the raw file/API URL.
-  window.location.href = 'ondareplay://open?url=' + encodeURIComponent(url);
-  setTimeout(() => { window.location.href = playerUrlFor(url); }, 1500);
-  return false;
-}
 
 // ── Color math: derive text/chip colors instead of storing them ────────────────
 function hexToRgbArr(hex) {
@@ -863,9 +853,12 @@ function render() {
       ? `<img class="card-avatar card-avatar-photo" loading="lazy" src="${s.photo}" alt="${s.presenter}" data-name="${s.presenter}" onerror="window._thumbErr(this)">`
       : `<div class="card-avatar" style="background:${avatarColor(s.presenter||'')}">${initials(s.presenter||'')}</div>`;
 
+    // Always the web player — never the ondareplay:// app deep link. David,
+    // 2026-10-26: "the play button should ALWAYS open the player. Never
+    // attempt to open Replay. There is a different protocol for that."
     const ondaBtn = (!isPending && s.onda_url)
       ? `<a class="onda-btn" href="${playerUrlFor(s.onda_url)}" target="_blank" rel="noopener"
-             onclick="event.stopPropagation();return openOnda(event,'${s.onda_url}')" title="Play recording">
+             onclick="event.stopPropagation()" title="Play recording">
            <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
            Play
          </a>`

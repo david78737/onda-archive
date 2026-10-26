@@ -470,15 +470,6 @@ window._thumbErr = function(img) {
   img.parentNode.replaceChild(div, img);
 };
 
-function openOnda(event, url) {
-  const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
-  if (!isIOS) return true;
-  event.preventDefault();
-  window.location.href = 'ondareplay://open?url=' + encodeURIComponent(url);
-  setTimeout(() => { window.location.href = url; }, 1500);
-  return false;
-}
-
 // ── Filter ────────────────────────────────────────────────────────────────────
 function filtered() {
   return allSessions.filter(s => {
@@ -709,12 +700,12 @@ function render() {
 
     // Opens the hosted web player (play in-browser, download link lives inside
     // the player itself) instead of force-downloading the raw .onda file.
-    // The iOS app deep-link still passes the raw file — the app needs the
-    // actual .onda, not the player page.
+    // Always the web player — never the ondareplay:// app deep link. David,
+    // 2026-10-26: "the play button should ALWAYS open the player. Never
+    // attempt to open Replay. There is a different protocol for that."
     const playerUrl = 'https://default-dev-51573d-xrxm-29on-xlyt.n7e.xano.io/index.html?src=' + encodeURIComponent(s.onda_url || '');
     const ondaBtn = (s.onda_url && s.status !== 'pending')
-      ? `<a class="onda-btn" href="${playerUrl}" target="_blank" rel="noopener"
-             onclick="return openOnda(event,'${s.onda_url}')" title="Play recording">
+      ? `<a class="onda-btn" href="${playerUrl}" target="_blank" rel="noopener" title="Play recording">
            <img src="../img/onda-download.png" alt="Play recording">
          </a>`
       : (s.status === 'pending' ? `<span class="buy-soon">Recording coming soon</span>` : '');
