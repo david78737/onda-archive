@@ -631,6 +631,14 @@ const IDENTITY_API = 'https://xrxm-29on-xlyt.n7e.xano.io/api:nile/org/identity';
 let authToken   = null;
 let authedPhone = null;
 let stationId   = null;
+// Resolved once at boot from the identity lookup below — individual tile
+// records returned by nile/station/tiles never carry org_l1/l2/l3 (tiles
+// are looked up purely by station_id now), so anything needing the legacy
+// three-part org identity (nile/station/profile still requires it) reads
+// these globals instead of a nonexistent tile.org_l1.
+let resolvedOrgL1 = null;
+let resolvedOrgL2 = null;
+let resolvedOrgL3 = null;
 let allTiles    = [];
 let currentFilter = '';
 let currentVisibilityFilter = '';
@@ -795,6 +803,9 @@ function playerUrlFor(url) {
       stationId = skin.station_id || passedStationId || null;
       loadFavoriteTags();
       if (skin.org_l1) {
+        resolvedOrgL1 = skin.org_l1;
+        resolvedOrgL2 = skin.org_l2 || '';
+        resolvedOrgL3 = skin.org_l3 || '';
         const newTileParams = new URLSearchParams({
           org_l1: skin.org_l1, org_l2: skin.org_l2 || '', org_l3: skin.org_l3 || '',
           phone: authedPhone, token: authToken,
@@ -1462,7 +1473,9 @@ async function openEditPreview(tileId) {
   document.getElementById('epm-f-takeaways-label').disabled = (tlabel === '');
   document.getElementById('epm-f-takeaways-label').value = (tlabel && tlabel !== '') ? tlabel : '';
 
-  const org = { l1: tile.org_l1 || '', l2: tile.org_l2 || '', l3: tile.org_l3 || '' };
+  // Tile records never carry org_l1/l2/l3 themselves (tiles are looked up
+  // purely by station_id) — this is the one resolved at boot, not per tile.
+  const org = { l1: resolvedOrgL1 || '', l2: resolvedOrgL2 || '', l3: resolvedOrgL3 || '' };
   document.getElementById('epm-iframe').src =
     `../chapter/index.html?preview=1&org_l1=${encodeURIComponent(org.l1)}&org_l2=${encodeURIComponent(org.l2)}&org_l3=${encodeURIComponent(org.l3)}`;
 
@@ -1733,13 +1746,14 @@ async function epmSaveAll() {
       throw new Error(e.message || 'Content save failed.');
     }
 
-    // Station look
+    // Station look — org_l1/l2/l3 resolved once at boot, not read off the
+    // tile (tile records never carry them; see openEditPreview's comment).
     const payload = {
       phone: authedPhone,
       magic_auth_token: authToken,
-      org_l1: tile.org_l1 || '',
-      org_l2: tile.org_l2 || '',
-      org_l3: tile.org_l3 || '',
+      org_l1: resolvedOrgL1 || '',
+      org_l2: resolvedOrgL2 || '',
+      org_l3: resolvedOrgL3 || '',
       station_name: stationName,
       city, region,
       curator_name: curatorName,
