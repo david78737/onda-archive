@@ -65,7 +65,7 @@
      Station Profile (name / description / photo). Hidden until that data
      arrives so there's no empty flash; every station gets this, not just
      memorial-style ones. David, 2026-10-25. ── */
-  .masthead { padding: 16px 24px 0; }
+  .masthead { padding: 16px 24px; }
   .masthead[hidden] { display: none; }
   .masthead-inner {
     max-width: 650px; margin: 0 auto; display: flex; align-items: center; gap: 18px; flex-wrap: wrap;
@@ -96,7 +96,7 @@
   .masthead-quote { font-size: 13.5px; color: var(--ink-mid); margin-top: 8px; line-height: 1.6; font-style: italic; max-width: 560px; }
   .masthead-quote[hidden] { display: none; }
   @media (max-width: 600px) {
-    .masthead { padding: 12px 14px 0; }
+    .masthead { padding: 12px 14px; }
     .masthead-inner { padding: 16px; }
     .masthead-photo, .masthead-photo-placeholder { width: 60px; height: 60px; font-size: 20px; }
     .masthead-name { font-size: 18px; }
@@ -203,6 +203,11 @@
     padding: 16px 20px 48px;
   }
 
+  .archive-heading {
+    font-style: italic; font-size: 16px; color: var(--ink-mid);
+    padding: 10px 0 2px; line-height: 1.4;
+  }
+  .archive-heading[hidden] { display: none; }
   #status { font-size: 12px; color: var(--muted); padding: 6px 0 8px; }
 
   /* ── Cards — full-width stacked list, better for phones than a
@@ -369,6 +374,7 @@
 </div>
 
 <main class="right-panel">
+  <div class="archive-heading" id="archive-heading" hidden></div>
   <div id="status"></div>
   <div class="sessions" id="sessions"><div class="loading">Loading archive…</div></div>
 </main>
@@ -518,7 +524,12 @@ function applyTheme(org) {
   if (org.surface_color && org.border_color) {
     const surface = org.surface_color, border = org.border_color;
     const ink = contrastTextColor(surface);
-    const chipBg = blendHex(surface, border, 0.25);
+    // Lighter blend (was 0.25) — on a station with a dark border color
+    // (Pat Stone Memorium's near-black maroon), the old ratio pulled the
+    // search input / tag chips / badges noticeably muddy. 0.12 keeps a
+    // real seam between this and --surface without going dark on a light
+    // surface color. David, 2026-10-26.
+    const chipBg = blendHex(surface, border, 0.12);
     r.style.setProperty('--surface',       surface);
     r.style.setProperty('--surface2',      chipBg);
     r.style.setProperty('--border',        border);
@@ -573,6 +584,8 @@ function applyMasthead(org) {
   if (quote) { quoteEl.textContent = quote; quoteEl.hidden = false; }
   else quoteEl.hidden = true;
 
+  applyArchiveHeading(org);
+
   const photoUrl = org.photo_url || org.badge_icon_url || null;
   const img = document.getElementById('masthead-photo');
   const placeholder = document.getElementById('masthead-photo-placeholder');
@@ -589,6 +602,17 @@ function applyMasthead(org) {
   }
 
   el.hidden = false;
+}
+
+// A short line above the session list — "The memories and stories of
+// those who loved and remember", or whatever a curator writes instead.
+// No hardcoded default text: that exact phrasing only fits a memorial-
+// style station, not every station this template serves, so it's hidden
+// until a curator actually sets it rather than assumed. David, 2026-10-26.
+function applyArchiveHeading(org) {
+  const el = document.getElementById('archive-heading');
+  if (org.archive_heading) { el.textContent = org.archive_heading; el.hidden = false; }
+  else el.hidden = true;
 }
 
 // ── Filter ─────────────────────────────────────────────────────────────────────

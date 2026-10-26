@@ -601,6 +601,11 @@
           <textarea id="epm-mh-desc" placeholder="What you curate and why. Who your listeners are. What makes this station worth following." oninput="epmQueuePreview()"></textarea>
           <div class="hint">Shown under Family's words if that's blank — same field station.html calls "About this station."</div>
         </div>
+        <div class="epm-field">
+          <label for="epm-mh-archive-heading">Archive heading <span class="opt">optional</span></label>
+          <input type="text" id="epm-mh-archive-heading" placeholder="e.g. The memories and stories of those who loved and remember" oninput="epmQueuePreview()">
+          <div class="hint">A short line shown above the session list, below the masthead. Blank shows nothing there.</div>
+        </div>
 
         <div class="epm-section-title">Station identity <span style="color:var(--muted);text-transform:none;font-weight:400;letter-spacing:normal">— required by Xano to save anything above</span></div>
         <div class="epm-row2">
@@ -1542,6 +1547,7 @@ async function epmLoadSkin(org) {
   epmIconUrl = null;
   document.getElementById('epm-mh-dates').value = '';
   document.getElementById('epm-mh-quote').value = '';
+  document.getElementById('epm-mh-archive-heading').value = '';
   document.getElementById('epm-mh-desc').value = '';
   document.getElementById('epm-mh-photo-img').style.display = 'none';
   document.getElementById('epm-mh-photo-fallback').style.display = 'flex';
@@ -1575,6 +1581,7 @@ async function epmLoadSkin(org) {
       if (d.description)    document.getElementById('epm-mh-desc').value = d.description;
       if (d.masthead_dates) document.getElementById('epm-mh-dates').value = d.masthead_dates;
       if (d.masthead_quote) document.getElementById('epm-mh-quote').value = d.masthead_quote;
+      if (d.archive_heading) document.getElementById('epm-mh-archive-heading').value = d.archive_heading;
       if (d.photo_url) {
         epmPhotoUrl = d.photo_url;
         document.getElementById('epm-mh-photo-img').src = d.photo_url;
@@ -1700,6 +1707,7 @@ function epmBuildDraftSkin() {
     description:   document.getElementById('epm-mh-desc').value || null,
     masthead_dates: document.getElementById('epm-mh-dates').value || null,
     masthead_quote: document.getElementById('epm-mh-quote').value || null,
+    archive_heading: document.getElementById('epm-mh-archive-heading').value || null,
     photo_url:     epmPhotoUrl,
   };
 }
@@ -1798,6 +1806,7 @@ async function epmSaveAll() {
       photo_url: epmPhotoUrl,
       masthead_dates: document.getElementById('epm-mh-dates').value.trim() || null,
       masthead_quote: document.getElementById('epm-mh-quote').value.trim() || null,
+      archive_heading: document.getElementById('epm-mh-archive-heading').value.trim() || null,
       custom_page_bg: document.getElementById('epm-c-page').value,
       custom_tile_bg: document.getElementById('epm-c-tile').value,
       custom_border: document.getElementById('epm-c-border').value,
