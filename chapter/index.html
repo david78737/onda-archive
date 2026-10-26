@@ -68,10 +68,11 @@
   .masthead { padding: 16px 24px; }
   .masthead[hidden] { display: none; }
   .masthead-inner {
-    max-width: 650px; margin: 0 auto; display: flex; align-items: center; gap: 18px; flex-wrap: wrap;
+    max-width: 650px; margin: 0 auto;
     background: var(--surface); border: 1px solid var(--border); border-radius: 10px;
     padding: 20px 24px;
   }
+  .masthead-row { display: flex; align-items: center; gap: 18px; flex-wrap: wrap; }
   .masthead-photo {
     width: 84px; height: 84px; border-radius: 50%; object-fit: cover; flex-shrink: 0;
     border: 3px solid var(--bg); box-shadow: 0 0 0 1px var(--border);
@@ -93,7 +94,10 @@
   .masthead-name { font-size: 24px; font-weight: 700; color: var(--ink); line-height: 1.2; }
   .masthead-dates { font-size: 13px; color: var(--muted); margin-top: 3px; }
   .masthead-dates[hidden] { display: none; }
-  .masthead-quote { font-size: 13.5px; color: var(--ink-mid); margin-top: 8px; line-height: 1.6; font-style: italic; max-width: 560px; }
+  .masthead-quote {
+    font-size: 13.5px; color: var(--ink-mid); line-height: 1.6; font-style: italic;
+    text-align: right; margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--border);
+  }
   .masthead-quote[hidden] { display: none; }
   @media (max-width: 600px) {
     .masthead { padding: 12px 14px; }
@@ -353,13 +357,15 @@
 
 <div class="masthead" id="masthead" hidden>
   <div class="masthead-inner">
-    <img class="masthead-photo" id="masthead-photo" alt="" hidden>
-    <div class="masthead-photo-placeholder" id="masthead-photo-placeholder" hidden></div>
-    <div class="masthead-text">
-      <div class="masthead-name" id="masthead-name"></div>
-      <div class="masthead-dates" id="masthead-dates" hidden></div>
-      <div class="masthead-quote" id="masthead-quote" hidden></div>
+    <div class="masthead-row">
+      <img class="masthead-photo" id="masthead-photo" alt="" hidden>
+      <div class="masthead-photo-placeholder" id="masthead-photo-placeholder" hidden></div>
+      <div class="masthead-text">
+        <div class="masthead-name" id="masthead-name"></div>
+        <div class="masthead-dates" id="masthead-dates" hidden></div>
+      </div>
     </div>
+    <div class="masthead-quote" id="masthead-quote" hidden></div>
   </div>
 </div>
 
