@@ -78,6 +78,7 @@
   }
   .masthead-photo {
     width: var(--photo-size, 84px); height: var(--photo-size, 84px); border-radius: 50%; object-fit: cover; flex-shrink: 0;
+    object-position: var(--photo-focus-x, 50%) var(--photo-focus-y, 50%);
     border: 3px solid var(--bg); box-shadow: 0 0 0 1px var(--border); transition: width .1s, height .1s;
   }
   .masthead-photo[hidden] { display: none; }
@@ -620,6 +621,11 @@ function applyMasthead(org) {
   const row = document.getElementById('masthead-row');
   row.style.setProperty('--photo-size', (org.masthead_photo_size || 84) + 'px');
   row.style.setProperty('--photo-position', (org.masthead_photo_position || 0) + '%');
+  // Recenter the crop within the circle — "passport photo" style — instead
+  // of always cropping dead-center, which cut off the top of Pat's head in
+  // a portrait-oriented upload. 50/50 (dead center) when unset.
+  row.style.setProperty('--photo-focus-x', (org.masthead_photo_focus_x ?? 50) + '%');
+  row.style.setProperty('--photo-focus-y', (org.masthead_photo_focus_y ?? 50) + '%');
 
   const datesEl = document.getElementById('masthead-dates');
   if (org.masthead_dates) { datesEl.textContent = org.masthead_dates; datesEl.hidden = false; }

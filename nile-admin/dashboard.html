@@ -615,6 +615,13 @@
           <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--muted)"><span>Left</span><span>Right</span></div>
         </div>
         <div class="epm-field">
+          <label for="epm-mh-photo-focus-x">Recenter photo <span class="opt">crop within the circle, like a passport photo</span></label>
+          <input type="range" id="epm-mh-photo-focus-x" min="0" max="100" step="1" value="50" oninput="epmQueuePreview()">
+          <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--muted)"><span>Left</span><span>Right</span></div>
+          <input type="range" id="epm-mh-photo-focus-y" min="0" max="100" step="1" value="50" style="margin-top:6px" oninput="epmQueuePreview()">
+          <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--muted)"><span>Top</span><span>Bottom</span></div>
+        </div>
+        <div class="epm-field">
           <label for="epm-mh-dates">Dates <span class="opt">optional</span></label>
           <input type="text" id="epm-mh-dates" placeholder="e.g. 1958 — 2026" oninput="epmQueuePreview()">
         </div>
@@ -1628,6 +1635,8 @@ async function epmLoadSkin(org) {
   document.getElementById('epm-mh-photo-size').value = 84;
   document.getElementById('epm-mh-photo-size-val').textContent = 84;
   document.getElementById('epm-mh-photo-position').value = 0;
+  document.getElementById('epm-mh-photo-focus-x').value = 50;
+  document.getElementById('epm-mh-photo-focus-y').value = 50;
   epmPhotoUrl = null;
 
   try {
@@ -1669,6 +1678,8 @@ async function epmLoadSkin(org) {
         document.getElementById('epm-mh-photo-size-val').textContent = d.masthead_photo_size;
       }
       if (d.masthead_photo_position != null) document.getElementById('epm-mh-photo-position').value = d.masthead_photo_position;
+      if (d.masthead_photo_focus_x != null) document.getElementById('epm-mh-photo-focus-x').value = d.masthead_photo_focus_x;
+      if (d.masthead_photo_focus_y != null) document.getElementById('epm-mh-photo-focus-y').value = d.masthead_photo_focus_y;
       if (d.photo_url) {
         epmPhotoUrl = d.photo_url;
         document.getElementById('epm-mh-photo-img').src = d.photo_url;
@@ -1799,6 +1810,8 @@ function epmBuildDraftSkin() {
     archive_heading: document.getElementById('epm-mh-archive-heading').value || null,
     masthead_photo_size: Number(document.getElementById('epm-mh-photo-size').value),
     masthead_photo_position: Number(document.getElementById('epm-mh-photo-position').value),
+    masthead_photo_focus_x: Number(document.getElementById('epm-mh-photo-focus-x').value),
+    masthead_photo_focus_y: Number(document.getElementById('epm-mh-photo-focus-y').value),
     photo_url:     epmPhotoUrl,
   };
 }
@@ -1918,6 +1931,8 @@ async function epmSaveAll() {
       archive_heading: document.getElementById('epm-mh-archive-heading').value.trim() || null,
       masthead_photo_size: Number(document.getElementById('epm-mh-photo-size').value),
       masthead_photo_position: Number(document.getElementById('epm-mh-photo-position').value),
+      masthead_photo_focus_x: Number(document.getElementById('epm-mh-photo-focus-x').value),
+      masthead_photo_focus_y: Number(document.getElementById('epm-mh-photo-focus-y').value),
       custom_page_bg: document.getElementById('epm-c-page').value,
       custom_tile_bg: document.getElementById('epm-c-tile').value,
       custom_border: document.getElementById('epm-c-border').value,
