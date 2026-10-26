@@ -99,11 +99,33 @@
     text-align: right; margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--border);
   }
   .masthead-quote[hidden] { display: none; }
+
+  /* ── Station notice — a separate, independent block from the masthead
+     quote, not a fallback for it. Family's words is the personal pull-
+     quote in the masthead; this is plain informational text (an
+     announcement, instructions, whatever a curator writes) in its own
+     place, so the two never compete for the same slot. David, 2026-10-26:
+     "PUT THEM is different locations and let users figure out how to use
+     them." ── */
+  .station-notice { padding: 0 24px; }
+  .station-notice[hidden] { display: none; }
+  .station-notice-inner {
+    max-width: 650px; margin: 14px auto 0;
+    background: var(--surface); border: 1px solid var(--border); border-radius: 10px;
+    padding: 16px 24px;
+  }
+  .station-notice-label {
+    font-size: 11px; letter-spacing: .06em; text-transform: uppercase; font-weight: 700;
+    color: var(--muted); margin-bottom: 6px;
+  }
+  .station-notice-text { font-size: 13.5px; color: var(--ink-mid); line-height: 1.6; white-space: pre-line; }
   @media (max-width: 600px) {
     .masthead { padding: 12px 14px; }
     .masthead-inner { padding: 16px; }
     .masthead-photo, .masthead-photo-placeholder { width: 60px; height: 60px; font-size: 20px; }
     .masthead-name { font-size: 18px; }
+    .station-notice { padding: 0 14px; }
+    .station-notice-inner { padding: 14px 16px; }
   }
 
   @media (max-width: 600px) {
@@ -369,6 +391,13 @@
   </div>
 </div>
 
+<div class="station-notice" id="station-notice" hidden>
+  <div class="station-notice-inner">
+    <div class="station-notice-label">About this station</div>
+    <div class="station-notice-text" id="station-notice-text"></div>
+  </div>
+</div>
+
 <div class="search-bar">
   <div class="search-bar-inner">
     <input type="search" id="search-input" placeholder="Search sessions, contributors, tags…" autocomplete="off">
@@ -566,11 +595,12 @@ function applyTheme(org) {
 }
 
 // ── Masthead — station_name / photo straight from the Station Profile
-// record, plus two memorial-specific fields (masthead_dates, masthead_quote)
-// added 2026-10-26 for stations that want a short quote distinct from the
-// longer "About this station" bio. masthead_quote wins when both are set;
-// description is the fallback so stations that only filled in the generic
-// bio still show something. David, 2026-10-26.
+// record, plus masthead_dates and masthead_quote (added 2026-10-26).
+// masthead_quote stands alone here — it does NOT fall back to
+// description. David, 2026-10-26: "I don't want these two elements
+// competing. PUT THEM is different locations and let users figure out
+// how to use them — as an announcement or any other instructions."
+// description gets its own separate block; see applyStationNotice.
 function applyMasthead(org) {
   const el = document.getElementById('masthead');
   if (!org || !org.station_name) { el.hidden = true; return; }
@@ -581,11 +611,11 @@ function applyMasthead(org) {
   if (org.masthead_dates) { datesEl.textContent = org.masthead_dates; datesEl.hidden = false; }
   else datesEl.hidden = true;
 
-  const quote = org.masthead_quote || org.description || null;
   const quoteEl = document.getElementById('masthead-quote');
-  if (quote) { quoteEl.textContent = quote; quoteEl.hidden = false; }
+  if (org.masthead_quote) { quoteEl.textContent = org.masthead_quote; quoteEl.hidden = false; }
   else quoteEl.hidden = true;
 
+  applyStationNotice(org);
   applyArchiveHeading(org);
 
   const photoUrl = org.photo_url || org.badge_icon_url || null;
@@ -604,6 +634,21 @@ function applyMasthead(org) {
   }
 
   el.hidden = false;
+}
+
+// The "About this station" field, independent of the masthead quote —
+// its own card, its own location, shown whenever it has text regardless
+// of whether Family's words is also set. Plain text, not italic/right-
+// aligned like the quote — reads as an announcement/instructions block,
+// not a second pull-quote.
+function applyStationNotice(org) {
+  const el = document.getElementById('station-notice');
+  if (org.description) {
+    document.getElementById('station-notice-text').textContent = org.description;
+    el.hidden = false;
+  } else {
+    el.hidden = true;
+  }
 }
 
 // A short line above the session list — "The memories and stories of
