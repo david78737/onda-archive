@@ -291,7 +291,7 @@
       <a href="#" id="media-overlay-save-mine" style="font-size:12.5px;color:#008787;font-weight:600;text-decoration:none;margin-left:10px;" onclick="event.preventDefault();saveToMyCatalog()">+ Save to my catalog</a>
       <span id="media-overlay-upload-status" style="font-size:12.5px;color:#888;margin-left:8px;"></span>
     </div>
-    <input type="file" id="media-overlay-file" accept="image/*" style="display:none;">
+    <input type="file" id="media-overlay-file" accept="image/png,image/jpeg" style="display:none;">
     <div id="media-overlay-mine-wrap" style="display:none;">
       <div class="catalog-divider">your saved images</div>
       <div id="media-overlay-mine-grid" class="catalog-grid"></div>
@@ -849,6 +849,16 @@ document.getElementById('media-overlay-file').addEventListener('change', async (
   const file = e.target.files[0];
   if (!file) return;
   const statusEl = document.getElementById('media-overlay-upload-status');
+  // iPhone photos default to HEIC, which the "image/*" file picker lets
+  // through but almost no browser can actually render in an <img> tag —
+  // the upload itself succeeds, so it silently becomes a broken image link
+  // instead of an upfront error. Catching it here means a clear message
+  // instead of that confusing "uploaded, then broken" sequence.
+  if (file.type && file.type !== 'image/png' && file.type !== 'image/jpeg') {
+    statusEl.textContent = 'Please use a PNG or JPG — HEIC photos (the iPhone default) won’t display.';
+    e.target.value = '';
+    return;
+  }
   statusEl.textContent = 'Uploading…';
   try {
     const form = new FormData();
