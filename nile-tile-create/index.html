@@ -1104,6 +1104,13 @@ async function submitTile() {
     presenter_phone: PHONE,
     presenter_email: email,
     linkedin_url: linkedin,
+    // A plain-text submission (no recording) has no transcript from
+    // Whisper — but Generate Draft's AI pass reads `transcript`, not
+    // `synopsis`, so without this it has nothing to work from and errors
+    // out ("Unable to locate var: presentation.transcript"). The written
+    // story IS the transcript for this path — there's no other raw text
+    // to point it at.
+    transcript: synopsis,
     synopsis, who: bestfor,
     tags: userTags.map(t => t.value),
     brief, takeaways, headings,
