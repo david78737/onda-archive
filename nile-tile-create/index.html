@@ -46,6 +46,7 @@
 
   .card-title{font-size:20px;font-weight:700;color:#1a1a1a;line-height:1.3;}
   .card-presenter{font-size:14px;color:#666;margin-top:2px;}
+  .card-email{font-size:13px;color:#999;margin-top:1px;}
 
   .tags-wrap{display:flex;flex-wrap:wrap;gap:6px;margin:14px 0;}
   .tag-pill{display:inline-flex;align-items:center;gap:4px;background:#E0F4F2;border:1px solid #008787;border-radius:4px;padding:3px 8px;font-size:12.5px;color:#008787;}
@@ -187,6 +188,7 @@
 
       <div class="card-title editable" id="f-title" data-field="title" data-placeholder="Tap to add a title"></div>
       <div class="card-presenter editable" id="f-presenter" data-field="presenter" data-placeholder="Tap to add your name"></div>
+      <div class="card-email editable" id="f-email" data-field="email" data-placeholder="Tap to add your email"></div>
 
       <div class="tags-wrap" id="tags-wrap"></div>
       <div class="tag-input-row">
@@ -630,6 +632,7 @@ async function proceedToForm() {
 function applyLoadedTile(d) {
   setFieldValue('title', d.title || '');
   setFieldValue('presenter', d.presenter_name || '');
+  setFieldValue('email', d.presenter_email || d.email || '');
   setFieldValue('linkedin', d.linkedin_url || '');
   setFieldValue('synopsis', d.summary || '');
   setFieldValue('bestfor', d.audience || '');
@@ -1053,6 +1056,7 @@ function getLines(listId) {
 async function submitTile() {
   const title     = getFieldValue('title');
   const presenter = getFieldValue('presenter');
+  const email     = getFieldValue('email');
   const linkedin  = getFieldValue('linkedin') || null;
   const eventCode = (getFieldValue('event-code') || '').toUpperCase() || null;
   const synopsis  = getFieldValue('synopsis');
@@ -1076,6 +1080,7 @@ async function submitTile() {
 
   if (!title)     { msg.className = 'msg err'; msg.textContent = 'Tap the title at the top to add one.'; return; }
   if (!presenter) { msg.className = 'msg err'; msg.textContent = 'Tap the name under the title to add one.'; return; }
+  if (!email || !email.includes('@')) { msg.className = 'msg err'; msg.textContent = 'Tap to add a valid email address.'; return; }
 
   btn.disabled = true;
   btn.textContent = 'Saving…';
@@ -1087,6 +1092,7 @@ async function submitTile() {
     event_code: eventCode,
     title, presenter,
     presenter_phone: PHONE,
+    presenter_email: email,
     linkedin_url: linkedin,
     synopsis, who: bestfor,
     tags: userTags.map(t => t.value),
