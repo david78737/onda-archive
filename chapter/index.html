@@ -75,9 +75,9 @@
     transition: background .12s, color .12s, transform .15s;
   }
   .more-toggle:hover { background: var(--surface2); color: var(--ink); }
-  .more-toggle .chevron { display: flex; transition: transform .15s; }
-  .more-toggle .chevron svg { display: block; width: 14px; height: 14px; stroke: currentColor; }
-  .more-toggle.open .chevron { transform: rotate(180deg); }
+  .more-toggle .toggle-chevron { display: flex; transition: transform .15s; }
+  .more-toggle .toggle-chevron svg { display: block; width: 14px; height: 14px; stroke: currentColor; }
+  .more-toggle.open .toggle-chevron { transform: rotate(180deg); }
   .search-bar-more {
     max-width: 650px; margin: 8px auto 0;
     display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
@@ -434,7 +434,7 @@
     <input type="search" id="search-input" placeholder="Search sessions, contributors, tags…" autocomplete="off">
     <a class="share-story-btn" id="share-story-btn" href="#" hidden>Share your story</a>
     <button type="button" class="more-toggle" id="more-toggle" onclick="toggleMoreRow()" aria-label="More options" aria-expanded="false">
-      <span class="chevron"><svg viewBox="0 0 16 16" fill="none"><path d="M3 6l5 5 5-5" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+      <span class="toggle-chevron"><svg viewBox="0 0 16 16" fill="none"><path d="M3 6l5 5 5-5" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
     </button>
   </div>
   <div class="search-bar-more" id="search-bar-more" hidden>
