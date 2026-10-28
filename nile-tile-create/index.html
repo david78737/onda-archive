@@ -39,7 +39,12 @@
 
   .editable{cursor:text;border-radius:6px;padding:2px 4px;margin:-2px -4px;transition:background .12s;}
   .editable:hover{background:#F0F8F7;}
-  .editable.empty{color:#999;font-style:italic;}
+  .editable.empty{
+    color:#999;font-style:italic;
+    display:block;border:1.5px dashed #cfe9e7;background:#FAFEFE;
+    padding:7px 9px;margin:4px 0;
+  }
+  .editable.empty:hover{background:#F0F8F7;border-color:#008787;}
   .editable-input{width:100%;padding:8px 10px;font-size:inherit;font-family:inherit;font-weight:inherit;border:1.5px solid #008787;border-radius:6px;background:#fff;}
   textarea.editable-input{resize:vertical;min-height:70px;line-height:1.5;}
   .btn-done{padding:4px 12px;background:#008787;color:#fff;border:none;border-radius:14px;font-size:12.5px;font-weight:600;cursor:pointer;}
