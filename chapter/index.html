@@ -1167,16 +1167,15 @@ if (PREVIEW_MODE) {
 
   const allData = await presResp.json();
   const filtered = allData.filter(p =>
-    // visibility 'public' or 'chapter' show on the station's own page;
-    // 'private' (curator/admin-only) never does — that's what the Station
-    // Dashboard is for. visibility is itself derived server-side from the
-    // two-key Contributor+Curator approval, which IS publishing — a
-    // separate status === 'published' requirement used to gate this too,
-    // a second unrequested switch on top of approval (removed 2026-10-25,
-    // same fix as dashboard.html's "Make Visible" button). `status` is a
-    // workflow-stage label (draft/submitted/pending/etc), not a publish
-    // flag, and is no longer part of this check.
-    p.visibility !== 'private' &&
+    // `visibility` is just the LEVEL someone picked (private/chapter/
+    // public) — it does not by itself mean the two-key Contributor+
+    // Curator approval has actually happened. A freshly submitted tile
+    // can sit at visibility:'chapter' with neither approval checked yet,
+    // which this filter used to let straight onto the public page (David,
+    // 2026-10-28: unapproved test submissions showing live). `is_visible`
+    // is the one field the server actually derives from both approvals —
+    // that's the real publish gate, this one.
+    p.is_visible === true &&
       (!resolvedStationId || p.station_id === resolvedStationId)
   );
 
