@@ -61,6 +61,28 @@
   .search-bar input:focus { border-color: var(--accent); }
   .search-bar input::placeholder { color: var(--muted-dim); }
 
+  .share-story-btn {
+    flex-shrink: 0; background: var(--accent); color: var(--surface);
+    border-radius: 5px; padding: 8px 14px; font-size: 14px; font-weight: 600;
+    text-decoration: none; white-space: nowrap; transition: opacity .12s;
+  }
+  .share-story-btn:hover { opacity: .88; }
+  .more-toggle {
+    flex-shrink: 0; background: var(--surface); border: 1px solid var(--border);
+    color: var(--ink-mid); border-radius: 5px; width: 34px; height: 34px;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; appearance: none; -webkit-appearance: none;
+    transition: background .12s, color .12s, transform .15s;
+  }
+  .more-toggle:hover { background: var(--surface2); color: var(--ink); }
+  .more-toggle .chevron { display: inline-block; transition: transform .15s; }
+  .more-toggle.open .chevron { transform: rotate(180deg); }
+  .search-bar-more {
+    max-width: 650px; margin: 8px auto 0;
+    display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+  }
+  .search-bar-more[hidden] { display: none; }
+
   /* ── Masthead — the station's own identity, read straight from the
      Station Profile (name / description / photo). Hidden until that data
      arrives so there's no empty flash; every station gets this, not just
@@ -409,6 +431,12 @@
 <div class="search-bar">
   <div class="search-bar-inner">
     <input type="search" id="search-input" placeholder="Search sessions, contributors, tags…" autocomplete="off">
+    <a class="share-story-btn" id="share-story-btn" href="#" hidden>Share your story</a>
+    <button type="button" class="more-toggle" id="more-toggle" onclick="toggleMoreRow()" aria-label="More options" aria-expanded="false">
+      <span class="chevron">▾</span>
+    </button>
+  </div>
+  <div class="search-bar-more" id="search-bar-more" hidden>
     <button type="button" class="topics-toggle" id="contributor-toggle" onclick="openDrawer('contributor')">
       <span>Contributor</span>
     </button>
@@ -719,6 +747,15 @@ function filtered() {
     return aPinned === bPinned ? 0 : (aPinned ? -1 : 1);
   });
   return rows;
+}
+
+function toggleMoreRow() {
+  const row = document.getElementById('search-bar-more');
+  const btn = document.getElementById('more-toggle');
+  const willOpen = row.hidden;
+  row.hidden = !willOpen;
+  btn.classList.toggle('open', willOpen);
+  btn.setAttribute('aria-expanded', String(willOpen));
 }
 
 // ── Drawer — shared shell for both Tags and Contributor, only one panel
@@ -1106,6 +1143,12 @@ if (PREVIEW_MODE) {
         font_family:     skin.font_family,
       });
       applyMasthead(skin);
+      if (skin.org_l1 && skin.org_l2 && skin.org_l3) {
+        const shareParams = new URLSearchParams({ org_l1: skin.org_l1, org_l2: skin.org_l2, org_l3: skin.org_l3 });
+        const shareBtn = document.getElementById('share-story-btn');
+        shareBtn.href = `https://archive.ondareplay.com/nile-tile-create/?${shareParams}`;
+        shareBtn.hidden = false;
+      }
     } catch(_) {}
   }
 
