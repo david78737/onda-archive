@@ -68,14 +68,14 @@
   }
   .share-story-btn:hover { opacity: .88; }
   .more-toggle {
-    flex-shrink: 0; background: var(--surface); border: 1px solid var(--border);
-    color: var(--ink-mid); border-radius: 5px; width: 34px; height: 34px;
+    flex-shrink: 0; background: transparent; border: 1px solid var(--border);
+    color: var(--ink-mid); border-radius: 5px; padding: 8px 10px;
     display: flex; align-items: center; justify-content: center;
-    cursor: pointer; appearance: none; -webkit-appearance: none;
+    cursor: pointer; appearance: none; -webkit-appearance: none; box-sizing: border-box;
     transition: background .12s, color .12s, transform .15s;
   }
   .more-toggle:hover { background: var(--surface2); color: var(--ink); }
-  .more-toggle .chevron { display: block; transition: transform .15s; }
+  .more-toggle .chevron { display: flex; transition: transform .15s; }
   .more-toggle .chevron svg { display: block; width: 14px; height: 14px; stroke: currentColor; }
   .more-toggle.open .chevron { transform: rotate(180deg); }
   .search-bar-more {
