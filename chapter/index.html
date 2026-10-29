@@ -969,7 +969,7 @@ function render() {
     const ondaBtn = (!isPending && s.onda_url)
       ? `<a class="onda-btn" href="${playerUrlFor(s.onda_url)}" target="_blank" rel="noopener"
              onclick="event.stopPropagation()" title="Play recording">
-           <img class="onda-btn-tap-icon" src="../assets/tap-arrow.png" alt="Play" width="28" height="25">
+           <img class="onda-btn-tap-icon" src="../assets/tap-arrow.png" alt="Play" width="25" height="28">
          </a>`
       : `<span class="buy-soon">${isPending ? '⏳ Coming soon' : 'Not yet available'}</span>`;
 
