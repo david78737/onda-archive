@@ -112,6 +112,8 @@
   .section-label{font-size:11px;font-weight:700;color:#999;text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px;}
   .card-body-text{font-size:14.5px;line-height:1.6;color:#333;}
 
+  .review-takeaway-row{display:flex;align-items:flex-start;gap:8px;font-size:14.5px;line-height:1.5;color:#333;margin-bottom:8px;cursor:pointer;}
+  .review-takeaway-row input{margin-top:3px;flex-shrink:0;}
   .arrow-list{list-style:none;}
   .arrow-list li{display:flex;gap:8px;font-size:14.5px;line-height:1.5;color:#333;margin-bottom:8px;}
   .arrow-list li .arrow{color:#008787;flex-shrink:0;}
@@ -131,6 +133,12 @@
   .visibility-opt .hint{display:block;font-size:11.5px;font-weight:400;color:#888;}
 
   .more-details-toggle{margin-top:18px;background:none;border:none;color:#008787;font-size:13.5px;font-weight:600;cursor:pointer;padding:6px 0;}
+  .field-hint{color:#999;font-size:12.5px;margin:-10px 0 14px;line-height:1.4;}
+  .accordion-toggle{margin-top:14px;padding:10px 12px;border:1.5px solid #CCE9E6;border-radius:6px;background:#FAFEFE;color:#444;font-size:13.5px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:6px;}
+  .accordion-toggle:hover{background:#F0F8F7;border-color:#008787;}
+  .accordion-toggle .accordion-hint{color:#999;font-weight:400;font-size:12px;}
+  .accordion-panel{display:none;padding-top:10px;}
+  .accordion-panel.open{display:block;}
   #more-details{display:none;margin-top:6px;padding-top:14px;border-top:1px solid #eee;}
   #more-details.open{display:block;}
 
@@ -180,8 +188,7 @@
 
   <!-- ── The WYSIWYG card ─────────────────────────────────────────────── -->
   <div id="step-form" style="display:none;">
-    <p class="sub" id="form-sub">This is exactly how it will look. Tap any part of the card to fill it in.</p>
-    <div class="org-badge" style="display:inline-block;background:#E0F4F2;border:1px solid #008787;border-radius:4px;padding:3px 10px;font-size:13px;color:#008787;font-weight:600;margin-bottom:14px;" id="org-badge"></div>
+    <p class="sub" id="form-sub"></p>
 
     <div class="type-row" id="type-row"></div>
 
@@ -194,14 +201,37 @@
       <div class="card-title editable" id="f-title" data-field="title" data-placeholder="Tap to add a title"></div>
       <div class="card-presenter editable" id="f-presenter" data-field="presenter" data-placeholder="Tap to add your name"></div>
       <div class="card-email editable" id="f-email" data-field="email" data-placeholder="Tap to add your email"></div>
+      <p class="field-hint" id="email-hint"></p>
+
+      <div class="section">
+        <div class="section-label" id="label-synopsis">Story</div>
+        <div class="card-body-text editable" id="f-synopsis" data-field="synopsis" data-multiline="1" data-placeholder="Tap to write what this is about"></div>
+      </div>
+
+      <div class="accordion-toggle" id="photos-toggle" onclick="toggleAccordion('photos')">Do you have photos? <span class="accordion-hint">(optional)</span></div>
+      <div id="photos-accordion" class="accordion-panel">
+        <div id="field-photos">
+          <div class="media-label">Photos</div>
+          <div class="media-row" id="photo-row"></div>
+          <div id="photo-callouts-list"></div>
+        </div>
+      </div>
+
+      <div class="accordion-toggle" id="videos-toggle" onclick="toggleAccordion('videos')">Do you have videos? <span class="accordion-hint">(optional)</span></div>
+      <div id="videos-accordion" class="accordion-panel">
+        <div id="field-videos">
+          <div class="media-label">Videos</div>
+          <div class="media-row" id="video-row"></div>
+        </div>
+      </div>
 
       <div class="tags-wrap" id="tags-wrap"></div>
-      <div class="tag-input-row">
+      <div class="tag-input-row" id="tag-input-row">
         <input id="tag-input" type="text" placeholder="Add a topic tag" />
         <button class="tag-add" type="button" onclick="addTag()">+</button>
       </div>
 
-      <div class="avatar-row">
+      <div class="avatar-row" id="avatar-row">
         <div class="avatar" id="avatar-initial" onclick="openAvatarEditor()" title="Add your photo">?</div>
         <button type="button" class="play-btn empty" id="onda-play-btn" onclick="openOndaEditor()">
           <span class="tri"></span><span id="onda-play-label">Add Recording</span>
@@ -212,28 +242,12 @@
         </div>
       </div>
 
-      <div id="field-photos">
-        <div class="media-label">Photos</div>
-        <div class="media-row" id="photo-row"></div>
-        <div id="photo-callouts-list"></div>
-      </div>
-
-      <div id="field-videos">
-        <div class="media-label">Videos</div>
-        <div class="media-row" id="video-row"></div>
-      </div>
-
-      <div class="section">
-        <div class="section-label" id="label-synopsis">Story</div>
-        <div class="card-body-text editable" id="f-synopsis" data-field="synopsis" data-multiline="1" data-placeholder="Tap to write what this is about"></div>
-      </div>
-
-      <div class="section">
+      <div class="section" id="field-brief-section">
         <div class="section-label">One-liner</div>
         <div class="card-body-text editable" id="f-brief" data-field="brief" data-placeholder="A short takeaway or closing line (optional)"></div>
       </div>
 
-      <button type="button" class="more-details-toggle" onclick="toggleMoreDetails()">+ More details (takeaways, section markers, event code, slides)</button>
+      <button type="button" class="more-details-toggle" id="more-details-toggle" onclick="toggleMoreDetails()">+ More details (takeaways, section markers, event code, slides)</button>
 
       <div id="more-details">
         <div class="section" id="field-takeaways">
@@ -270,14 +284,42 @@
       </div>
     </div>
 
+    <p class="sub" id="form-submit-note" style="font-size:13px;margin-bottom:10px;"></p>
     <button class="btn" id="btn-submit" onclick="submitTile()">Submit</button>
     <div class="msg" id="msg-submit"></div>
   </div>
 
+  <!-- ── Review step — Presentation only, right after the required-step
+       Submit. Shows what the AI suggested from the story text; nothing
+       here is required, all of it can be edited or dropped. ──────────── -->
+  <div id="step-review" style="display:none;">
+    <p class="sub">Saved. Here's what we picked up from your story — nothing below is required, and you can change any of it.</p>
+
+    <div class="card">
+      <div class="accordion-toggle open" id="review-synopsis-toggle" onclick="toggleAccordion('review-synopsis')">Suggested summary <span class="accordion-hint">(tap to edit)</span></div>
+      <div id="review-synopsis-accordion" class="accordion-panel open">
+        <div class="card-body-text editable" id="f-review-synopsis" data-field="review-synopsis" data-multiline="1" data-placeholder="No summary suggested"></div>
+      </div>
+
+      <div class="section" id="review-tags-section">
+        <div class="section-label">Suggested tags</div>
+        <div class="tags-wrap" id="review-tags-wrap"></div>
+      </div>
+
+      <div class="section" id="review-takeaways-section">
+        <div class="section-label">Suggested key takeaways <span class="field-hint" style="margin:0;display:inline;">— uncheck any you'd rather leave out</span></div>
+        <div id="review-takeaway-list"></div>
+      </div>
+    </div>
+
+    <button class="btn" id="btn-review-confirm" onclick="confirmReview()">Looks good</button>
+    <div class="msg" id="msg-review"></div>
+  </div>
+
   <div id="step-success">
     <div class="check">✓</div>
-    <h2>Tile added!</h2>
-    <p>Your card is now visible on the browse page.</p>
+    <h2>Submitted!</h2>
+    <p>A curator will review it before it goes live.</p>
     <div style="display:flex;flex-direction:column;gap:10px;align-items:stretch">
       <a id="browse-link" class="btn" href="#" style="display:block;box-sizing:border-box;text-align:center;text-decoration:none;">View the station →</a>
       <a id="dashboard-link" class="btn btn-outline" href="#" onclick="return goBackToDashboard(event)" style="display:block;box-sizing:border-box;text-align:center;text-decoration:none;">← Back to Station Dashboard</a>
@@ -367,6 +409,28 @@ const CONTENT_TYPES = {
   general_info: { label: 'Referenced Article', typeTag: 'general-info', submitLabel: 'Submit Reference', synopsisLabel: 'What this article is about', presenterLabel: 'Shared by', takeawaysLabel: 'Key Points', isReference: true },
 };
 let currentType = 'presentation';
+// 'required' = the short, intimidation-free first step (title/name/email/
+// story + optional photos/videos). 'review' = after that first save, when
+// the AI-suggested synopsis/tags/takeaways come back for the submitter to
+// accept or drop. 'edit' = opened via the Dashboard's pencil icon (TILE_ID
+// present) — a curator reviewing/finishing an existing tile always gets the
+// fuller form, never the simplified public-intake flow, regardless of type.
+let formPhase = TILE_ID ? 'edit' : 'required';
+// Mutable copy of TILE_ID (which is a const read from the URL) — gets set
+// once the required-step Submit creates the tile, so the review step and a
+// final save both know which record to act on.
+let activeTileId = TILE_ID;
+// Review-step state — the AI's suggested tags/takeaways, and which
+// takeaways the submitter has left checked (kept in sync by index).
+let reviewTags = [];
+let reviewTakeaways = [];
+let reviewTakeawaysIncluded = [];
+// Full /nile/tile/detail response for the just-created tile — kept so the
+// final save can resend headings/tags_hidden untouched. Xano's array
+// fields don't reliably stay put just because a key was left out of an
+// update request (confirmed on the Dashboard, 2026-09-17) — omitting one
+// here would silently wipe it, not leave it alone.
+let reviewTileDetail = null;
 
 const VISIBILITY_OPTIONS = {
   chapter: { label: 'This Station Only', hint: 'Shows on this station’s own page, not the global directory.' },
@@ -443,6 +507,46 @@ function selectType(key) {
   renderEditableFields();
   renderTypeRow();
   renderTags();
+  applySimpleMode();
+}
+
+// David, 2026-10-29: "Our goal here is to simplify and avoid it being
+// intimidating." Presentation (a person's own story — the common case for
+// a stranger reaching this form through a station's "Tell us about..."
+// link) collapses to just title/name/email/story + optional photos/videos.
+// Help File and Referenced Article are curator tools, not public intake —
+// they keep the fuller form untouched.
+function applySimpleMode() {
+  const simple = currentType === 'presentation' && formPhase === 'required';
+  // These have no other per-type visibility rule anywhere else in the
+  // file, so it's safe to toggle them both ways here.
+  ['tags-wrap', 'tag-input-row', 'avatar-row', 'field-brief-section', 'more-details-toggle', 'field-deck'].forEach(id => {
+    document.getElementById(id).style.display = simple ? 'none' : '';
+  });
+  // field-event-code and field-linkedin already have their own per-type
+  // visibility rule above (event-code: presentation-only; linkedin: hidden
+  // for Referenced Article) — only ever force them hidden here, never
+  // force them back open, or this fights that logic for Help File /
+  // Referenced Article.
+  if (simple) {
+    document.getElementById('field-event-code').style.display = 'none';
+    document.getElementById('field-linkedin').style.display = 'none';
+  }
+  if (simple) document.getElementById('more-details').classList.remove('open');
+
+  // Photos/Videos: collapsed behind "Do you have...?" only in simple mode —
+  // Help File / Referenced Article (curator tools) keep the old always-open
+  // layout, so this must never silently collapse content curators rely on.
+  ['photos-toggle', 'videos-toggle'].forEach(id => {
+    document.getElementById(id).style.display = simple ? '' : 'none';
+  });
+  ['photos-accordion', 'videos-accordion'].forEach(id => {
+    document.getElementById(id).classList.toggle('open', !simple);
+  });
+
+  document.getElementById('btn-submit').textContent = simple
+    ? 'Submit to see how it will look'
+    : CONTENT_TYPES[currentType].submitLabel;
 }
 
 const SKINS = { 'circle-docs': { wordmark: 'Circle Docs' } };
@@ -592,7 +696,31 @@ async function verifyOtp() {
 })();
 
 async function proceedToForm() {
-  document.getElementById('org-badge').textContent = [L1, L2, L3].filter(Boolean).join(' · ');
+  // Human station name for the welcome text, visibility label, and
+  // submit note below — falls back to generic copy if this fails or
+  // there's no org context (e.g. editing an orphaned tile by id only).
+  let stationName = null;
+  if (L1) {
+    try {
+      const idParams = new URLSearchParams({ org_l1: L1, org_l2: L2 || '', org_l3: L3 || '' });
+      const idResp = await fetch(`${NILE_AUTH}/org/identity?${idParams}`);
+      if (idResp.ok) stationName = (await idResp.json()).station_name || null;
+    } catch (e) { /* falls through to generic copy */ }
+  }
+  // station_name reads "[First name] [Last name] Memorial" by convention —
+  // first word stands in for the person's name in the welcome text.
+  const firstName = stationName ? stationName.trim().split(/\s+/)[0] : null;
+  document.getElementById('form-sub').textContent = firstName
+    ? `Thank you for sharing something about ${firstName}. We'll use your phone number to confirm it's really you sharing this, and that you have the right to share it.`
+    : `Thanks for contributing. We'll use your phone number to confirm it's really you, and that you have the right to share this.`;
+  if (stationName) VISIBILITY_OPTIONS.chapter.label = `On ${stationName}`;
+  document.getElementById('email-hint').textContent = stationName
+    ? `We'll use this to confirm it's really you, and to reach you to approve the final story before it's published on ${stationName}.`
+    : `We'll use this to confirm it's really you, and to reach you to approve the final story before it's published.`;
+  document.getElementById('form-submit-note').textContent = stationName
+    ? `After you submit, ${stationName}'s curator will review it and follow up with you by email.`
+    : `After you submit, a curator will review it and follow up with you by email.`;
+
   if (LOCKED_TAG) addTagValue(LOCKED_TAG, true);
 
   let loaded = null;
@@ -1026,6 +1154,15 @@ function toggleMoreDetails() {
   document.getElementById('more-details').classList.toggle('open');
 }
 
+// Generic collapsed/expandable section — used by the Photos/Videos "Do you
+// have...?" prompts and the review-step synopsis. id matches
+// "<id>-accordion" for the panel and "<id>-toggle" for the clickable row.
+function toggleAccordion(id) {
+  document.getElementById(id + '-accordion').classList.toggle('open');
+  const toggle = document.getElementById(id + '-toggle');
+  if (toggle) toggle.classList.toggle('open');
+}
+
 // ── Takeaways / headings — arrow-bulleted lines, editable in place ──────
 function addArrowLine(listId, placeholder, value, autoEdit) {
   const li = document.createElement('li');
@@ -1128,15 +1265,26 @@ async function submitTile() {
     onda_url: ondaUrl,
     visibility: currentVisibility,
   };
-  if (TILE_ID) payload.id = TILE_ID;
+  if (activeTileId) payload.id = activeTileId;
+  const simpleRequiredStep = currentType === 'presentation' && formPhase === 'required';
 
   try {
-    const r = await fetch(`${NILE_API}/nile/tile/${TILE_ID ? 'update' : 'create'}`, {
+    const r = await fetch(`${NILE_API}/nile/tile/${activeTileId ? 'update' : 'create'}`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload),
     });
     if (!r.ok) { const e = await r.json(); throw new Error(e.message || 'Save failed'); }
+    if (!activeTileId) {
+      const created = await r.json().catch(() => ({}));
+      activeTileId = created.id || null;
+    }
+    if (simpleRequiredStep && activeTileId) {
+      formPhase = 'review';
+      document.getElementById('step-form').style.display = 'none';
+      await runGenerateDraftAndShowReview();
+      return;
+    }
     document.getElementById('step-form').style.display = 'none';
     document.getElementById('step-success').style.display = 'block';
     if (TILE_ID) {
@@ -1147,7 +1295,99 @@ async function submitTile() {
     msg.className = 'msg err';
     msg.textContent = e.message;
     btn.disabled = false;
-    btn.textContent = TILE_ID ? 'Save Changes' : CONTENT_TYPES[currentType].submitLabel;
+    btn.textContent = simpleRequiredStep ? 'Submit to see how it will look' : (TILE_ID ? 'Save Changes' : CONTENT_TYPES[currentType].submitLabel);
+  }
+}
+
+// ── Review step (Presentation only) — AI-suggested synopsis/tags/
+// takeaways from the story just saved, shown back for the submitter to
+// accept, edit, or drop before anything goes to the curator. ──────────────
+async function runGenerateDraftAndShowReview() {
+  try {
+    const r = await fetch(`${NILE_API}/nile/tile/generate-draft`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id: activeTileId, phone: PHONE, magic_auth_token: TOKEN }),
+    });
+    if (!r.ok) throw new Error('draft generation failed');
+    const dParams = new URLSearchParams({ id: activeTileId, phone: PHONE || '', magic_auth_token: TOKEN || '' });
+    const dr = await fetch(`${NILE_API}/nile/tile/detail?${dParams}`);
+    reviewTileDetail = dr.ok ? await dr.json() : {};
+  } catch (e) {
+    // The story itself is already safely saved — a failed AI pass just
+    // means there's nothing to suggest, not a lost submission. Skip
+    // straight to success rather than show an empty/broken review step.
+    reviewTileDetail = {};
+  }
+  showReviewStep(reviewTileDetail);
+}
+
+function showReviewStep(d) {
+  setFieldValue('review-synopsis', d.synopsis || d.summary || '');
+  renderEditableFields();
+
+  reviewTags = Array.isArray(d.tags) ? [...d.tags] : [];
+  renderReviewTags();
+
+  reviewTakeaways = (Array.isArray(d.takeaways) ? d.takeaways : []).filter(Boolean);
+  reviewTakeawaysIncluded = reviewTakeaways.map(() => true);
+  renderReviewTakeaways();
+  document.getElementById('review-takeaways-section').style.display = reviewTakeaways.length ? '' : 'none';
+
+  document.getElementById('step-review').style.display = 'block';
+}
+
+function renderReviewTags() {
+  const wrap = document.getElementById('review-tags-wrap');
+  wrap.innerHTML = reviewTags.map((t, i) =>
+    `<span class="tag-pill">${t}<button type="button" onclick="removeReviewTag(${i})" title="Remove">×</button></span>`
+  ).join('') || '<span class="field-hint" style="margin:0;">No tags suggested.</span>';
+}
+function removeReviewTag(i) { reviewTags.splice(i, 1); renderReviewTags(); }
+
+function renderReviewTakeaways() {
+  const list = document.getElementById('review-takeaway-list');
+  list.innerHTML = reviewTakeaways.map((t, i) => `
+    <label class="review-takeaway-row">
+      <input type="checkbox" ${reviewTakeawaysIncluded[i] ? 'checked' : ''} onchange="reviewTakeawaysIncluded[${i}] = this.checked">
+      <span>${t}</span>
+    </label>`).join('');
+}
+
+async function confirmReview() {
+  const msg = document.getElementById('msg-review');
+  const btn = document.getElementById('btn-review-confirm');
+  msg.className = 'msg'; msg.textContent = '';
+  btn.disabled = true; btn.textContent = 'Saving…';
+
+  const d = reviewTileDetail || {};
+  try {
+    const r = await fetch(`${NILE_API}/nile/tile/update`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        id: activeTileId, phone: PHONE, magic_auth_token: TOKEN,
+        synopsis: getFieldValue('review-synopsis'),
+        tags: reviewTags,
+        takeaways: reviewTakeaways.filter((t, i) => reviewTakeawaysIncluded[i]),
+        // Resent untouched — see reviewTileDetail's declaration above. This
+        // review step never touches photos/videos/headings/tags_hidden, but
+        // omitting them here would wipe them anyway, not leave them alone.
+        headings: Array.isArray(d.headings) ? d.headings : [],
+        tags_hidden: Array.isArray(d.tags_hidden) ? d.tags_hidden : [],
+        photos: Array.isArray(d.photos) ? d.photos : [],
+        photo_callouts: Array.isArray(d.photo_callouts) ? d.photo_callouts : [],
+        videos: Array.isArray(d.videos) ? d.videos : [],
+      }),
+    });
+    if (!r.ok) { const e = await r.json().catch(() => ({})); throw new Error(e.message || 'Save failed.'); }
+    document.getElementById('step-review').style.display = 'none';
+    document.getElementById('step-success').style.display = 'block';
+  } catch (e) {
+    msg.className = 'msg err';
+    msg.textContent = e.message;
+    btn.disabled = false;
+    btn.textContent = 'Looks good';
   }
 }
 </script>
