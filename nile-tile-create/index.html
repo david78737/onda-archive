@@ -137,6 +137,9 @@
   .accordion-toggle{margin-top:14px;padding:10px 12px;border:1.5px solid #CCE9E6;border-radius:6px;background:#FAFEFE;color:#444;font-size:13.5px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:6px;}
   .accordion-toggle:hover{background:#F0F8F7;border-color:#008787;}
   .accordion-toggle .accordion-hint{color:#999;font-weight:400;font-size:12px;}
+  .accordion-toggle .accordion-chevron{margin-left:auto;flex-shrink:0;display:flex;transition:transform .15s;}
+  .accordion-toggle .accordion-chevron svg{display:block;width:13px;height:13px;stroke:#008787;}
+  .accordion-toggle.open .accordion-chevron{transform:rotate(180deg);}
   .accordion-panel{display:none;padding-top:10px;}
   .accordion-panel.open{display:block;}
   #more-details{display:none;margin-top:6px;padding-top:14px;border-top:1px solid #eee;}
@@ -208,7 +211,7 @@
         <div class="card-body-text editable" id="f-synopsis" data-field="synopsis" data-multiline="1" data-placeholder="Tap to write what this is about"></div>
       </div>
 
-      <div class="accordion-toggle" id="photos-toggle" onclick="toggleAccordion('photos')">Do you have photos? <span class="accordion-hint">(optional)</span></div>
+      <div class="accordion-toggle" id="photos-toggle" onclick="toggleAccordion('photos')">Do you have photos? <span class="accordion-hint">(optional)</span><span class="accordion-chevron"><svg viewBox="0 0 16 16" fill="none"><path d="M3 6l5 5 5-5" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span></div>
       <div id="photos-accordion" class="accordion-panel">
         <div id="field-photos">
           <div class="media-label">Photos</div>
@@ -217,7 +220,7 @@
         </div>
       </div>
 
-      <div class="accordion-toggle" id="videos-toggle" onclick="toggleAccordion('videos')">Do you have videos? <span class="accordion-hint">(optional)</span></div>
+      <div class="accordion-toggle" id="videos-toggle" onclick="toggleAccordion('videos')">Do you have videos? <span class="accordion-hint">(optional)</span><span class="accordion-chevron"><svg viewBox="0 0 16 16" fill="none"><path d="M3 6l5 5 5-5" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span></div>
       <div id="videos-accordion" class="accordion-panel">
         <div id="field-videos">
           <div class="media-label">Videos</div>
@@ -296,7 +299,7 @@
     <p class="sub">Saved. Here's what we picked up from your story — nothing below is required, and you can change any of it.</p>
 
     <div class="card">
-      <div class="accordion-toggle open" id="review-synopsis-toggle" onclick="toggleAccordion('review-synopsis')">Suggested summary <span class="accordion-hint">(tap to edit)</span></div>
+      <div class="accordion-toggle open" id="review-synopsis-toggle" onclick="toggleAccordion('review-synopsis')">Suggested summary <span class="accordion-hint">(tap to edit)</span><span class="accordion-chevron"><svg viewBox="0 0 16 16" fill="none"><path d="M3 6l5 5 5-5" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span></div>
       <div id="review-synopsis-accordion" class="accordion-panel open">
         <div class="card-body-text editable" id="f-review-synopsis" data-field="review-synopsis" data-multiline="1" data-placeholder="No summary suggested"></div>
       </div>
@@ -374,6 +377,13 @@ let PHONE     = _resolvedAuth.phone;
 if (PHONE && TOKEN) OndaNileAuth.startActivityTouch(PHONE, TOKEN);
 const EVENT_CODE = _p.get('event_code') || null;
 const TILE_ID = _p.get('tile_id') || null;
+// The Dashboard's own "+ New Tile" link always passes phone+token explicitly
+// (it's already logged in); a public "Tell us about..." link never does —
+// it only ever carries org_l1/l2/l3. Distinguishes "a curator deliberately
+// starting a fresh tile of any type" from "a stranger sharing a story",
+// which plain URL-param presence can't do once a returning stranger's own
+// stored session also has a phone+token (same resolveAuth path above).
+const CURATOR_INITIATED = !!(_p.get('phone') && _p.get('token'));
 
 const LOCKED_TAG = L3 || L1 || null;
 let userTags = [];
@@ -415,7 +425,7 @@ let currentType = 'presentation';
 // accept or drop. 'edit' = opened via the Dashboard's pencil icon (TILE_ID
 // present) — a curator reviewing/finishing an existing tile always gets the
 // fuller form, never the simplified public-intake flow, regardless of type.
-let formPhase = TILE_ID ? 'edit' : 'required';
+let formPhase = (TILE_ID || CURATOR_INITIATED) ? 'full' : 'required';
 // Mutable copy of TILE_ID (which is a const read from the URL) — gets set
 // once the required-step Submit creates the tile, so the review step and a
 // final save both know which record to act on.
@@ -518,9 +528,14 @@ function selectType(key) {
 // they keep the fuller form untouched.
 function applySimpleMode() {
   const simple = currentType === 'presentation' && formPhase === 'required';
+  // The type picker itself hides too — this flow is already scoped to
+  // Presentation by how someone got here; showing a 3-way picker just to
+  // immediately not use it is exactly the clutter being cut. Help File /
+  // Referenced Article still need it (that's how a curator picks either
+  // of those in the first place).
   // These have no other per-type visibility rule anywhere else in the
   // file, so it's safe to toggle them both ways here.
-  ['tags-wrap', 'tag-input-row', 'avatar-row', 'field-brief-section', 'more-details-toggle', 'field-deck'].forEach(id => {
+  ['type-row', 'tags-wrap', 'tag-input-row', 'avatar-row', 'field-brief-section', 'more-details-toggle', 'field-deck'].forEach(id => {
     document.getElementById(id).style.display = simple ? 'none' : '';
   });
   // field-event-code and field-linkedin already have their own per-type
@@ -714,9 +729,8 @@ async function proceedToForm() {
     ? `Thank you for sharing something about ${firstName}. We'll use your phone number to confirm it's really you sharing this, and that you have the right to share it.`
     : `Thanks for contributing. We'll use your phone number to confirm it's really you, and that you have the right to share this.`;
   if (stationName) VISIBILITY_OPTIONS.chapter.label = `On ${stationName}`;
-  document.getElementById('email-hint').textContent = stationName
-    ? `We'll use this to confirm it's really you, and to reach you to approve the final story before it's published on ${stationName}.`
-    : `We'll use this to confirm it's really you, and to reach you to approve the final story before it's published.`;
+  document.getElementById('email-hint').textContent =
+    `We email you a copy after we review your story, just to make sure you approve too.`;
   document.getElementById('form-submit-note').textContent = stationName
     ? `After you submit, ${stationName}'s curator will review it and follow up with you by email.`
     : `After you submit, a curator will review it and follow up with you by email.`;
