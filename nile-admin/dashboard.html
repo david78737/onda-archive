@@ -889,16 +889,12 @@ const VISIBILITY_LABELS = { public: 'Nile', chapter: 'Station', private: 'Admin'
 // used to show a copy of whatever's active up next to the tile count, so
 // it's visible even while the Filters & Tools panel is collapsed.
 const STATUS_FILTER_LABELS = { published: 'Published', draft: 'Draft', pending: 'Pending', archived: 'Archived', 'needs-attention': '⚠ Needs Attention' };
-const STATUS_VALUES = ['submitted', 'pending', 'approved', 'draft', 'scheduled', 'armed', 'recorded', 'published', 'archived', 'rejected'];
-// Clean Title Case display text for the status dropdown — David, 2026-10-29:
-// the three real stages of a tile's life are submitted -> pending -> approved,
-// so those come first in both the array above and the label text. The rest
-// are legacy/edge-case values a tile can still sit at; kept selectable so an
-// existing tile's real status is never hidden, just not emphasized.
+// approved/scheduled/armed/recorded/rejected removed 2026-10-29 — dead
+// options, nothing in this codebase read them.
+const STATUS_VALUES = ['submitted', 'pending', 'draft', 'published', 'archived'];
 const STATUS_LABELS = {
-  submitted: 'Submitted', pending: 'Pending', approved: 'Approved',
-  draft: 'Draft', scheduled: 'Scheduled', armed: 'Armed', recorded: 'Recorded',
-  published: 'Published', archived: 'Archived', rejected: 'Rejected',
+  submitted: 'Submitted', pending: 'Pending',
+  draft: 'Draft', published: 'Published', archived: 'Archived',
 };
 
 function setStatusFilter(f) {
@@ -1118,7 +1114,7 @@ function render() {
             <div class="tc-header-controls">
               <div class="tc-header-controls-top">
                 <select class="tc-status-select ${status}" onclick="event.stopPropagation()" onchange="event.stopPropagation();updateTileStatus(${t.id}, this.value)">
-                  ${STATUS_VALUES.map(v => `<option value="${v}"${v === status ? ' selected' : ''}>${STATUS_LABELS[v] || v}</option>`).join('')}
+                  ${(STATUS_VALUES.includes(status) ? STATUS_VALUES : [status, ...STATUS_VALUES]).map(v => `<option value="${v}"${v === status ? ' selected' : ''}>${STATUS_LABELS[v] || v}</option>`).join('')}
                 </select>
                 <span class="status-pill" style="background:var(--teal-light);color:var(--teal)">${VISIBILITY_LABELS[visibility] || visibility}</span>
               </div>
