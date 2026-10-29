@@ -1154,6 +1154,11 @@ if (PREVIEW_MODE) {
         const shareParams = new URLSearchParams({ org_l1: skin.org_l1, org_l2: skin.org_l2, org_l3: skin.org_l3 });
         const shareBtn = document.getElementById('share-story-btn');
         shareBtn.href = `https://archive.ondareplay.com/nile-tile-create/?${shareParams}`;
+        // station_name is "[First name] [Last name] Memorial/Memorium" by
+        // convention — first word stands in for the person's first name so
+        // this button reads right on every memorial, not just Pat's.
+        const firstName = (skin.station_name || '').trim().split(/\s+/)[0];
+        shareBtn.textContent = firstName ? `Tell us about your ${firstName}` : 'Share your story';
         shareBtn.hidden = false;
       }
     } catch(_) {}
