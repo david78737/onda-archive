@@ -536,6 +536,15 @@ function titleCase(s) {
     return w.charAt(0).toUpperCase() + w.slice(1);
   }).join(' ');
 }
+// Fallback preview line when a tile has no curator-written one-liner —
+// pulled from the person's own story rather than leaving the card blank.
+// Breaks on a word boundary so it never cuts a word in half.
+function truncateWords(s, max) {
+  if (!s || s.length <= max) return s || '';
+  const cut = s.slice(0, max);
+  const lastSpace = cut.lastIndexOf(' ');
+  return (lastSpace > 0 ? cut.slice(0, lastSpace) : cut).trim() + '…';
+}
 // ── State ─────────────────────────────────────────────────────────────────────
 let allSessions = [];
 let allTags     = [];
@@ -991,12 +1000,13 @@ function render() {
             <span class="card-presenter-name">${s.presenter}</span>
             ${ondaBtn}
           </div>
-          ${s.brief ? `<div class="card-brief">${s.brief}</div>` : ''}
+          ${(s.brief || truncateWords(s.story, 200)) ? `<div class="card-brief">${s.brief || truncateWords(s.story, 200)}</div>` : ''}
           ${statusBadge ? `<div class="badges">${statusBadge}</div>` : ''}
         </div>
       </div>
       <div class="card-body">
         <div class="card-tags">${tags}</div>
+        ${s.story ? `<div class="section-label">Story</div><div class="synopsis">${s.story}</div>` : ''}
         ${s.synopsis ? `<div class="section-label">Synopsis</div><div class="synopsis">${s.synopsis}</div>` : ''}
         ${(s.takeaways||[]).length ? `${s.takeaways_label === '' ? '' : `<div class="section-label">${s.takeaways_label ?? 'Key Takeaways'}</div>`}<ul class="takeaways">${s.takeaways.map(t=>`<li>${t}</li>`).join('')}</ul>` : ''}
         ${(s.headings||[]).length ? `<div class="section-label">What's Covered</div><ul class="takeaways">${s.headings.map(h=>`<li>${h}</li>`).join('')}</ul>` : ''}
@@ -1059,6 +1069,10 @@ function normalizePresentation(p) {
     org: p.org_l1 || 'Unknown',
     source: p.org_l1 || 'Unknown',
     tags: Array.isArray(p.tags) ? p.tags : (p.tags ? p.tags.split(',').map(t => t.trim()).filter(Boolean) : []),
+    // story: the person's own written words, verbatim. synopsis: Generate
+    // Draft's condensed take on it — a genuinely separate field as of
+    // 2026-10-30, no longer the same text wearing two labels.
+    story: p.story || '',
     synopsis: p.summary || '',
     takeaways,
     headings,

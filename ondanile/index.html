@@ -749,6 +749,7 @@ function render() {
         </div>
       </div>
       <div class="card-body">
+        ${s.story ? `<div class="section-label">Story</div><div class="synopsis">${s.story}</div>` : ''}
         ${s.synopsis ? `<div class="section-label">Synopsis</div><div class="synopsis">${s.synopsis}</div>` : ''}
         ${Array.isArray(s.takeaways) && s.takeaways.length
           ? `<div class="section-label">Key Takeaways</div><ul class="takeaways">${s.takeaways.map(t => `<li>${t}</li>`).join('')}</ul>`
@@ -808,6 +809,10 @@ function normalizePresentation(p) {
     org: orgName,
     source: orgName,
     tags: Array.isArray(p.tags) ? p.tags : (p.tags ? p.tags.split(',').map(t => t.trim()).filter(Boolean) : []),
+    // story: the person's own written words, verbatim. synopsis: Generate
+    // Draft's condensed take on it — a genuinely separate field as of
+    // 2026-10-30, no longer the same text wearing two labels.
+    story: p.story || '',
     synopsis: p.summary || '',
     takeaways,
     headings,

@@ -235,8 +235,13 @@
       <p class="field-hint" id="email-hint"></p>
 
       <div class="section">
-        <div class="section-label" id="label-synopsis">Story</div>
-        <textarea class="card-body-text editable-field" id="f-synopsis" placeholder="Tap to write what this is about"></textarea>
+        <div class="section-label" id="label-story">Story</div>
+        <textarea class="card-body-text editable-field" id="f-story" placeholder="Tap to write what this is about"></textarea>
+      </div>
+
+      <div class="section" id="field-synopsis-section">
+        <div class="section-label">Synopsis <span class="field-hint" style="margin:0;display:inline;">— AI-condensed, only appears once generated</span></div>
+        <textarea class="card-body-text editable-field" id="f-synopsis" placeholder="No synopsis yet"></textarea>
       </div>
 
       <div class="accordion-toggle" id="photos-toggle" onclick="toggleAccordion('photos')">Do you have photos? <span class="accordion-hint">(optional)</span><span class="accordion-chevron"><svg viewBox="0 0 16 16" fill="none"><path d="M3 6l5 5 5-5" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span></div>
@@ -484,9 +489,9 @@ function selectType(key) {
   currentType = key;
   const t = CONTENT_TYPES[key];
   addTagValue(t.typeTag, true);
-  document.getElementById('label-synopsis').textContent = t.synopsisLabel;
+  document.getElementById('label-story').textContent = t.synopsisLabel;
   document.getElementById('label-takeaways').textContent = t.takeawaysLabel;
-  document.getElementById('f-synopsis').placeholder = 'Tap to write ' + t.synopsisLabel.toLowerCase();
+  document.getElementById('f-story').placeholder = 'Tap to write ' + t.synopsisLabel.toLowerCase();
   document.getElementById('btn-submit').textContent = t.submitLabel;
   document.getElementById('field-event-code').style.display = key === 'presentation' ? 'block' : 'none';
 
@@ -527,7 +532,7 @@ function applySimpleMode() {
   // of those in the first place).
   // These have no other per-type visibility rule anywhere else in the
   // file, so it's safe to toggle them both ways here.
-  ['type-row', 'tags-wrap', 'tag-input-row', 'avatar-row', 'field-brief-section', 'more-details-toggle', 'field-deck'].forEach(id => {
+  ['type-row', 'tags-wrap', 'tag-input-row', 'avatar-row', 'field-brief-section', 'field-synopsis-section', 'more-details-toggle', 'field-deck'].forEach(id => {
     document.getElementById(id).style.display = simple ? 'none' : '';
   });
   // field-event-code and field-linkedin already have their own per-type
@@ -772,6 +777,7 @@ function applyLoadedTile(d) {
   setFieldValue('presenter', d.presenter_name || '');
   setFieldValue('email', d.presenter_email || d.email || '');
   setFieldValue('linkedin', d.linkedin_url || '');
+  setFieldValue('story', d.story || '');
   setFieldValue('synopsis', d.summary || '');
   setFieldValue('bestfor', d.audience || '');
   setFieldValue('brief', d.brief || '');
@@ -1192,7 +1198,8 @@ async function submitTile() {
   const email     = getFieldValue('email');
   const linkedin  = getFieldValue('linkedin') || null;
   const eventCode = (getFieldValue('event-code') || '').toUpperCase() || null;
-  const synopsis  = getFieldValue('synopsis');
+  const story     = getFieldValue('story');
+  const synopsis  = getFieldValue('synopsis') || null;
   const bestfor   = getFieldValue('bestfor');
   const brief     = getFieldValue('brief') || null;
   const deck      = getFieldValue('deck') || null;
@@ -1227,13 +1234,12 @@ async function submitTile() {
     presenter_phone: PHONE,
     presenter_email: email,
     linkedin_url: linkedin,
-    // A plain-text submission (no recording) has no transcript from
-    // Whisper — but Generate Draft's AI pass reads `transcript`, not
-    // `synopsis`, so without this it has nothing to work from and errors
-    // out ("Unable to locate var: presentation.transcript"). The written
-    // story IS the transcript for this path — there's no other raw text
-    // to point it at.
-    transcript: synopsis,
+    // `story` is the person's own written words, saved once and never
+    // touched by AI — `synopsis` is Generate Draft's condensed take on it,
+    // a genuinely separate field as of 2026-10-30. The form no longer
+    // writes synopsis directly; it only ever reflects back whatever
+    // Generate Draft produced (editable here like any other field).
+    story,
     synopsis, who: bestfor,
     tags: userTags.map(t => t.value),
     brief, takeaways, headings,
@@ -1265,12 +1271,11 @@ async function submitTile() {
       formPhase = 'review';
       document.getElementById('step-form').style.display = 'none';
       // `create` doesn't reliably persist every field the same way `update`
-      // does — confirmed earlier for `transcript` alone (Generate Draft ran
-      // on nothing), and the same gap turned out to hit title/presenter/
-      // email/synopsis too once the review step started actually reading
-      // them back (David, 2026-10-30: "nothing is carried into the next
-      // screen"). Re-send the exact same payload through the known-reliable
-      // `update` endpoint before doing anything else with this tile.
+      // does — confirmed 2026-10-30, the same gap that once hit `story`'s
+      // predecessor hit title/presenter/email too once the review step
+      // started actually reading them back ("nothing is carried into the
+      // next screen"). Re-send the exact same payload through the
+      // known-reliable `update` endpoint before doing anything else.
       await fetch(`${NILE_API}/nile/tile/update`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -1299,7 +1304,7 @@ async function submitTile() {
 // step used) pre-filled with whatever the AI suggested, for the submitter
 // to accept, edit, or drop before anything goes to the curator. ──────────
 async function runGenerateDraftAndShowReview() {
-  // The caller already re-saved the full tile (including transcript) via
+  // The caller already re-saved the full tile (including story) via
   // `update` right before calling this, so Generate Draft has real text to
   // read from — see the comment at that call site.
   try {
@@ -1313,14 +1318,11 @@ async function runGenerateDraftAndShowReview() {
     console.error('generate-draft failed:', e);
   }
   // Fetch the real saved tile regardless of whether Generate Draft above
-  // succeeded — confirmed live, 2026-10-30: that endpoint currently 500s
-  // every time ("Unable to locate var: presentation.transcript" — a
-  // server-side mismatch with the old api:presentations table, needs a
-  // Xano-side fix, not fixable from this file). Skipping this fetch
-  // whenever that call failed is what left the review card totally blank
-  // — title/name/story included — even though they were saved correctly.
-  // The story itself is already safely saved either way; a failed AI pass
-  // just means there's nothing extra to suggest, not a lost submission.
+  // succeeded — it used to 500 on every call (fixed server-side 2026-10-30),
+  // and skipping this fetch whenever that call failed is what left the
+  // review card totally blank — title/name/story included — even though
+  // they were saved correctly. Kept unconditional as a safety net: a
+  // future AI-side failure still shouldn't blank out a safely-saved story.
   let draft = {};
   try {
     const dParams = new URLSearchParams({ id: activeTileId, phone: PHONE || '', magic_auth_token: TOKEN || '' });
