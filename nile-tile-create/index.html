@@ -41,12 +41,16 @@
   .editable:hover{background:#F0F8F7;}
   .editable.empty{
     color:#7a7a7a;font-style:italic;
-    display:block;border:1.5px dashed #8fc9c4;background:#FAFEFE;
+    display:block;border:1.5px solid #8fc9c4;background:#FAFEFE;
     padding:12px 14px;margin:8px 0;
   }
   .editable.empty:hover{background:#F0F8F7;border-color:#008787;}
-  .editable-input{width:100%;padding:8px 10px;font-size:inherit;font-family:inherit;font-weight:inherit;border:1.5px solid #008787;border-radius:6px;background:#fff;}
-  textarea.editable-input{resize:vertical;min-height:70px;line-height:1.5;}
+  /* Matches the empty state's own padding/margin/border-width exactly —
+     tapping an empty field used to shrink the box the instant you focused
+     it (8px/10px padding, no margin, vs. the empty state's 12px/14px and
+     8px margin), which read as the field "collapsing". David, 2026-10-30. */
+  .editable-input{width:100%;padding:12px 14px;margin:8px 0;font-size:inherit;font-family:inherit;font-weight:inherit;border:1.5px solid #008787;border-radius:6px;background:#fff;}
+  textarea.editable-input{resize:vertical;min-height:160px;line-height:1.6;}
   .btn-done{padding:4px 12px;background:#008787;color:#fff;border:none;border-radius:14px;font-size:12.5px;font-weight:600;cursor:pointer;}
 
   .card-title{font-size:20px;font-weight:700;color:#1a1a1a;line-height:1.3;}
