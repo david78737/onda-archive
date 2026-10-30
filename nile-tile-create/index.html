@@ -1299,25 +1299,35 @@ async function submitTile() {
 // step used) pre-filled with whatever the AI suggested, for the submitter
 // to accept, edit, or drop before anything goes to the curator. ──────────
 async function runGenerateDraftAndShowReview() {
-  let draft = {};
+  // The caller already re-saved the full tile (including transcript) via
+  // `update` right before calling this, so Generate Draft has real text to
+  // read from — see the comment at that call site.
   try {
-    // The caller already re-saved the full tile (including transcript) via
-    // `update` right before calling this, so Generate Draft has real text
-    // to read from — see the comment at that call site.
     const r = await fetch(`${NILE_API}/nile/tile/generate-draft`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ id: activeTileId, phone: PHONE, magic_auth_token: TOKEN }),
     });
-    if (!r.ok) throw new Error('draft generation failed');
+    if (!r.ok) console.error('generate-draft failed:', r.status, await r.text().catch(() => ''));
+  } catch (e) {
+    console.error('generate-draft failed:', e);
+  }
+  // Fetch the real saved tile regardless of whether Generate Draft above
+  // succeeded — confirmed live, 2026-10-30: that endpoint currently 500s
+  // every time ("Unable to locate var: presentation.transcript" — a
+  // server-side mismatch with the old api:presentations table, needs a
+  // Xano-side fix, not fixable from this file). Skipping this fetch
+  // whenever that call failed is what left the review card totally blank
+  // — title/name/story included — even though they were saved correctly.
+  // The story itself is already safely saved either way; a failed AI pass
+  // just means there's nothing extra to suggest, not a lost submission.
+  let draft = {};
+  try {
     const dParams = new URLSearchParams({ id: activeTileId, phone: PHONE || '', magic_auth_token: TOKEN || '' });
     const dr = await fetch(`${NILE_API}/nile/tile/detail?${dParams}`);
     draft = dr.ok ? await dr.json() : {};
   } catch (e) {
-    // The story itself is already safely saved — a failed AI pass just
-    // means there's nothing to suggest, not a lost submission. Showing the
-    // real card with just what was typed is still a true WYSIWYG preview.
-    console.error('generate-draft/review failed:', e);
+    console.error('tile/detail failed:', e);
   }
   showReviewOnCard(draft);
 }
