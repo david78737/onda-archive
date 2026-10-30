@@ -829,6 +829,18 @@ function renderEditableFields() {
     el.onclick = () => startEditing(el);
   });
 }
+// After committing a single-line field, jumps straight into the next
+// visible .editable field — "next" meaning next in the card's own layout
+// order, skipping anything hidden (simple mode, a closed accordion).
+// David, 2026-10-30: "Submit should set focus on the next field."
+function focusNextEditable(fromEl) {
+  const all = [...document.querySelectorAll('.editable')].filter(el => el.offsetParent !== null);
+  const next = all[all.indexOf(fromEl) + 1];
+  if (next) next.click();
+}
+
+const URL_FIELDS = new Set(['deck', 'linkedin']);
+
 function startEditing(displayEl) {
   const field = displayEl.dataset.field;
   const multiline = displayEl.dataset.multiline === '1';
@@ -838,7 +850,12 @@ function startEditing(displayEl) {
   input.className = 'editable-input';
   input.value = current;
   input.placeholder = displayEl.dataset.placeholder || '';
-  if (!multiline) input.type = 'text';
+  if (!multiline) {
+    // Correct mobile keyboard per field, and a "Next" return key instead of
+    // "Go" — the return key is about to actually move to the next field.
+    input.type = field === 'email' ? 'email' : URL_FIELDS.has(field) ? 'url' : 'text';
+    input.setAttribute('enterkeyhint', 'next');
+  }
 
   displayEl.replaceWith(input);
   input.focus();
@@ -858,7 +875,9 @@ function startEditing(displayEl) {
     displayEl.onclick = () => startEditing(displayEl);
   };
   input.addEventListener('blur', commit);
-  if (!multiline) input.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); commit(); } });
+  if (!multiline) input.addEventListener('keydown', e => {
+    if (e.key === 'Enter') { e.preventDefault(); commit(); focusNextEditable(displayEl); }
+  });
 }
 
 function updateAvatar() {
