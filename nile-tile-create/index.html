@@ -116,8 +116,6 @@
   .section-label{font-size:11.5px;font-weight:700;color:#888;text-transform:uppercase;letter-spacing:.05em;margin-bottom:10px;}
   .card-body-text{font-size:15.5px;line-height:1.65;color:#222;}
 
-  .review-takeaway-row{display:flex;align-items:flex-start;gap:8px;font-size:15.5px;line-height:1.55;color:#222;margin-bottom:10px;cursor:pointer;}
-  .review-takeaway-row input{margin-top:3px;flex-shrink:0;}
   .arrow-list{list-style:none;}
   .arrow-list li{display:flex;gap:8px;font-size:15.5px;line-height:1.55;color:#222;margin-bottom:10px;}
   .arrow-list li .arrow{color:#008787;flex-shrink:0;}
@@ -299,33 +297,6 @@
     <div class="msg" id="msg-submit"></div>
   </div>
 
-  <!-- ── Review step — Presentation only, right after the required-step
-       Submit. Shows what the AI suggested from the story text; nothing
-       here is required, all of it can be edited or dropped. ──────────── -->
-  <div id="step-review" style="display:none;">
-    <p class="sub">Saved. Here's what we picked up from your story — nothing below is required, and you can change any of it.</p>
-
-    <div class="card">
-      <div class="accordion-toggle open" id="review-synopsis-toggle" onclick="toggleAccordion('review-synopsis')">Suggested summary <span class="accordion-hint">(tap to edit)</span><span class="accordion-chevron"><svg viewBox="0 0 16 16" fill="none"><path d="M3 6l5 5 5-5" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span></div>
-      <div id="review-synopsis-accordion" class="accordion-panel open">
-        <div class="card-body-text editable" id="f-review-synopsis" data-field="review-synopsis" data-multiline="1" data-placeholder="No summary suggested"></div>
-      </div>
-
-      <div class="section" id="review-tags-section">
-        <div class="section-label">Suggested tags</div>
-        <div class="tags-wrap" id="review-tags-wrap"></div>
-      </div>
-
-      <div class="section" id="review-takeaways-section">
-        <div class="section-label">Suggested key takeaways <span class="field-hint" style="margin:0;display:inline;">— uncheck any you'd rather leave out</span></div>
-        <div id="review-takeaway-list"></div>
-      </div>
-    </div>
-
-    <button class="btn" id="btn-review-confirm" onclick="confirmReview()">Looks good</button>
-    <div class="msg" id="msg-review"></div>
-  </div>
-
   <div id="step-success">
     <div class="check">✓</div>
     <h2>Submitted!</h2>
@@ -437,17 +408,11 @@ let formPhase = (TILE_ID || CURATOR_INITIATED) ? 'full' : 'required';
 // once the required-step Submit creates the tile, so the review step and a
 // final save both know which record to act on.
 let activeTileId = TILE_ID;
-// Review-step state — the AI's suggested tags/takeaways, and which
-// takeaways the submitter has left checked (kept in sync by index).
-let reviewTags = [];
-let reviewTakeaways = [];
-let reviewTakeawaysIncluded = [];
-// Full /nile/tile/detail response for the just-created tile — kept so the
-// final save can resend headings/tags_hidden untouched. Xano's array
-// fields don't reliably stay put just because a key was left out of an
-// update request (confirmed on the Dashboard, 2026-09-17) — omitting one
-// here would silently wipe it, not leave it alone.
-let reviewTileDetail = null;
+// Xano's array fields don't reliably stay put just because a key was left
+// out of an update request (confirmed on the Dashboard, 2026-09-17) —
+// tags_hidden has no UI of its own, so it's tracked here purely to be
+// resent untouched on every save rather than silently wiped.
+let loadedTagsHidden = [];
 
 const VISIBILITY_OPTIONS = {
   chapter: { label: 'This Station Only', hint: 'Shows on this station’s own page, not the global directory.' },
@@ -806,6 +771,7 @@ function applyLoadedTile(d) {
   document.getElementById('onda-play-label').textContent = d.onda_url ? 'Recording added' : 'Add Recording';
 
   currentVisibility = d.visibility || currentVisibility;
+  loadedTagsHidden = Array.isArray(d.tags_hidden) ? d.tags_hidden : [];
 
   // Figure out the content type from whichever type-tag is already on the
   // tile, then let selectType lock that same tag in — same mechanism as a
@@ -1277,6 +1243,7 @@ async function submitTile() {
     synopsis, who: bestfor,
     tags: userTags.map(t => t.value),
     brief, takeaways, headings,
+    tags_hidden: loadedTagsHidden,
     deck_url: deck,
     photo: presenterPhotoUrl || null, // presenter's own headshot (the avatar) — distinct from the photo gallery below
     youtube: videoList[0] || null,
@@ -1316,14 +1283,17 @@ async function submitTile() {
     msg.className = 'msg err';
     msg.textContent = e.message;
     btn.disabled = false;
-    btn.textContent = simpleRequiredStep ? 'Submit to see how it will look' : (TILE_ID ? 'Save Changes' : CONTENT_TYPES[currentType].submitLabel);
+    btn.textContent = simpleRequiredStep ? 'Submit to see how it will look'
+      : (formPhase === 'review' ? 'Looks good — submit' : (TILE_ID ? 'Save Changes' : CONTENT_TYPES[currentType].submitLabel));
   }
 }
 
-// ── Review step (Presentation only) — AI-suggested synopsis/tags/
-// takeaways from the story just saved, shown back for the submitter to
-// accept, edit, or drop before anything goes to the curator. ──────────────
+// ── Review step (Presentation only) — runs Generate Draft on the story
+// just saved, then reopens the full WYSIWYG card (same one the required
+// step used) pre-filled with whatever the AI suggested, for the submitter
+// to accept, edit, or drop before anything goes to the curator. ──────────
 async function runGenerateDraftAndShowReview() {
+  let draft = {};
   try {
     // Belt-and-suspenders: `create` may not accept `transcript` the same
     // way `update` does, so re-save it explicitly right before Generate
@@ -1342,84 +1312,33 @@ async function runGenerateDraftAndShowReview() {
     if (!r.ok) throw new Error('draft generation failed');
     const dParams = new URLSearchParams({ id: activeTileId, phone: PHONE || '', magic_auth_token: TOKEN || '' });
     const dr = await fetch(`${NILE_API}/nile/tile/detail?${dParams}`);
-    reviewTileDetail = dr.ok ? await dr.json() : {};
+    draft = dr.ok ? await dr.json() : {};
   } catch (e) {
     // The story itself is already safely saved — a failed AI pass just
-    // means there's nothing to suggest, not a lost submission. Skip
-    // straight to success rather than show an empty/broken review step.
+    // means there's nothing to suggest, not a lost submission. Showing the
+    // real card with just what was typed is still a true WYSIWYG preview.
     console.error('generate-draft/review failed:', e);
-    reviewTileDetail = {};
   }
-  showReviewStep(reviewTileDetail);
+  showReviewOnCard(draft);
 }
 
-function showReviewStep(d) {
-  setFieldValue('review-synopsis', d.synopsis || d.summary || '');
-  renderEditableFields();
-
-  reviewTags = Array.isArray(d.tags) ? [...d.tags] : [];
-  renderReviewTags();
-
-  reviewTakeaways = (Array.isArray(d.takeaways) ? d.takeaways : []).filter(Boolean);
-  reviewTakeawaysIncluded = reviewTakeaways.map(() => true);
-  renderReviewTakeaways();
-  document.getElementById('review-takeaways-section').style.display = reviewTakeaways.length ? '' : 'none';
-
-  document.getElementById('step-review').style.display = 'block';
-}
-
-function renderReviewTags() {
-  const wrap = document.getElementById('review-tags-wrap');
-  wrap.innerHTML = reviewTags.map((t, i) =>
-    `<span class="tag-pill">${t}<button type="button" onclick="removeReviewTag(${i})" title="Remove">×</button></span>`
-  ).join('') || '<span class="field-hint" style="margin:0;">No tags suggested.</span>';
-}
-function removeReviewTag(i) { reviewTags.splice(i, 1); renderReviewTags(); }
-
-function renderReviewTakeaways() {
-  const list = document.getElementById('review-takeaway-list');
-  list.innerHTML = reviewTakeaways.map((t, i) => `
-    <label class="review-takeaway-row">
-      <input type="checkbox" ${reviewTakeawaysIncluded[i] ? 'checked' : ''} onchange="reviewTakeawaysIncluded[${i}] = this.checked">
-      <span>${t}</span>
-    </label>`).join('');
-}
-
-async function confirmReview() {
-  const msg = document.getElementById('msg-review');
-  const btn = document.getElementById('btn-review-confirm');
-  msg.className = 'msg'; msg.textContent = '';
-  btn.disabled = true; btn.textContent = 'Saving…';
-
-  const d = reviewTileDetail || {};
-  try {
-    const r = await fetch(`${NILE_API}/nile/tile/update`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        id: activeTileId, phone: PHONE, magic_auth_token: TOKEN,
-        synopsis: getFieldValue('review-synopsis'),
-        tags: reviewTags,
-        takeaways: reviewTakeaways.filter((t, i) => reviewTakeawaysIncluded[i]),
-        // Resent untouched — see reviewTileDetail's declaration above. This
-        // review step never touches photos/videos/headings/tags_hidden, but
-        // omitting them here would wipe them anyway, not leave them alone.
-        headings: Array.isArray(d.headings) ? d.headings : [],
-        tags_hidden: Array.isArray(d.tags_hidden) ? d.tags_hidden : [],
-        photos: Array.isArray(d.photos) ? d.photos : [],
-        photo_callouts: Array.isArray(d.photo_callouts) ? d.photo_callouts : [],
-        videos: Array.isArray(d.videos) ? d.videos : [],
-      }),
-    });
-    if (!r.ok) { const e = await r.json().catch(() => ({})); throw new Error(e.message || 'Save failed.'); }
-    document.getElementById('step-review').style.display = 'none';
-    document.getElementById('step-success').style.display = 'block';
-  } catch (e) {
-    msg.className = 'msg err';
-    msg.textContent = e.message;
-    btn.disabled = false;
-    btn.textContent = 'Looks good';
-  }
+// Review phase shows the SAME card as the main form — title, photos,
+// avatar, tags, everything — not a separate stripped-down "here's what we
+// picked up" summary. David, 2026-10-30: "We should be providing
+// EVERYTHING WYSIWYG philosophy." applyLoadedTile() already does exactly
+// this for the Dashboard's edit flow, so the review phase just reuses it;
+// since formPhase is 'review' (not 'required') by the time this runs,
+// selectType()'s own applySimpleMode() call inside applyLoadedTile already
+// un-hides the full card instead of the simplified intake form.
+function showReviewOnCard(d) {
+  applyLoadedTile(d);
+  renderVisibilityBadge();
+  renderMediaRow('photo');
+  renderMediaRow('video');
+  document.getElementById('form-sub').textContent =
+    `Here's what we picked up from your story — nothing is final. Tap anything below to change it before it goes to the curator.`;
+  document.getElementById('btn-submit').textContent = 'Looks good — submit';
+  document.getElementById('step-form').style.display = 'block';
 }
 </script>
 </body>
