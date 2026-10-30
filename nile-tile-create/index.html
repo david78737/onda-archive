@@ -34,18 +34,30 @@
   .type-pill{padding:6px 14px;border:1.5px solid #CCC;border-radius:20px;background:#FFF;color:#555;font-size:13px;font-weight:600;cursor:pointer;}
   .type-pill.active{background:#008787;border-color:#008787;color:#fff;}
 
-  .editable{cursor:text;border-radius:6px;padding:2px 4px;margin:-2px -4px;transition:background .12s;}
-  .editable.empty{
+  /* Real <input>/<textarea> elements, always present — not a div that gets
+     swapped for an input on click. That swap was a second, independent
+     cause of the "two taps" bug on top of the :hover quirk fixed below:
+     committing a field tore down and recreated a DOM node, and the next
+     tap often only registered as that commit, not a click on the new
+     target. A real, natively-focusable element has none of that — one tap,
+     every time, same as every other form on this site. :placeholder-shown
+     reads the empty state straight off the browser instead of a
+     JS-maintained "empty" class, so there's nothing to fall out of sync.
+     David, 2026-10-30: "other forms on this site don't behave like this
+     one. Change the form type... to make this happen." */
+  .editable-field{
+    display:block;width:100%;
+    font:inherit;color:inherit;background:transparent;
+    border:none;border-radius:6px;appearance:none;-webkit-appearance:none;
+    padding:2px 4px;margin:-2px -4px;cursor:text;
+  }
+  .editable-field:focus{outline:none;background:#fff;box-shadow:0 0 0 2px rgba(0,135,135,.35);}
+  .editable-field:placeholder-shown{
     color:#7a7a7a;font-style:italic;
-    display:block;border:1.5px solid #8fc9c4;background:#FAFEFE;
+    border:1.5px solid #8fc9c4;background:#FAFEFE;
     padding:12px 14px;margin:8px 0;
   }
-  /* Matches the empty state's own padding/margin/border-width exactly —
-     tapping an empty field used to shrink the box the instant you focused
-     it (8px/10px padding, no margin, vs. the empty state's 12px/14px and
-     8px margin), which read as the field "collapsing". David, 2026-10-30. */
-  .editable-input{width:100%;padding:12px 14px;margin:8px 0;font-size:inherit;font-family:inherit;font-weight:inherit;border:1.5px solid #008787;border-radius:6px;background:#fff;}
-  textarea.editable-input{resize:vertical;min-height:160px;line-height:1.6;}
+  textarea.editable-field{resize:vertical;min-height:160px;line-height:1.65;overflow:auto;}
   .btn-done{padding:4px 12px;background:#008787;color:#fff;border:none;border-radius:14px;font-size:12.5px;font-weight:600;cursor:pointer;}
 
   .card-title{font-size:21px;font-weight:700;color:#1a1a1a;line-height:1.35;}
@@ -112,7 +124,7 @@
   .arrow-list{list-style:none;}
   .arrow-list li{display:flex;gap:8px;font-size:15.5px;line-height:1.55;color:#222;margin-bottom:10px;}
   .arrow-list li .arrow{color:#008787;flex-shrink:0;}
-  .arrow-list li .editable{flex:1;}
+  .arrow-list li .editable-field{flex:1;}
   .arrow-list li .line-remove{background:none;border:none;color:#bbb;font-size:17px;cursor:pointer;line-height:1;flex-shrink:0;}
   .btn-add-line{background:none;border:1px dashed #008787;color:#008787;border-radius:6px;padding:7px 12px;font-size:13px;cursor:pointer;margin-top:2px;}
 
@@ -159,8 +171,8 @@
     header a:hover{color:#fff;}
     .btn-outline:hover{background:#E0F4F2;}
     .btn:hover{background:#006f6f;}
-    .editable:hover{background:#F0F8F7;}
-    .editable.empty:hover{background:#F0F8F7;border-color:#008787;}
+    .editable-field:hover{background:#F0F8F7;}
+    .editable-field:placeholder-shown:hover{background:#F0F8F7;border-color:#008787;}
     .catalog-thumb:hover{border-color:#008787;}
     .media-input-box .btn-cancel:hover{background:#ddd;}
     .line-remove:hover{color:#c0392b;}
@@ -217,14 +229,14 @@
       </div>
       <div class="visibility-menu" id="visibility-menu"></div>
 
-      <div class="card-title editable" id="f-title" data-field="title" data-placeholder="Tap to add a title"></div>
-      <div class="card-presenter editable" id="f-presenter" data-field="presenter" data-placeholder="Tap to add your name"></div>
-      <div class="card-email editable" id="f-email" data-field="email" data-placeholder="Tap to add your email"></div>
+      <input class="card-title editable-field" id="f-title" type="text" placeholder="Tap to add a title" enterkeyhint="next">
+      <input class="card-presenter editable-field" id="f-presenter" type="text" placeholder="Tap to add your name" enterkeyhint="next">
+      <input class="card-email editable-field" id="f-email" type="email" placeholder="Tap to add your email" enterkeyhint="next">
       <p class="field-hint" id="email-hint"></p>
 
       <div class="section">
         <div class="section-label" id="label-synopsis">Story</div>
-        <div class="card-body-text editable" id="f-synopsis" data-field="synopsis" data-multiline="1" data-placeholder="Tap to write what this is about"></div>
+        <textarea class="card-body-text editable-field" id="f-synopsis" placeholder="Tap to write what this is about"></textarea>
       </div>
 
       <div class="accordion-toggle" id="photos-toggle" onclick="toggleAccordion('photos')">Do you have photos? <span class="accordion-hint">(optional)</span><span class="accordion-chevron"><svg viewBox="0 0 16 16" fill="none"><path d="M3 6l5 5 5-5" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span></div>
@@ -263,7 +275,7 @@
 
       <div class="section" id="field-brief-section">
         <div class="section-label">One-liner</div>
-        <div class="card-body-text editable" id="f-brief" data-field="brief" data-placeholder="A short takeaway or closing line (optional)"></div>
+        <input class="card-body-text editable-field" id="f-brief" type="text" placeholder="A short takeaway or closing line (optional)" enterkeyhint="next">
       </div>
 
       <button type="button" class="more-details-toggle" id="more-details-toggle" onclick="toggleMoreDetails()">+ More details (takeaways, section markers, event code, slides)</button>
@@ -283,22 +295,22 @@
 
         <div class="section" id="field-bestfor">
           <div class="section-label">Best For</div>
-          <div class="card-body-text editable" id="f-bestfor" data-field="bestfor" data-multiline="1" data-placeholder="Who gets the most from this (optional)"></div>
+          <textarea class="card-body-text editable-field" id="f-bestfor" placeholder="Who gets the most from this (optional)"></textarea>
         </div>
 
         <div class="section" id="field-event-code">
           <div class="section-label">Event Code</div>
-          <div class="card-body-text editable" id="f-event-code" data-field="event-code" data-placeholder="e.g. EVENT2026 — if this is for a specific event"></div>
+          <input class="card-body-text editable-field" id="f-event-code" type="text" placeholder="e.g. EVENT2026 — if this is for a specific event" enterkeyhint="next">
         </div>
 
         <div class="section" id="field-deck">
           <div class="section-label" id="label-deck">Deck / Slides</div>
-          <div class="card-body-text editable" id="f-deck" data-field="deck" data-placeholder="Google Slides, Canva, or PDF link (optional)"></div>
+          <input class="card-body-text editable-field" id="f-deck" type="url" placeholder="Google Slides, Canva, or PDF link (optional)" enterkeyhint="next">
         </div>
 
         <div class="section" id="field-linkedin">
           <div class="section-label">LinkedIn</div>
-          <div class="card-body-text editable" id="f-linkedin" data-field="linkedin" data-placeholder="https://linkedin.com/in/yourname (optional)"></div>
+          <input class="card-body-text editable-field" id="f-linkedin" type="url" placeholder="https://linkedin.com/in/yourname (optional)" enterkeyhint="next">
         </div>
       </div>
     </div>
@@ -474,7 +486,7 @@ function selectType(key) {
   addTagValue(t.typeTag, true);
   document.getElementById('label-synopsis').textContent = t.synopsisLabel;
   document.getElementById('label-takeaways').textContent = t.takeawaysLabel;
-  document.getElementById('f-synopsis').dataset.placeholder = 'Tap to write ' + t.synopsisLabel.toLowerCase();
+  document.getElementById('f-synopsis').placeholder = 'Tap to write ' + t.synopsisLabel.toLowerCase();
   document.getElementById('btn-submit').textContent = t.submitLabel;
   document.getElementById('field-event-code').style.display = key === 'presentation' ? 'block' : 'none';
 
@@ -486,18 +498,15 @@ function selectType(key) {
   document.getElementById('onda-play-btn').style.display = t.isReference ? 'none' : '';
   if (t.isReference) document.getElementById('onda-edit-row').style.display = 'none';
 
-  document.getElementById('f-title').dataset.placeholder = t.isReference
+  document.getElementById('f-title').placeholder = t.isReference
     ? 'Article title — include the author, e.g. "Title — by Author Name"'
     : 'Tap to add a title';
 
   document.getElementById('label-deck').textContent = t.isReference ? 'Article URL' : 'Deck / Slides';
-  document.getElementById('f-deck').dataset.placeholder = t.isReference
+  document.getElementById('f-deck').placeholder = t.isReference
     ? 'The actual link to the article'
     : 'Google Slides, Canva, or PDF link (optional)';
 
-  // Placeholders just changed above — refresh so an empty field shows its
-  // new hint immediately instead of waiting for the next click/blur cycle.
-  renderEditableFields();
   renderTypeRow();
   renderTags();
   applySimpleMode();
@@ -741,7 +750,6 @@ async function proceedToForm() {
   }
 
   renderVisibilityBadge();
-  renderEditableFields();
   renderMediaRow('photo');
   renderMediaRow('video');
   if (EVENT_CODE && !loaded) setFieldValue('event-code', EVENT_CODE.toUpperCase());
@@ -803,82 +811,48 @@ function applyLoadedTile(d) {
   (Array.isArray(d.headings) ? d.headings : []).forEach(h => addArrowLine('heading-list', 'e.g. What you can do', h, false));
 }
 
-// ── Generic click-to-edit fields (title, presenter, synopsis, etc.) ────────
+// ── Fields (title, presenter, synopsis, etc.) — real inputs/textareas,
+// always in the DOM. Reading/writing them IS reading/writing the field;
+// there's no separate render step to keep in sync. ─────────────────────────
 function setFieldValue(field, value) {
-  fieldValues[field] = value;
   const el = document.getElementById('f-' + field);
-  if (el) renderEditableEl(el);
+  if (el) { el.value = value || ''; autoGrow(el); }
+  else fieldValues[field] = value; // fields with no real input of their own (e.g. onda-url)
   if (field === 'presenter') updateAvatar();
 }
-function getFieldValue(field) { return fieldValues[field] || ''; }
-
-function renderEditableEl(el) {
-  const field = el.dataset.field;
-  const val = fieldValues[field] || '';
-  if (val) {
-    el.textContent = val;
-    el.classList.remove('empty');
-  } else {
-    el.textContent = el.dataset.placeholder;
-    el.classList.add('empty');
-  }
-}
-function renderEditableFields() {
-  document.querySelectorAll('.editable').forEach(el => {
-    renderEditableEl(el);
-    el.onclick = () => startEditing(el);
-  });
-}
-// After committing a single-line field, jumps straight into the next
-// visible .editable field — "next" meaning next in the card's own layout
-// order, skipping anything hidden (simple mode, a closed accordion).
-// David, 2026-10-30: "Submit should set focus on the next field."
-function focusNextEditable(fromEl) {
-  const all = [...document.querySelectorAll('.editable')].filter(el => el.offsetParent !== null);
-  const next = all[all.indexOf(fromEl) + 1];
-  if (next) next.click();
+function getFieldValue(field) {
+  const el = document.getElementById('f-' + field);
+  return el ? el.value.trim() : (fieldValues[field] || '');
 }
 
-const URL_FIELDS = new Set(['deck', 'linkedin']);
-
-function startEditing(displayEl) {
-  const field = displayEl.dataset.field;
-  const multiline = displayEl.dataset.multiline === '1';
-  const current = fieldValues[field] || '';
-
-  const input = document.createElement(multiline ? 'textarea' : 'input');
-  input.className = 'editable-input';
-  input.value = current;
-  input.placeholder = displayEl.dataset.placeholder || '';
-  if (!multiline) {
-    // Correct mobile keyboard per field, and a "Next" return key instead of
-    // "Go" — the return key is about to actually move to the next field.
-    input.type = field === 'email' ? 'email' : URL_FIELDS.has(field) ? 'url' : 'text';
-    input.setAttribute('enterkeyhint', 'next');
-  }
-
-  displayEl.replaceWith(input);
-  input.focus();
-  if (!multiline) input.select();
-
-  // Commits on blur (click away, or tab/click into another field) — no
-  // separate Done button needed. Guarded against firing twice: Enter
-  // commits immediately, and removing the input from the DOM right after
-  // can itself trigger a blur on the now-detached element.
-  let committed = false;
-  const commit = () => {
-    if (committed) return;
-    committed = true;
-    setFieldValue(field, input.value.trim());
-    input.replaceWith(displayEl);
-    renderEditableEl(displayEl);
-    displayEl.onclick = () => startEditing(displayEl);
-  };
-  input.addEventListener('blur', commit);
-  if (!multiline) input.addEventListener('keydown', e => {
-    if (e.key === 'Enter') { e.preventDefault(); commit(); focusNextEditable(displayEl); }
-  });
+// Textareas don't grow with their content on their own — called after every
+// programmatic value set and on every keystroke (wired below) so the Story/
+// Best For boxes still read as plain growing text, not a fixed-size input
+// with an inner scrollbar.
+function autoGrow(el) {
+  if (!el || el.tagName !== 'TEXTAREA') return;
+  el.style.height = 'auto';
+  el.style.height = el.scrollHeight + 'px';
 }
+document.querySelectorAll('textarea.editable-field').forEach(t => t.addEventListener('input', () => autoGrow(t)));
+
+// Enter on a single-line field jumps straight into the next visible
+// .editable-field in the card's own layout order (skipping anything hidden
+// — simple mode, a closed accordion) instead of just closing the keyboard.
+// Delegated once on the document since .editable-field elements come and
+// go (takeaway/heading lines are added and removed at runtime).
+// David, 2026-10-30: "When field text is entered, focus should shift to
+// the next form field and it should be active."
+document.addEventListener('keydown', e => {
+  if (e.key !== 'Enter') return;
+  const el = e.target;
+  if (!el.classList || !el.classList.contains('editable-field') || el.tagName === 'TEXTAREA') return;
+  e.preventDefault();
+  const all = [...document.querySelectorAll('.editable-field')].filter(x => x.offsetParent !== null);
+  const next = all[all.indexOf(el) + 1];
+  if (next) { next.focus(); if (next.select) next.select(); }
+  else el.blur();
+});
 
 function updateAvatar() {
   const el = document.getElementById('avatar-initial');
@@ -886,7 +860,7 @@ function updateAvatar() {
     el.innerHTML = `<img src="${presenterPhotoUrl}" onerror="this.parentElement.textContent='?'">`;
     return;
   }
-  const name = getFieldValue('presenter').trim();
+  const name = getFieldValue('presenter');
   el.textContent = name ? name.charAt(0).toUpperCase() : '?';
 }
 
@@ -1168,7 +1142,12 @@ document.getElementById('tag-input').addEventListener('keydown', e => {
 // anywhere in this file, so the panel's fields (already fully wired to
 // load/submit, see applyLoadedTile/submitTile) were unreachable from the UI.
 function toggleMoreDetails() {
-  document.getElementById('more-details').classList.toggle('open');
+  const panel = document.getElementById('more-details');
+  panel.classList.toggle('open');
+  // scrollHeight reads 0 on a hidden element, so a textarea loaded while
+  // this panel was still closed (e.g. Best For, on an existing tile) needs
+  // its height recalculated now that it's actually visible.
+  if (panel.classList.contains('open')) panel.querySelectorAll('textarea.editable-field').forEach(autoGrow);
 }
 
 // Generic collapsed/expandable section — used by the Photos/Videos "Do you
@@ -1180,45 +1159,30 @@ function toggleAccordion(id) {
   if (toggle) toggle.classList.toggle('open');
 }
 
-// ── Takeaways / headings — arrow-bulleted lines, editable in place ──────
+// ── Takeaways / headings — arrow-bulleted lines, each a real input ──────
 function addArrowLine(listId, placeholder, value, autoEdit) {
   const li = document.createElement('li');
   const span = document.createElement('span');
   span.className = 'arrow'; span.textContent = '→';
-  const editable = document.createElement('div');
-  editable.className = 'editable' + (value ? '' : ' empty');
-  editable.textContent = value || placeholder;
-  editable.dataset.placeholder = placeholder;
-  editable.dataset.lineValue = value || '';
+  const input = document.createElement('input');
+  input.type = 'text';
+  input.className = 'editable-field';
+  input.placeholder = placeholder;
+  input.value = value || '';
+  input.setAttribute('enterkeyhint', 'next');
   const rm = document.createElement('button');
   rm.className = 'line-remove'; rm.type = 'button'; rm.textContent = '×';
   rm.onclick = () => li.remove();
 
-  editable.onclick = () => {
-    const input = document.createElement('textarea');
-    input.className = 'editable-input';
-    input.value = editable.dataset.lineValue;
-    editable.replaceWith(input);
-    input.focus();
-    const commit = () => {
-      const val = input.value.trim();
-      editable.dataset.lineValue = val;
-      editable.textContent = val || placeholder;
-      editable.classList.toggle('empty', !val);
-      input.replaceWith(editable);
-    };
-    input.addEventListener('blur', commit);
-  };
-
-  li.append(span, editable, rm);
+  li.append(span, input, rm);
   document.getElementById(listId).appendChild(li);
-  if (autoEdit) editable.click();
+  if (autoEdit) input.focus();
 }
 function addTakeaway() { addArrowLine('takeaway-list', 'One key takeaway…', '', true); }
 function addHeading()  { addArrowLine('heading-list', 'e.g. What you can do', '', true); }
 function getLines(listId) {
-  return [...document.querySelectorAll(`#${listId} .editable`)]
-    .map(el => el.dataset.lineValue || '').filter(Boolean);
+  return [...document.querySelectorAll(`#${listId} input`)]
+    .map(el => el.value.trim()).filter(Boolean);
 }
 
 // ── Submit ────────────────────────────────────────────────────────────────
