@@ -1300,6 +1300,18 @@ async function submitTile() {
     if (simpleRequiredStep && activeTileId) {
       formPhase = 'review';
       document.getElementById('step-form').style.display = 'none';
+      // `create` doesn't reliably persist every field the same way `update`
+      // does — confirmed earlier for `transcript` alone (Generate Draft ran
+      // on nothing), and the same gap turned out to hit title/presenter/
+      // email/synopsis too once the review step started actually reading
+      // them back (David, 2026-10-30: "nothing is carried into the next
+      // screen"). Re-send the exact same payload through the known-reliable
+      // `update` endpoint before doing anything else with this tile.
+      await fetch(`${NILE_API}/nile/tile/update`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ...payload, id: activeTileId }),
+      });
       await runGenerateDraftAndShowReview();
       return;
     }
@@ -1325,15 +1337,9 @@ async function submitTile() {
 async function runGenerateDraftAndShowReview() {
   let draft = {};
   try {
-    // Belt-and-suspenders: `create` may not accept `transcript` the same
-    // way `update` does, so re-save it explicitly right before Generate
-    // Draft runs — otherwise Generate Draft can succeed with nothing to
-    // actually read, landing on the review step looking "saved" but blank.
-    await fetch(`${NILE_API}/nile/tile/update`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ id: activeTileId, phone: PHONE, magic_auth_token: TOKEN, transcript: getFieldValue('synopsis') }),
-    });
+    // The caller already re-saved the full tile (including transcript) via
+    // `update` right before calling this, so Generate Draft has real text
+    // to read from — see the comment at that call site.
     const r = await fetch(`${NILE_API}/nile/tile/generate-draft`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
