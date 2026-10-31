@@ -448,9 +448,8 @@
 
   <div class="filter-row">
     <button class="filter-btn active" onclick="setStatusFilter('')" id="filter-all">All</button>
+    <button class="filter-btn" onclick="setStatusFilter('submitted')" id="filter-submitted">Submitted</button>
     <button class="filter-btn" onclick="setStatusFilter('published')" id="filter-published">Published</button>
-    <button class="filter-btn" onclick="setStatusFilter('draft')" id="filter-draft">Draft</button>
-    <button class="filter-btn" onclick="setStatusFilter('pending')" id="filter-pending">Pending</button>
     <button class="filter-btn" onclick="setStatusFilter('archived')" id="filter-archived">Archived</button>
     <button class="filter-btn" onclick="setStatusFilter('needs-attention')" id="filter-needs-attention">⚠ Needs Attention</button>
   </div>
@@ -889,18 +888,22 @@ const VISIBILITY_LABELS = { public: 'Nile', chapter: 'Station', private: 'Admin'
 // Mirrors the filter-btn labels exactly (see the status filter-row HTML) —
 // used to show a copy of whatever's active up next to the tile count, so
 // it's visible even while the Filters & Tools panel is collapsed.
-const STATUS_FILTER_LABELS = { published: 'Published', draft: 'Draft', pending: 'Pending', archived: 'Archived', 'needs-attention': '⚠ Needs Attention' };
+const STATUS_FILTER_LABELS = { submitted: 'Submitted', published: 'Published', archived: 'Archived', 'needs-attention': '⚠ Needs Attention' };
 // approved/scheduled/armed/recorded/rejected removed 2026-10-29 — dead
-// options, nothing in this codebase read them.
-const STATUS_VALUES = ['submitted', 'pending', 'draft', 'published', 'archived'];
+// options, nothing in this codebase read them. pending/draft removed
+// 2026-10-31 (David: too many overlapping statuses) — pending had zero
+// tiles using it; any tile still carrying the old 'draft' value keeps
+// showing and editing fine (the status <select> below always includes
+// a tile's own current value even when it's not one of these three), it
+// just can't be set back to draft going forward.
+const STATUS_VALUES = ['submitted', 'published', 'archived'];
 const STATUS_LABELS = {
-  submitted: 'Submitted', pending: 'Pending',
-  draft: 'Draft', published: 'Published', archived: 'Archived',
+  submitted: 'Submitted', published: 'Published', archived: 'Archived',
 };
 
 function setStatusFilter(f) {
   currentFilter = f;
-  ['all','published','draft','pending','archived','needs-attention'].forEach(k => {
+  ['all','submitted','published','archived','needs-attention'].forEach(k => {
     const btn = document.getElementById('filter-' + k);
     if (btn) btn.className = 'filter-btn' + ((k === (f || 'all')) ? ' active' : '');
   });
