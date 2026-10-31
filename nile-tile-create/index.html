@@ -391,6 +391,20 @@ const TILE_ID = _p.get('tile_id') || null;
 // stored session also has a phone+token (same resolveAuth path above).
 const CURATOR_INITIATED = !!(_p.get('phone') && _p.get('token'));
 
+// The one "back to the Dashboard" URL — every curator exit point (Cancel,
+// a successful Save Changes, the post-submit success screen) uses this
+// same destination so a curator always lands back where they can review
+// other submissions. David, 2026-10-31.
+function dashboardUrl() {
+  const p = new URLSearchParams();
+  if (L1) p.set('org_l1', L1);
+  if (L2) p.set('org_l2', L2);
+  if (L3) p.set('org_l3', L3);
+  if (PHONE) p.set('phone', PHONE);
+  if (TOKEN) p.set('token', TOKEN);
+  return `../nile-admin/dashboard.html?${p}`;
+}
+
 const LOCKED_TAG = L3 || L1 || null;
 let userTags = [];
 
@@ -593,13 +607,7 @@ const SKINS = { 'circle-docs': { wordmark: 'Circle Docs' } };
   // in-app flow. browse-link is reused for both; only its text/href differ.
   const browseLink = document.getElementById('browse-link');
   if (CURATOR_INITIATED) {
-    const dashParams = new URLSearchParams();
-    if (L1) dashParams.set('org_l1', L1);
-    if (L2) dashParams.set('org_l2', L2);
-    if (L3) dashParams.set('org_l3', L3);
-    if (PHONE) dashParams.set('phone', PHONE);
-    if (TOKEN) dashParams.set('token', TOKEN);
-    browseLink.href = `../nile-admin/dashboard.html?${dashParams}`;
+    browseLink.href = dashboardUrl();
     browseLink.textContent = '← Back to Station Dashboard';
   } else {
     const stationParams = new URLSearchParams();
@@ -734,18 +742,8 @@ async function proceedToForm() {
   if (EVENT_CODE && !loaded) setFieldValue('event-code', EVENT_CODE.toUpperCase());
   if (TILE_ID) {
     document.getElementById('btn-submit').textContent = 'Save Changes';
-    // Editing an existing tile (via the Dashboard's pencil icon) always
-    // carries phone+token the same way CURATOR_INITIATED does — reuse that
-    // same "back to the Dashboard" URL so Cancel returns exactly where
-    // this edit started. David, 2026-10-31.
-    const cancelParams = new URLSearchParams();
-    if (L1) cancelParams.set('org_l1', L1);
-    if (L2) cancelParams.set('org_l2', L2);
-    if (L3) cancelParams.set('org_l3', L3);
-    if (PHONE) cancelParams.set('phone', PHONE);
-    if (TOKEN) cancelParams.set('token', TOKEN);
     const cancelBtn = document.getElementById('btn-cancel-edit');
-    cancelBtn.href = `../nile-admin/dashboard.html?${cancelParams}`;
+    cancelBtn.href = dashboardUrl();
     cancelBtn.style.display = 'block';
   }
 
@@ -1266,12 +1264,13 @@ async function submitTile() {
       await runGenerateDraftAndShowReview();
       return;
     }
+    // Editing an existing tile is a quick in-and-out curator action, not a
+    // submission worth a confirmation screen — go straight back to the
+    // Dashboard to review the next one. David, 2026-10-31: "after 'Save
+    // Changes' or 'Cancel' we should head back to the curator workstation."
+    if (TILE_ID) { location.href = dashboardUrl(); return; }
     document.getElementById('step-form').style.display = 'none';
     document.getElementById('step-success').style.display = 'block';
-    if (TILE_ID) {
-      document.querySelector('#step-success h2').textContent = 'Changes saved!';
-      document.querySelector('#step-success p').textContent = 'Your card has been updated.';
-    }
   } catch(e) {
     msg.className = 'msg err';
     msg.textContent = e.message;
