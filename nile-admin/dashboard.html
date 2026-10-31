@@ -127,7 +127,7 @@
   .tile-card.status-rejected  { border-left: 4px solid var(--muted); }
 
   .tc-header { padding: 14px 18px 10px; cursor: pointer; }
-  .tc-title-row { display: flex; align-items: flex-start; gap: 10px; margin-bottom: 4px; }
+  .tc-title-row { display: grid; grid-template-columns: auto auto 1fr auto; align-items: start; gap: 2px 10px; margin-bottom: 4px; }
   .tc-title { font-size: 15px; font-weight: 700; color: var(--ink); flex: 1; }
   .tc-chevron { color: var(--muted); font-size: 13px; flex-shrink: 0; transition: transform .15s; margin-top: 2px; }
   /* font-weight does nothing on ▶ — it's a symbol glyph, not a letter, so
@@ -1105,14 +1105,13 @@ function render() {
       <div class="tile-card status-${status}${t.id === selectedTileId ? ' selected' : ''}${t.id === openTileId ? ' open' : ''}" id="tile-card-${i}" data-tile-id="${t.id}">
         <div class="tc-header" onclick="selectTile(${t.id}, ${i})">
           <div class="tc-title-row">
-            <span class="tc-chevron">▶</span>
-            <span style="font-size:12px;font-weight:700;color:var(--muted);font-variant-numeric:tabular-nums;flex-shrink:0;margin-top:3px;" title="Tile ID">#${t.id}</span>
-            <div style="flex:1">
+            <span class="tc-chevron" style="grid-row:1;grid-column:1">▶</span>
+            <span style="grid-row:1;grid-column:2;font-size:12px;font-weight:700;color:var(--muted);font-variant-numeric:tabular-nums;margin-top:3px;" title="Tile ID">#${t.id}</span>
+            <div style="grid-row:1;grid-column:3">
               <div class="tc-title">${t.title || '(untitled)'} <a href="../nile-tile-create/?org_l1=${encodeURIComponent(t.org_l1 || '')}&org_l2=${encodeURIComponent(t.org_l2 || '')}&org_l3=${encodeURIComponent(t.org_l3 || '')}&tile_id=${t.id}&phone=${encodeURIComponent(authedPhone)}&token=${encodeURIComponent(authToken)}" class="tc-edit-pencil" onclick="event.stopPropagation()" title="Edit this tile">✎</a> <a href="#" class="tc-edit-pencil" onclick="event.stopPropagation();event.preventDefault();openEditPreview(${t.id})" title="Edit &amp; Preview — see exactly how this looks on the public page while you edit it">◧</a></div>
               ${t.brief ? `<div class="tc-tagline">${t.brief}</div>` : ''}
-              ${t.story ? `<div onclick="event.stopPropagation()">${editableField('Story', 'story', t.story)}</div>` : ''}
             </div>
-            <div class="tc-header-controls">
+            <div class="tc-header-controls" style="grid-row:1 / span 2;grid-column:4">
               <div class="tc-header-controls-top">
                 <select class="tc-status-select ${status}" onclick="event.stopPropagation()" onchange="event.stopPropagation();updateTileStatus(${t.id}, this.value)">
                   ${(STATUS_VALUES.includes(status) ? STATUS_VALUES : [status, ...STATUS_VALUES]).map(v => `<option value="${v}"${v === status ? ' selected' : ''}>${STATUS_LABELS[v] || v}</option>`).join('')}
@@ -1134,6 +1133,7 @@ function render() {
                 </div>
               </div>
             </div>
+            ${t.story ? `<div style="grid-row:2;grid-column:1 / span 3" onclick="event.stopPropagation()">${editableField('Story', 'story', t.story)}</div>` : ''}
           </div>
         </div>
         ${presenterDisplay || sleeveImg ? `<div class="tc-identity">${sleeveImg ? `<img class="tc-sleeve-img" src="${sleeveImg}">` : (presenterDisplay ? `<span class="tc-sleeve-placeholder">${presenterDisplay.trim().charAt(0).toUpperCase()}</span>` : '')}<span class="tc-identity-name">${presenterDisplay}</span><span class="tc-edit-btn" onclick="event.stopPropagation();startThumbnailUpload(${t.id})">Change thumbnail</span></div>` : ''}
