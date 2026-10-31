@@ -581,17 +581,33 @@ const SKINS = { 'circle-docs': { wordmark: 'Circle Docs' } };
   const backLink = document.getElementById('back-link');
   backLink.href = hubUrl;
   backLink.textContent = '← Back to Hub';
-  // "View the station" / "← Back to the station" always returns to this
-  // org's own memorial/station page (chapter.html) — the same page the
-  // "Share your story" button that brought the submitter here lives on
-  // (chapter/index.html:1165). David, 2026-10-31: after submitting a
-  // story, the only destination that makes sense is back to the memorial
-  // page itself — not a generic marketing page, not the curator Dashboard.
-  const stationParams = new URLSearchParams();
-  if (L1) stationParams.set('org_l1', L1);
-  if (L2) stationParams.set('org_l2', L2);
-  if (L3) stationParams.set('org_l3', L3);
-  document.getElementById('browse-link').href = `../chapter/?${stationParams}`;
+  // Two real entry points land on the same success screen: a stranger
+  // sharing a story (via chapter.html's "Share your story" link — org
+  // params only) and a curator starting a fresh tile of any kind (via the
+  // Dashboard's "+ New Tile" — phone+token always present, CURATOR_INITIATED
+  // above). A stranger's destination is this org's own memorial/station
+  // page (chapter.html), the same page they came from — not a generic
+  // marketing page, not the curator Dashboard (David, 2026-10-31). A curator
+  // came FROM the Dashboard and should go back to it, same as any other
+  // in-app flow. browse-link is reused for both; only its text/href differ.
+  const browseLink = document.getElementById('browse-link');
+  if (CURATOR_INITIATED) {
+    const dashParams = new URLSearchParams();
+    if (L1) dashParams.set('org_l1', L1);
+    if (L2) dashParams.set('org_l2', L2);
+    if (L3) dashParams.set('org_l3', L3);
+    if (PHONE) dashParams.set('phone', PHONE);
+    if (TOKEN) dashParams.set('token', TOKEN);
+    browseLink.href = `../nile-admin/dashboard.html?${dashParams}`;
+    browseLink.textContent = '← Back to Station Dashboard';
+  } else {
+    const stationParams = new URLSearchParams();
+    if (L1) stationParams.set('org_l1', L1);
+    if (L2) stationParams.set('org_l2', L2);
+    if (L3) stationParams.set('org_l3', L3);
+    browseLink.href = `../chapter/?${stationParams}`;
+    browseLink.textContent = '← Back to the station';
+  }
   const signinParams = new URLSearchParams(params);
   document.getElementById('signin-link').href = `../nile-admin/signin.html?${signinParams}`;
 })();
