@@ -1086,6 +1086,7 @@ function render() {
       // reject the bad ones with ×, tap a survivor to make it the real title.
       titleSuggestions.length ? `<div class="tc-body-section"><div class="tc-body-label">Suggested Titles — tap to use, × to reject</div><div class="tc-tags">${titleSuggestions.map((s, idx) => reviewPill(s, idx, 'title_suggestions', true)).join('')}</div></div>` : '',
       editableField("Who it's for", 'who', t.who),
+      editableField('Story', 'story', t.story),
       editableField('Synopsis', 'synopsis', t.synopsis),
       takeaways.length ? `<div class="tc-body-section"><div class="tc-body-label">${
         st.editingTakeawaysLabel
