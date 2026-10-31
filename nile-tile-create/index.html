@@ -1349,7 +1349,9 @@ function showReviewOnCard(d) {
   renderMediaRow('video');
   document.getElementById('form-sub').textContent =
     `Here's what we picked up from your story — nothing is final. Tap anything below to change it before it goes to the curator.`;
-  document.getElementById('btn-submit').textContent = 'Looks good — submit';
+  const reviewBtn = document.getElementById('btn-submit');
+  reviewBtn.disabled = false;
+  reviewBtn.textContent = 'Looks good — submit';
   document.getElementById('step-form').style.display = 'block';
 }
 </script>
