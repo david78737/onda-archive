@@ -231,7 +231,7 @@
 
       <input class="card-title editable-field" id="f-title" type="text" placeholder="Tap to add a title" enterkeyhint="next">
       <input class="card-presenter editable-field" id="f-presenter" type="text" placeholder="Tap to add your name" enterkeyhint="next">
-      <input class="card-email editable-field" id="f-email" type="email" placeholder="Tap to add your email" enterkeyhint="next">
+      <input class="card-email editable-field" id="f-email" type="email" placeholder="Tap to add your email (optional)" enterkeyhint="next">
       <p class="field-hint" id="email-hint"></p>
 
       <div class="section">
@@ -727,10 +727,10 @@ async function proceedToForm() {
     : `Thanks for contributing. We'll use your phone number to confirm it's really you, and that you have the right to share this.`;
   if (stationName) VISIBILITY_OPTIONS.chapter.label = `On ${stationName}`;
   document.getElementById('email-hint').textContent =
-    `We email you a copy after we review your story, just to make sure you approve too.`;
+    `If you have an email, we'll send you a copy after we review your story — totally optional, your phone number is all we really need.`;
   document.getElementById('form-submit-note').textContent = stationName
-    ? `After you submit, ${stationName}'s curator will review it and follow up with you by email.`
-    : `After you submit, a curator will review it and follow up with you by email.`;
+    ? `After you submit, ${stationName}'s curator will review it and follow up with you.`
+    : `After you submit, a curator will review it and follow up with you.`;
 
   if (LOCKED_TAG) addTagValue(LOCKED_TAG, true);
 
@@ -1220,7 +1220,7 @@ async function submitTile() {
 
   if (!title)     { msg.className = 'msg err'; msg.textContent = 'Tap the title at the top to add one.'; return; }
   if (!presenter) { msg.className = 'msg err'; msg.textContent = 'Tap the name under the title to add one.'; return; }
-  if (!email || !email.includes('@')) { msg.className = 'msg err'; msg.textContent = 'Tap to add a valid email address.'; return; }
+  if (email && !email.includes('@')) { msg.className = 'msg err'; msg.textContent = 'Tap to fix your email address, or clear the field if you don\'t have one.'; return; }
 
   btn.disabled = true;
   btn.textContent = 'Saving…';
@@ -1232,7 +1232,7 @@ async function submitTile() {
     event_code: eventCode,
     title, presenter,
     presenter_phone: PHONE,
-    presenter_email: email,
+    presenter_email: email || null,
     linkedin_url: linkedin,
     // `story` is the person's own written words, saved once and never
     // touched by AI — `synopsis` is Generate Draft's condensed take on it,
