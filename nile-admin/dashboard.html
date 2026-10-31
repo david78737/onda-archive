@@ -722,6 +722,28 @@ function loadFavoriteTags() {
   catch (_) { favoriteTags = new Set(); }
 }
 
+// Status/visibility filter choices used to live only in memory, so any full
+// page reload — including the round trip through the pencil-edit screen's
+// "Save Changes"/Cancel, which navigates back here via dashboardUrl() —
+// silently reset them to "All" / "Any Visibility". David, 2026-11-01:
+// wants "Submitted" + "Any Visibility" to stay active across that gap.
+// Same station-scoped localStorage pattern as favoriteTags above.
+function dashFilterKey() { return 'onda_dash_filters_' + (stationId || 'default'); }
+function loadSavedFilters() {
+  try {
+    const saved = JSON.parse(localStorage.getItem(dashFilterKey()) || '{}');
+    currentFilter = saved.status || '';
+    currentVisibilityFilter = saved.visibility || '';
+  } catch (_) { currentFilter = ''; currentVisibilityFilter = ''; }
+}
+function saveFilters() {
+  try {
+    localStorage.setItem(dashFilterKey(), JSON.stringify({
+      status: currentFilter, visibility: currentVisibilityFilter,
+    }));
+  } catch (_) {}
+}
+
 function toggleFavoriteTag(tag) {
   if (favoriteTags.has(tag)) favoriteTags.delete(tag); else favoriteTags.add(tag);
   try { localStorage.setItem(favTagKey(), JSON.stringify([...favoriteTags])); } catch (_) {}
@@ -881,6 +903,9 @@ function playerUrlFor(url) {
   }
 
   document.getElementById('dash-title').textContent = stationId;
+  loadSavedFilters();
+  applyStatusFilterButtons(currentFilter);
+  applyVisibilityFilterButtons(currentVisibilityFilter);
   loadTiles();
 })();
 
@@ -901,12 +926,17 @@ const STATUS_LABELS = {
   submitted: 'Submitted', published: 'Published', archived: 'Archived',
 };
 
-function setStatusFilter(f) {
-  currentFilter = f;
+function applyStatusFilterButtons(f) {
   ['all','submitted','published','archived','needs-attention'].forEach(k => {
     const btn = document.getElementById('filter-' + k);
     if (btn) btn.className = 'filter-btn' + ((k === (f || 'all')) ? ' active' : '');
   });
+}
+
+function setStatusFilter(f) {
+  currentFilter = f;
+  applyStatusFilterButtons(f);
+  saveFilters();
   render();
 }
 
@@ -931,12 +961,17 @@ function completenessGaps(t) {
   return gaps;
 }
 
-function setVisibilityFilter(f) {
-  currentVisibilityFilter = f;
+function applyVisibilityFilterButtons(f) {
   ['all','public','chapter','private'].forEach(k => {
     const btn = document.getElementById('vis-filter-' + k);
     if (btn) btn.className = 'filter-btn' + ((k === (f || 'all')) ? ' active' : '');
   });
+}
+
+function setVisibilityFilter(f) {
+  currentVisibilityFilter = f;
+  applyVisibilityFilterButtons(f);
+  saveFilters();
   render();
 }
 
