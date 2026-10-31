@@ -322,6 +322,7 @@
 
     <p class="sub" id="form-submit-note" style="font-size:13px;margin-bottom:10px;"></p>
     <button class="btn" id="btn-submit" onclick="submitTile()">Submit</button>
+    <a class="btn btn-outline" id="btn-cancel-edit" href="#" style="display:none;box-sizing:border-box;text-align:center;text-decoration:none;margin-top:10px;">Cancel</a>
     <div class="msg" id="msg-submit"></div>
   </div>
 
@@ -731,7 +732,22 @@ async function proceedToForm() {
   renderMediaRow('photo');
   renderMediaRow('video');
   if (EVENT_CODE && !loaded) setFieldValue('event-code', EVENT_CODE.toUpperCase());
-  if (TILE_ID) document.getElementById('btn-submit').textContent = 'Save Changes';
+  if (TILE_ID) {
+    document.getElementById('btn-submit').textContent = 'Save Changes';
+    // Editing an existing tile (via the Dashboard's pencil icon) always
+    // carries phone+token the same way CURATOR_INITIATED does — reuse that
+    // same "back to the Dashboard" URL so Cancel returns exactly where
+    // this edit started. David, 2026-10-31.
+    const cancelParams = new URLSearchParams();
+    if (L1) cancelParams.set('org_l1', L1);
+    if (L2) cancelParams.set('org_l2', L2);
+    if (L3) cancelParams.set('org_l3', L3);
+    if (PHONE) cancelParams.set('phone', PHONE);
+    if (TOKEN) cancelParams.set('token', TOKEN);
+    const cancelBtn = document.getElementById('btn-cancel-edit');
+    cancelBtn.href = `../nile-admin/dashboard.html?${cancelParams}`;
+    cancelBtn.style.display = 'block';
+  }
 
   document.getElementById('step-form').style.display = 'block';
 }
