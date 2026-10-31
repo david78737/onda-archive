@@ -1086,7 +1086,6 @@ function render() {
       // reject the bad ones with ×, tap a survivor to make it the real title.
       titleSuggestions.length ? `<div class="tc-body-section"><div class="tc-body-label">Suggested Titles — tap to use, × to reject</div><div class="tc-tags">${titleSuggestions.map((s, idx) => reviewPill(s, idx, 'title_suggestions', true)).join('')}</div></div>` : '',
       editableField("Who it's for", 'who', t.who),
-      editableField('Story', 'story', t.story),
       editableField('Synopsis', 'synopsis', t.synopsis),
       takeaways.length ? `<div class="tc-body-section"><div class="tc-body-label">${
         st.editingTakeawaysLabel
@@ -1136,6 +1135,7 @@ function render() {
             </div>
           </div>
         </div>
+        ${t.story ? `<div style="padding:0 18px 4px" onclick="event.stopPropagation()">${editableField('Story', 'story', t.story)}</div>` : ''}
         ${presenterDisplay || sleeveImg ? `<div class="tc-identity">${sleeveImg ? `<img class="tc-sleeve-img" src="${sleeveImg}">` : (presenterDisplay ? `<span class="tc-sleeve-placeholder">${presenterDisplay.trim().charAt(0).toUpperCase()}</span>` : '')}<span class="tc-identity-name">${presenterDisplay}</span><span class="tc-edit-btn" onclick="event.stopPropagation();startThumbnailUpload(${t.id})">Change thumbnail</span></div>` : ''}
         ${gaps.length ? `<div class="tc-gaps-flag">⚠ Missing: ${gaps.join(', ')}</div>` : ''}
         ${(() => {
