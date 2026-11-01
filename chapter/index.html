@@ -359,6 +359,7 @@
   .card-brief { font-size: 12px; color: var(--muted); margin-top: 3px; }
   /* Reactions: glyph grows with count instead of showing a number — stays
      visible on the collapsed tile, below the title. David, 2026-11-01. */
+  .card-event { font-size: 11px; color: var(--muted-dim); margin-top: 2px; }
   /* A solid light pill behind the glyphs, independent of whatever color a
      given station's card background uses, so contrast holds regardless.
      David, 2026-11-02. */
@@ -1135,6 +1136,11 @@ function render() {
                 title="${reacted ? 'Tap to undo' : r.label}">${r.emoji}</button>`;
     }).join('')}</div>`;
 
+    // Only the tiles that genuinely came from a dated event carry this —
+    // most tiles have no event_code at all, so this stays hidden for them.
+    // David, 2026-11-02.
+    const eventDateHtml = s.eventCode ? `<div class="card-event">${s.eventCode}</div>` : '';
+
     const statusBadge = isPending
       ? `<span class="badge badge-${s.status}">${s.status === 'recording' ? '● Recording' : 'Coming Soon'}</span>`
       : '';
@@ -1160,6 +1166,7 @@ function render() {
             <span class="card-presenter-name">${s.presenter}</span>
             ${ondaBtn}
           </div>
+          ${eventDateHtml}
           ${reactionsHtml}
           ${(s.brief || truncateWords(s.story, 200)) ? `<div class="card-brief">${s.brief || truncateWords(s.story, 200)}</div>` : ''}
           ${statusBadge ? `<div class="badges">${statusBadge}</div>` : ''}
@@ -1256,6 +1263,7 @@ function normalizePresentation(p) {
     onda_url: p.onda_url || null,
     onda_file: p.onda_file || null,
     status: p.status || null,
+    eventCode: p.event_code || null,
     reaction_heart_count: p.reaction_heart_count || 0,
     reaction_applause_count: p.reaction_applause_count || 0,
     reaction_thanks_count: p.reaction_thanks_count || 0,
