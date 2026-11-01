@@ -359,7 +359,14 @@
   .card-brief { font-size: 12px; color: var(--muted); margin-top: 3px; }
   /* Reactions: glyph grows with count instead of showing a number — stays
      visible on the collapsed tile, below the title. David, 2026-11-01. */
-  .card-reactions { display: flex; align-items: center; gap: 12px; margin-top: 4px; }
+  /* A solid light pill behind the glyphs, independent of whatever color a
+     given station's card background uses, so contrast holds regardless.
+     David, 2026-11-02. */
+  .card-reactions {
+    display: inline-flex; align-items: center; gap: 10px; margin-top: 4px;
+    background: #fff; border-radius: 999px; padding: 4px 11px;
+    width: fit-content; box-shadow: 0 1px 3px rgba(0,0,0,.12);
+  }
   .reaction-btn {
     display: inline-flex; align-items: center; justify-content: center;
     background: none; border: none; cursor: pointer; padding: 0;
