@@ -367,6 +367,8 @@
   }
   .reaction-btn:hover { transform: scale(1.2); }
   .reaction-btn.reacted { filter: saturate(1.4); }
+  .reaction-btn.inactive { opacity: .3; }
+  .reaction-btn.inactive:hover { opacity: .7; }
 
   .card-body { display: none; padding: 0 14px 14px 38px; }
   .card.open .card-body { display: block; }
@@ -547,6 +549,7 @@ async function handleReactionClick(btn, s) {
   s[field] = (s[field] || 0) + 1;
   btn.style.fontSize = reactionSize(s[field]) + 'px';
   btn.classList.add('reacted');
+  btn.classList.remove('inactive');
   btn.title = 'You reacted';
   markReacted(tileId, type);
 
@@ -1085,7 +1088,11 @@ function render() {
     const reactionsHtml = `<div class="card-reactions">${REACTION_TYPES.map(r => {
       const count = s[r.field] || 0;
       const reacted = hasReacted(s.rawId, r.key);
-      return `<button type="button" class="reaction-btn${reacted ? ' reacted' : ''}"
+      // Unused reactions fade to a quiet hint rather than sitting at full
+      // opacity on every one of 113+ tiles — still discoverable/tappable,
+      // just not competing for attention until someone's actually used it.
+      // David, 2026-11-01.
+      return `<button type="button" class="reaction-btn${reacted ? ' reacted' : ''}${count > 0 ? '' : ' inactive'}"
                 data-tile-id="${s.rawId}" data-reaction="${r.key}" data-field="${r.field}"
                 style="font-size:${reactionSize(count)}px"
                 title="${reacted ? 'You reacted' : r.label}">${r.emoji}</button>`;
@@ -1094,6 +1101,13 @@ function render() {
     const statusBadge = isPending
       ? `<span class="badge badge-${s.status}">${s.status === 'recording' ? '● Recording' : 'Coming Soon'}</span>`
       : '';
+
+    // The collapsed brief falls back to the story itself (truncateWords)
+    // when there's no separate brief field — if the whole story already
+    // fit under that truncation length, the expanded "Story" section below
+    // would just repeat it verbatim. Only show Story on expand when it's
+    // actually saying something the brief didn't. David, 2026-11-01.
+    const storyAlreadyShown = !s.brief && s.story && s.story.length <= 200;
 
     const card = document.createElement('div');
     card.className = 'card' + (isPending ? ' pending' : '');
@@ -1116,7 +1130,7 @@ function render() {
       </div>
       <div class="card-body">
         <div class="card-tags">${tags}</div>
-        ${s.story ? `<div class="section-label">Story</div><div class="synopsis">${s.story}</div>` : ''}
+        ${(s.story && !storyAlreadyShown) ? `<div class="section-label">Story</div><div class="synopsis">${s.story}</div>` : ''}
         ${(s.photos && s.photos.length) ? `<div class="section-label">Photos</div><div class="card-photos">${s.photos.map(url => `<a href="${url}" target="_blank" rel="noopener" onclick="event.stopPropagation()"><img class="card-photo" loading="lazy" src="${url}"></a>`).join('')}</div>` : ''}
         ${s.synopsis ? `<div class="section-label">Synopsis</div><div class="synopsis">${s.synopsis}</div>` : ''}
         ${(s.takeaways||[]).length ? `${s.takeaways_label === '' ? '' : `<div class="section-label">${s.takeaways_label ?? 'Key Takeaways'}</div>`}<ul class="takeaways">${s.takeaways.map(t=>`<li>${t}</li>`).join('')}</ul>` : ''}
