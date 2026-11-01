@@ -357,6 +357,16 @@
   .card-row-top .onda-btn { flex-shrink: 0; }
   .card-row-top .buy-soon { flex-shrink: 0; }
   .card-brief { font-size: 12px; color: var(--muted); margin-top: 3px; }
+  /* Reactions: glyph grows with count instead of showing a number — stays
+     visible on the collapsed tile, below the title. David, 2026-11-01. */
+  .card-reactions { display: flex; align-items: center; gap: 12px; margin-top: 4px; }
+  .reaction-btn {
+    display: inline-flex; align-items: center; justify-content: center;
+    background: none; border: none; cursor: pointer; padding: 0;
+    line-height: 1; transition: transform .12s;
+  }
+  .reaction-btn:hover { transform: scale(1.2); }
+  .reaction-btn.reacted { filter: saturate(1.4); }
 
   .card-body { display: none; padding: 0 14px 14px 38px; }
   .card.open .card-body { display: block; }
@@ -491,6 +501,65 @@
 
 <script>
 const NILE_API = 'https://xrxm-29on-xlyt.n7e.xano.io/api:onda-nile';
+
+// Reactions: three fixed types, no visible count — the glyph itself grows
+// with agreement instead. Dedup is a soft, client-side-only guard (a
+// localStorage flag per device+tile+type) since the backend endpoint takes
+// no identity; it stops accidental repeat-tapping, not a determined retap
+// from an incognito window or another device. David, 2026-11-01.
+const REACTION_TYPES = [
+  { key: 'heart', emoji: '❤️', field: 'reaction_heart_count', label: 'Heart' },
+  { key: 'applause', emoji: '👏', field: 'reaction_applause_count', label: 'Applause' },
+  { key: 'thanks', emoji: '🙏', field: 'reaction_thanks_count', label: 'Thank you' },
+];
+
+function reactionSize(count) {
+  // sqrt curve: early reactions move the needle fast, growth tapers off
+  // instead of running away after dozens of taps. 15px base, 34px cap.
+  return Math.min(34, 15 + Math.sqrt(count || 0) * 5);
+}
+
+function reactionStorageKey(tileId, type) {
+  return `nile-reacted-${tileId}-${type}`;
+}
+
+function hasReacted(tileId, type) {
+  try {
+    return localStorage.getItem(reactionStorageKey(tileId, type)) === '1';
+  } catch (e) {
+    return false;
+  }
+}
+
+function markReacted(tileId, type) {
+  try {
+    localStorage.setItem(reactionStorageKey(tileId, type), '1');
+  } catch (e) { /* private window / storage blocked — degrade silently */ }
+}
+
+async function handleReactionClick(btn, s) {
+  const type = btn.dataset.reaction;
+  const field = btn.dataset.field;
+  const tileId = s.rawId;
+  if (hasReacted(tileId, type)) return;
+
+  // Optimistic update first — the tap should feel instant.
+  s[field] = (s[field] || 0) + 1;
+  btn.style.fontSize = reactionSize(s[field]) + 'px';
+  btn.classList.add('reacted');
+  btn.title = 'You reacted';
+  markReacted(tileId, type);
+
+  try {
+    await fetch(`${NILE_API}/nile/tile/react`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id: tileId, reaction: type, reaction_type: type }),
+    });
+  } catch (e) {
+    console.error('Reaction failed to save', e);
+  }
+}
 
 // ── Read URL params ────────────────────────────────────────────────────────────
 // One ID per station, e.g. ?station=pca — no per-org code needed anywhere on
@@ -1013,6 +1082,15 @@ function render() {
           ? `<span class="buy-soon">⏳ Coming soon</span>`
           : `<span class="more-badge" title="Tap to see more">More<svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M7.293 4.293a1 1 0 011.414 0L14 9.586l-5.293 5.293a1 1 0 01-1.414-1.414L11.586 10 6.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"/></svg></span>`);
 
+    const reactionsHtml = `<div class="card-reactions">${REACTION_TYPES.map(r => {
+      const count = s[r.field] || 0;
+      const reacted = hasReacted(s.rawId, r.key);
+      return `<button type="button" class="reaction-btn${reacted ? ' reacted' : ''}"
+                data-tile-id="${s.rawId}" data-reaction="${r.key}" data-field="${r.field}"
+                style="font-size:${reactionSize(count)}px"
+                title="${reacted ? 'You reacted' : r.label}">${r.emoji}</button>`;
+    }).join('')}</div>`;
+
     const statusBadge = isPending
       ? `<span class="badge badge-${s.status}">${s.status === 'recording' ? '● Recording' : 'Coming Soon'}</span>`
       : '';
@@ -1031,6 +1109,7 @@ function render() {
             <span class="card-presenter-name">${s.presenter}</span>
             ${ondaBtn}
           </div>
+          ${reactionsHtml}
           ${(s.brief || truncateWords(s.story, 200)) ? `<div class="card-brief">${s.brief || truncateWords(s.story, 200)}</div>` : ''}
           ${statusBadge ? `<div class="badges">${statusBadge}</div>` : ''}
         </div>
@@ -1067,6 +1146,12 @@ function render() {
         render();
       });
     });
+    card.querySelectorAll('.reaction-btn').forEach(btn => {
+      btn.addEventListener('click', e => {
+        e.stopPropagation();
+        handleReactionClick(btn, s);
+      });
+    });
 
     container.appendChild(card);
   });
@@ -1096,6 +1181,7 @@ function normalizePresentation(p) {
     .filter(Boolean);
   return {
     id: 'pres-' + p.id,
+    rawId: p.id,
     title: p.title || '',
     presenter: p.presenter_name || p.presenter || 'Unknown',
     org: p.org_l1 || 'Unknown',
@@ -1119,6 +1205,9 @@ function normalizePresentation(p) {
     onda_url: p.onda_url || null,
     onda_file: p.onda_file || null,
     status: p.status || null,
+    reaction_heart_count: p.reaction_heart_count || 0,
+    reaction_applause_count: p.reaction_applause_count || 0,
+    reaction_thanks_count: p.reaction_thanks_count || 0,
   };
 }
 
