@@ -365,6 +365,11 @@
     color: var(--muted-dim); margin: 13px 0 5px;
   }
   .synopsis { color: var(--ink-mid); line-height: 1.65; font-size: 13px; }
+  .card-photos { display: flex; flex-wrap: wrap; gap: 8px; }
+  .card-photo {
+    width: 96px; height: 96px; object-fit: cover; border-radius: 8px;
+    border: 1px solid var(--border); display: block;
+  }
   .takeaways { list-style: none; }
   .takeaways li {
     color: var(--ink-mid); padding: 3px 0 3px 16px;
@@ -386,6 +391,12 @@
     font-size: 11px; color: var(--muted); border: 1px solid var(--border);
     border-radius: 4px; padding: 6px 10px;
   }
+  .more-badge {
+    display: inline-flex; align-items: center; gap: 2px;
+    font-size: 11px; font-weight: 600; color: var(--accent);
+    border: 1px solid var(--accent); border-radius: 4px; padding: 6px 8px;
+  }
+  .more-badge svg { width: 13px; height: 13px; }
 
   .loading, .empty {
     text-align: center; padding: 4rem 2rem;
@@ -985,12 +996,22 @@ function render() {
     // bulk-loaded TDIF/Facebook tributes) showed a "Play" arrow that opened
     // a recording that didn't exist. David, 2026-11-01.
     const hasRealAudio = !!(s.onda_file && s.onda_file.size > 16);
+    // A generic "More" badge replaces the old always-blank/always-"Play"
+    // split for anything that isn't a real recording — it doesn't claim a
+    // specific content type (tags, photos, replies), just that opening the
+    // tile has more to it. Not a separate tap target: it sits inside the
+    // card-header, which already expands the tile on click, so it's a
+    // visual cue, not a second control. David, 2026-11-01: "turn the arrow
+    // into a 'More' button indicating that expanding the tile has more to
+    // offer: Tags, images, videos, and potentially audio comments."
     const ondaBtn = (!isPending && hasRealAudio)
       ? `<a class="onda-btn" href="${playerUrlFor(s.onda_url)}" target="_blank" rel="noopener"
              onclick="event.stopPropagation()" title="Play recording">
            <img class="onda-btn-tap-icon" src="../assets/tap-arrow.png" alt="Play" width="25" height="28">
          </a>`
-      : (isPending ? `<span class="buy-soon">⏳ Coming soon</span>` : '');
+      : (isPending
+          ? `<span class="buy-soon">⏳ Coming soon</span>`
+          : `<span class="more-badge" title="Tap to see more">More<svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M7.293 4.293a1 1 0 011.414 0L14 9.586l-5.293 5.293a1 1 0 01-1.414-1.414L11.586 10 6.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"/></svg></span>`);
 
     const statusBadge = isPending
       ? `<span class="badge badge-${s.status}">${s.status === 'recording' ? '● Recording' : 'Coming Soon'}</span>`
@@ -1017,6 +1038,7 @@ function render() {
       <div class="card-body">
         <div class="card-tags">${tags}</div>
         ${s.story ? `<div class="section-label">Story</div><div class="synopsis">${s.story}</div>` : ''}
+        ${(s.photos && s.photos.length) ? `<div class="section-label">Photos</div><div class="card-photos">${s.photos.map(url => `<a href="${url}" target="_blank" rel="noopener" onclick="event.stopPropagation()"><img class="card-photo" loading="lazy" src="${url}"></a>`).join('')}</div>` : ''}
         ${s.synopsis ? `<div class="section-label">Synopsis</div><div class="synopsis">${s.synopsis}</div>` : ''}
         ${(s.takeaways||[]).length ? `${s.takeaways_label === '' ? '' : `<div class="section-label">${s.takeaways_label ?? 'Key Takeaways'}</div>`}<ul class="takeaways">${s.takeaways.map(t=>`<li>${t}</li>`).join('')}</ul>` : ''}
         ${(s.headings||[]).length ? `<div class="section-label">What's Covered</div><ul class="takeaways">${s.headings.map(h=>`<li>${h}</li>`).join('')}</ul>` : ''}
@@ -1093,6 +1115,7 @@ function normalizePresentation(p) {
     // different states, so don't collapse them with `||`.
     takeaways_label: p.takeaways_label ?? null,
     photo: p.photo_url || p.photo || null,
+    photos: Array.isArray(p.photos) ? p.photos.filter(Boolean) : [],
     onda_url: p.onda_url || null,
     onda_file: p.onda_file || null,
     status: p.status || null,
