@@ -546,18 +546,48 @@ function markReacted(tileId, type) {
   } catch (e) { /* private window / storage blocked — degrade silently */ }
 }
 
+function unmarkReacted(tileId, type) {
+  try {
+    localStorage.removeItem(reactionStorageKey(tileId, type));
+  } catch (e) { /* private window / storage blocked — degrade silently */ }
+}
+
 async function handleReactionClick(btn, s) {
   const type = btn.dataset.reaction;
   const field = btn.dataset.field;
   const tileId = s.rawId;
-  if (hasReacted(tileId, type)) return;
+  const alreadyReacted = hasReacted(tileId, type);
+
+  // Tapping a reaction you already made (in this same browser) undoes it —
+  // "the active visitor on their current session" can reverse their own
+  // mistake. Anything beyond that (another browser/device, after the fact)
+  // stays one-way on purpose. David, 2026-11-02.
+  if (alreadyReacted) {
+    s[field] = Math.max(0, (s[field] || 0) - 1);
+    btn.style.fontSize = reactionSize(s[field]) + 'px';
+    btn.classList.remove('reacted');
+    if (s[field] === 0) btn.classList.add('inactive');
+    btn.title = REACTION_TYPES.find(r => r.key === type).label;
+    unmarkReacted(tileId, type);
+
+    try {
+      await fetch(`${NILE_API}/nile/tile/unreact`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: tileId, type: type, reaction: type, reaction_type: type }),
+      });
+    } catch (e) {
+      console.error('Reaction undo failed to save', e);
+    }
+    return;
+  }
 
   // Optimistic update first — the tap should feel instant.
   s[field] = (s[field] || 0) + 1;
   btn.style.fontSize = reactionSize(s[field]) + 'px';
   btn.classList.add('reacted');
   btn.classList.remove('inactive');
-  btn.title = 'You reacted';
+  btn.title = 'Tap to undo';
   markReacted(tileId, type);
 
   try {
@@ -1102,7 +1132,7 @@ function render() {
       return `<button type="button" class="reaction-btn${reacted ? ' reacted' : ''}${count > 0 ? '' : ' inactive'}"
                 data-tile-id="${s.rawId}" data-reaction="${r.key}" data-field="${r.field}"
                 style="font-size:${reactionSize(count)}px"
-                title="${reacted ? 'You reacted' : r.label}">${r.emoji}</button>`;
+                title="${reacted ? 'Tap to undo' : r.label}">${r.emoji}</button>`;
     }).join('')}</div>`;
 
     const statusBadge = isPending
