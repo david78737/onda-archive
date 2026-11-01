@@ -845,7 +845,11 @@ function makeContributorBtn(value, label, count, isActive) {
   return btn;
 }
 function selectContributor(name) {
-  state.speaker = name;
+  // Tapping the already-selected contributor clears back to "All" — matches
+  // the tag drawer's tap-to-toggle behavior. David, 2026-10-31: "It might
+  // appear 'normal' that tapping a tag or contributor would toggle them
+  // selected/unselected."
+  state.speaker = (state.speaker === name) ? 'all' : name;
   render();
   closeDrawer();
 }
