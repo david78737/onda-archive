@@ -976,12 +976,21 @@ function render() {
     // Always the web player — never the ondareplay:// app deep link. David,
     // 2026-10-26: "the play button should ALWAYS open the player. Never
     // attempt to open Replay. There is a different protocol for that."
-    const ondaBtn = (!isPending && s.onda_url)
+    // t.onda_url is always present (Xano generates it even for a tile with
+    // no real audio), so it can't tell "has a recording" from "has an empty
+    // placeholder" by itself. Every tile created without a real upload gets
+    // a 16-byte placeholder .onda file — a real bundle is always well above
+    // that — so onda_file.size is the actual signal. Same check nile-admin's
+    // dashboard already uses. Before this, every text-only memory (e.g. the
+    // bulk-loaded TDIF/Facebook tributes) showed a "Play" arrow that opened
+    // a recording that didn't exist. David, 2026-11-01.
+    const hasRealAudio = !!(s.onda_file && s.onda_file.size > 16);
+    const ondaBtn = (!isPending && hasRealAudio)
       ? `<a class="onda-btn" href="${playerUrlFor(s.onda_url)}" target="_blank" rel="noopener"
              onclick="event.stopPropagation()" title="Play recording">
            <img class="onda-btn-tap-icon" src="../assets/tap-arrow.png" alt="Play" width="25" height="28">
          </a>`
-      : `<span class="buy-soon">${isPending ? '⏳ Coming soon' : 'Not yet available'}</span>`;
+      : (isPending ? `<span class="buy-soon">⏳ Coming soon</span>` : '');
 
     const statusBadge = isPending
       ? `<span class="badge badge-${s.status}">${s.status === 'recording' ? '● Recording' : 'Coming Soon'}</span>`
@@ -1085,6 +1094,7 @@ function normalizePresentation(p) {
     takeaways_label: p.takeaways_label ?? null,
     photo: p.photo_url || p.photo || null,
     onda_url: p.onda_url || null,
+    onda_file: p.onda_file || null,
     status: p.status || null,
   };
 }
