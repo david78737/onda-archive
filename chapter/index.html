@@ -773,16 +773,13 @@ function toggleMoreRow() {
 // ── Drawer — shared shell for both Tags and Contributor, only one panel
 // visible at a time depending on which button opened it. ─────────────────────
 function openDrawer(mode) {
-  // The search bar's actual bottom edge right now, not a summed height —
-  // it sits below the (non-sticky) masthead on an unscrolled page, but
-  // once scrolled, the masthead is gone and the sticky search bar alone
-  // sits at the top. getBoundingClientRect reflects whichever is true at
-  // the moment the drawer opens instead of guessing.
-  const topOffset = document.querySelector('.search-bar').getBoundingClientRect().bottom + 'px';
+  // Full-height drawer, not pinned below the banner/search bar — David,
+  // 2026-10-31: "the panel should slide out the full height of the screen
+  // and not be positioned relative to the banner's position." Both
+  // .tag-drawer and .tag-drawer-backdrop already default to top:0 in CSS;
+  // this used to override that with the search bar's bottom edge.
   const drawer = document.getElementById('tag-drawer');
   const backdrop = document.getElementById('tag-drawer-backdrop');
-  drawer.style.top = topOffset;
-  backdrop.style.top = topOffset;
 
   document.getElementById('drawer-title').textContent = mode === 'contributor' ? 'Contributor' : 'Tags';
   document.getElementById('tag-list').hidden = mode !== 'tags';
