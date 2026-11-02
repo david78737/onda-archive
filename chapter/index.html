@@ -417,6 +417,16 @@
     background: var(--accent); color: #fff; border: none; border-radius: 8px; cursor: pointer;
   }
   .reply-invite-send:disabled { opacity: .6; cursor: default; }
+
+  .auto-respond-banner {
+    position: sticky; top: 0; z-index: 900; display: flex; align-items: center;
+    justify-content: center; gap: 14px; flex-wrap: wrap;
+    background: var(--accent); color: #fff; padding: 12px 16px; font-size: 14px;
+  }
+  .auto-respond-btn {
+    background: #fff; color: var(--accent); border: none; border-radius: 999px;
+    padding: 7px 18px; font-size: 14px; font-weight: 600; cursor: pointer;
+  }
   .reply-item .reply-name { font-weight: 600; }
   .reply-item .reply-play { margin-left: 6px; color: var(--accent); text-decoration: none; }
 
@@ -728,15 +738,29 @@ function openReplyInviteModal(event, tileId) {
   });
 }
 
-// Someone returning via their SMS link lands back here with ?respond=<id> —
-// fire the same deep-link attempt a direct phone tap would, carrying the
-// phone along so the app can skip its own OTP step.
+// Someone returning via their SMS link lands back here with ?respond=<id>.
+// iOS Safari silently blocks (or hangs trying to resolve) a custom-scheme
+// redirect that isn't triggered by a real, synchronous tap — confirmed by
+// David testing live, 2026-11-02 — so this can't just auto-fire the deep
+// link itself. Shows a banner with a real button instead; tapping it is
+// what actually fires respondToTile(), carrying the phone along so the app
+// can skip its own OTP step.
 function maybeAutoRespond() {
   const respondId = params.get('respond');
   const respondPhone = params.get('phone');
   if (!respondId) return;
   const tileId = parseInt(respondId, 10);
-  if (!Number.isNaN(tileId)) respondToTile(null, tileId, respondPhone || null);
+  if (Number.isNaN(tileId)) return;
+
+  const banner = document.createElement('div');
+  banner.className = 'auto-respond-banner';
+  banner.innerHTML = `
+    <span>Ready to record your reply.</span>
+    <button type="button" class="auto-respond-btn">Continue</button>`;
+  banner.querySelector('.auto-respond-btn').addEventListener('click', e => {
+    respondToTile(e, tileId, respondPhone || null);
+  });
+  document.body.prepend(banner);
 }
 
 // ── Read URL params ────────────────────────────────────────────────────────────
