@@ -387,6 +387,36 @@
 
   .card-replies { margin: 6px 0 0; padding-left: 10px; border-left: 2px solid var(--border); }
   .reply-item { padding: 6px 0; font-size: 12px; color: var(--ink-mid); }
+
+  .reply-invite-overlay {
+    position: fixed; inset: 0; background: rgba(0,0,0,.55);
+    display: flex; align-items: center; justify-content: center;
+    z-index: 1000; padding: 16px;
+  }
+  .reply-invite-box {
+    position: relative; width: 100%; max-width: 360px;
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 12px; padding: 24px 20px; box-shadow: 0 8px 30px rgba(0,0,0,.4);
+  }
+  .reply-invite-close {
+    position: absolute; top: 10px; right: 10px; width: 28px; height: 28px;
+    background: none; border: none; color: var(--muted); font-size: 20px;
+    line-height: 1; cursor: pointer;
+  }
+  .reply-invite-close:hover { color: var(--ink); }
+  .reply-invite-title { font-size: 17px; font-weight: 600; color: var(--ink); margin-bottom: 8px; }
+  .reply-invite-sub { font-size: 13px; color: var(--muted); line-height: 1.5; margin-bottom: 16px; }
+  .reply-invite-input {
+    width: 100%; box-sizing: border-box; padding: 10px 12px; font-size: 14px;
+    background: var(--surface2); border: 1px solid var(--border); border-radius: 8px;
+    color: var(--ink); margin-bottom: 8px;
+  }
+  .reply-invite-error { font-size: 12px; color: #e06464; min-height: 16px; margin-bottom: 4px; }
+  .reply-invite-send {
+    width: 100%; padding: 10px; font-size: 14px; font-weight: 600;
+    background: var(--accent); color: #fff; border: none; border-radius: 8px; cursor: pointer;
+  }
+  .reply-invite-send:disabled { opacity: .6; cursor: default; }
   .reply-item .reply-name { font-weight: 600; }
   .reply-item .reply-play { margin-left: 6px; color: var(--accent); text-decoration: none; }
 
@@ -614,21 +644,99 @@ async function handleReactionClick(btn, s) {
   }
 }
 
-// ── Voice replies — phone path ──────────────────────────────────────────────────
-// "Respond to <name>" only makes sense on a phone, where the app can actually
-// open — on desktop it's hidden entirely for now; that path goes through a
-// phone-number/SMS hand-off instead, a separate build. David, 2026-11-01.
+// ── Voice replies — phone + computer paths ──────────────────────────────────────
+// On a phone, "Respond to <name>" deep-links straight into the app. On a
+// computer there's nothing to deep-link into, so it opens a small modal that
+// texts a reply link to the visitor's phone instead — tapping that text is
+// both the hand-off to a platform that can open the app AND the identity
+// proof (same reasoning as an OTP code, just delivered as a link instead of
+// a 6-digit code), so the app skips its own OTP step for anyone arriving
+// this way. David, 2026-11-01 / 2026-11-02.
 const isMobileDevice = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
 
-function respondToTile(event, tileId) {
-  event.stopPropagation();
+// event may be null when this fires automatically on page load (someone
+// returning via their SMS link) rather than from a real click.
+// phone, when present, rides along in the deep link so the app can treat
+// receipt of the SMS as already-proven identity instead of asking again.
+function respondToTile(event, tileId, phone) {
+  if (event) event.stopPropagation();
   const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
-  const deepLink = 'ondareplay://reply?tile=' + encodeURIComponent(tileId);
+  let deepLink = 'ondareplay://reply?tile=' + encodeURIComponent(tileId);
+  if (phone) deepLink += '&phone=' + encodeURIComponent(phone);
   const storeUrl = isIOS
     ? 'https://apps.apple.com/app/onda-replay/id6448850310'
     : 'https://play.google.com/store/apps/details?id=com.ondalist.replay';
   window.location.href = deepLink;
   setTimeout(() => { window.location.href = storeUrl; }, 1500);
+}
+
+const REPLY_INVITE_URL = 'https://xrxm-29on-xlyt.n7e.xano.io/api:nile/reply/invite';
+
+function openReplyInviteModal(event, tileId) {
+  event.stopPropagation();
+  // Looked up here (not passed as a JS string literal in the inline
+  // onclick) so a presenter name containing an apostrophe or quote can't
+  // break the attribute. David, 2026-11-02.
+  const presenterName = (allSessions.find(x => x.rawId === tileId) || {}).presenter || 'their';
+  const overlay = document.createElement('div');
+  overlay.className = 'reply-invite-overlay';
+  overlay.innerHTML = `
+    <div class="reply-invite-box">
+      <button type="button" class="reply-invite-close" aria-label="Close">&times;</button>
+      <div class="reply-invite-title">Reply from your phone</div>
+      <div class="reply-invite-sub">We'll text you a link to record a voice reply to ${presenterName}'s tribute.</div>
+      <input type="tel" class="reply-invite-input" placeholder="Your phone number" autofocus>
+      <div class="reply-invite-error"></div>
+      <button type="button" class="reply-invite-send">Send link</button>
+    </div>`;
+  document.body.appendChild(overlay);
+
+  const close = () => overlay.remove();
+  overlay.addEventListener('click', e => { if (e.target === overlay) close(); });
+  overlay.querySelector('.reply-invite-close').addEventListener('click', close);
+
+  overlay.querySelector('.reply-invite-send').addEventListener('click', async () => {
+    const input = overlay.querySelector('.reply-invite-input');
+    const errorEl = overlay.querySelector('.reply-invite-error');
+    const phone = input.value.trim();
+    if (!phone) return;
+
+    const link = new URL(location.href);
+    link.searchParams.set('respond', tileId);
+    link.searchParams.set('phone', phone);
+
+    errorEl.textContent = '';
+    const btn = overlay.querySelector('.reply-invite-send');
+    btn.disabled = true;
+    btn.textContent = 'Sending…';
+    try {
+      await fetch(REPLY_INVITE_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ phone, link: link.toString(), presenter: presenterName }),
+      });
+      overlay.querySelector('.reply-invite-box').innerHTML =
+        `<button type="button" class="reply-invite-close" aria-label="Close">&times;</button>
+         <div class="reply-invite-title">Check your phone</div>
+         <div class="reply-invite-sub">We texted a link to ${phone} — tap it there to record your reply.</div>`;
+      overlay.querySelector('.reply-invite-close').addEventListener('click', close);
+    } catch (e) {
+      errorEl.textContent = 'Could not send that — check your connection and try again.';
+      btn.disabled = false;
+      btn.textContent = 'Send link';
+    }
+  });
+}
+
+// Someone returning via their SMS link lands back here with ?respond=<id> —
+// fire the same deep-link attempt a direct phone tap would, carrying the
+// phone along so the app can skip its own OTP step.
+function maybeAutoRespond() {
+  const respondId = params.get('respond');
+  const respondPhone = params.get('phone');
+  if (!respondId) return;
+  const tileId = parseInt(respondId, 10);
+  if (!Number.isNaN(tileId)) respondToTile(null, tileId, respondPhone || null);
 }
 
 // ── Read URL params ────────────────────────────────────────────────────────────
@@ -1170,14 +1278,13 @@ function render() {
     // David, 2026-11-02.
     const eventDateHtml = s.eventCode ? `<div class="card-event">${s.eventCode}</div>` : '';
 
-    // Phone-only for now — the desktop/computer path is a separate,
-    // not-yet-built SMS hand-off. David, 2026-11-01.
-    const respondHtml = isMobileDevice
-      ? `<button type="button" class="respond-btn" onclick="respondToTile(event, ${s.rawId})">
-           <svg viewBox="0 0 20 20" fill="currentColor"><path d="M2 3a1 1 0 011-1h14a1 1 0 011 1v10a1 1 0 01-1 1H7l-4 4v-4H3a1 1 0 01-1-1V3z"/></svg>
-           Respond to ${s.presenter}
-         </button>`
-      : '';
+    // Mobile deep-links straight into the app; desktop opens the phone-
+    // number/SMS hand-off modal instead. David, 2026-11-01 / 2026-11-02.
+    const respondHtml = `<button type="button" class="respond-btn"
+        onclick="${isMobileDevice ? `respondToTile(event, ${s.rawId})` : `openReplyInviteModal(event, ${s.rawId})`}">
+         <svg viewBox="0 0 20 20" fill="currentColor"><path d="M2 3a1 1 0 011-1h14a1 1 0 011 1v10a1 1 0 01-1 1H7l-4 4v-4H3a1 1 0 01-1-1V3z"/></svg>
+         Respond to ${s.presenter}
+       </button>`;
 
     // Replies are a flat, one-level list under their root tile — never
     // standalone in the catalog, never nested further. Looked up against
@@ -1442,6 +1549,7 @@ if (PREVIEW_MODE) {
   allTags = Object.entries(tagCount).sort((a,b)=>b[1]-a[1]).map(([tag,n])=>({tag,n}));
 
   render();
+  maybeAutoRespond();
 })();
 </script>
 </body>
