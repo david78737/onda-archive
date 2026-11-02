@@ -253,11 +253,14 @@
      the two is ever visible at once (toggled via [hidden]), swapped by
      whichever button opened the drawer. */
   .contributor-panel { flex: 1; display: flex; flex-direction: column; padding: 12px 16px 0; overflow: hidden; }
+  .sort-panel { flex: 1; display: flex; flex-direction: column; gap: 8px; padding: 12px 16px 0; overflow: hidden; }
+  .sort-panel .tag-btn { justify-content: flex-start; gap: 10px; }
+  .sort-panel .sort-btn-icon { font-size: 15px; width: 22px; text-align: center; color: var(--accent); flex-shrink: 0; }
   /* .tag-list and .contributor-panel both set their own `display`, which
      overrides the browser's default [hidden]{display:none} — without this,
      setting .hidden on either one stopped actually hiding it, and both
      panels rendered stacked together instead of one-at-a-time. */
-  .tag-list[hidden], .contributor-panel[hidden] { display: none; }
+  .tag-list[hidden], .contributor-panel[hidden], .sort-panel[hidden] { display: none; }
   .drawer-search {
     width: 100%; background: var(--surface2); border: 1px solid var(--border);
     color: var(--ink); font-size: 15px; border-radius: 5px; padding: 8px 10px;
@@ -537,6 +540,10 @@
     </button>
   </div>
   <div class="search-bar-more" id="search-bar-more" hidden>
+    <button type="button" class="topics-toggle" id="sort-toggle" onclick="openDrawer('sort')">
+      <span aria-hidden="true">⇅</span>
+      <span id="sort-toggle-label">A–Z</span>
+    </button>
     <button type="button" class="topics-toggle" id="contributor-toggle" onclick="openDrawer('contributor')">
       <span>Contributor</span>
     </button>
@@ -567,6 +574,7 @@
     <input type="text" id="contributor-search" class="drawer-search" placeholder="Find a contributor…" oninput="renderContributorList(this.value)">
     <div class="contributor-list" id="contributor-list"></div>
   </div>
+  <div class="sort-panel" id="sort-panel" hidden></div>
 </div>
 
 <footer id="footer">
@@ -844,7 +852,7 @@ function truncateWords(s, max) {
 // ── State ─────────────────────────────────────────────────────────────────────
 let allSessions = [];
 let allTags     = [];
-const state     = { speaker: LOCKED_PRESENTER || 'all', tags: new Set(CTX ? [CTX] : []), query: Q };
+const state     = { speaker: LOCKED_PRESENTER || 'all', tags: new Set(CTX ? [CTX] : []), query: Q, sort: 'author' };
 if (LOCKED_PRESENTER) document.getElementById('contributor-toggle').style.display = 'none';
 if (Q) document.getElementById('search-input').value = Q;
 
@@ -1052,9 +1060,21 @@ function filtered() {
   rows.sort((a, b) => {
     const aPinned = (a.tags||[]).includes(PIN_TAG);
     const bPinned = (b.tags||[]).includes(PIN_TAG);
-    return aPinned === bPinned ? 0 : (aPinned ? -1 : 1);
+    if (aPinned !== bPinned) return aPinned ? -1 : 1;
+    return compareBySort(a, b);
   });
   return rows;
+}
+
+// Pinned items always lead (above); this is the tiebreaker within each
+// pinned/unpinned group, driven by the Sort drawer. David, 2026-11-02.
+function compareBySort(a, b) {
+  if (state.sort === 'newest') return b.rawId - a.rawId;
+  if (state.sort === 'oldest') return a.rawId - b.rawId;
+  // 'author' (default): A–Z by presenter, title as the tiebreaker so two
+  // sessions from the same contributor still land in a stable order.
+  return (a.presenter || '').localeCompare(b.presenter || '')
+    || (a.title || '').localeCompare(b.title || '');
 }
 
 function toggleMoreRow() {
@@ -1077,14 +1097,17 @@ function openDrawer(mode) {
   const drawer = document.getElementById('tag-drawer');
   const backdrop = document.getElementById('tag-drawer-backdrop');
 
-  document.getElementById('drawer-title').textContent = mode === 'contributor' ? 'Contributor' : 'Tags';
+  document.getElementById('drawer-title').textContent =
+    mode === 'contributor' ? 'Contributor' : mode === 'sort' ? 'Sort' : 'Tags';
   document.getElementById('tag-list').hidden = mode !== 'tags';
   document.getElementById('contributor-panel').hidden = mode !== 'contributor';
+  document.getElementById('sort-panel').hidden = mode !== 'sort';
   if (mode === 'contributor') {
     const search = document.getElementById('contributor-search');
     renderContributorList(search.value);
     search.focus();
   }
+  if (mode === 'sort') renderSortList();
 
   drawer.classList.add('open');
   backdrop.classList.add('open');
@@ -1092,6 +1115,34 @@ function openDrawer(mode) {
 function closeDrawer() {
   document.getElementById('tag-drawer').classList.remove('open');
   document.getElementById('tag-drawer-backdrop').classList.remove('open');
+}
+
+// ── Sort panel — three choices, icon-coded so they scan without reading:
+// Aa (A–Z by author, the default), ↓ (most recent first), ↑ (first entered,
+// oldest first). David, 2026-11-02. ─────────────────────────────────────────
+const SORT_OPTIONS = [
+  { key: 'author', icon: 'Aa', short: 'A–Z',    label: 'A–Z by author' },
+  { key: 'newest', icon: '↓',  short: 'Newest', label: 'Most recent first' },
+  { key: 'oldest', icon: '↑',  short: 'Oldest', label: 'First to last' },
+];
+function renderSortList() {
+  const el = document.getElementById('sort-panel');
+  el.innerHTML = '';
+  SORT_OPTIONS.forEach(opt => {
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'tag-btn' + (state.sort === opt.key ? ' active' : '');
+    btn.innerHTML = `<span class="sort-btn-icon" aria-hidden="true">${opt.icon}</span><span>${opt.label}</span>`;
+    btn.addEventListener('click', () => selectSort(opt.key));
+    el.appendChild(btn);
+  });
+}
+function selectSort(key) {
+  state.sort = key;
+  document.getElementById('sort-toggle-label').textContent =
+    SORT_OPTIONS.find(o => o.key === key).short;
+  render();
+  closeDrawer();
 }
 
 // ── Contributor search + A-Z list — built on demand when the drawer opens,
