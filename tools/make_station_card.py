@@ -27,9 +27,6 @@ Run from the repo root (or any directory — paths below are resolved
 relative to this script's own location, so it also works from elsewhere).
 """
 import argparse
-import math
-import random
-import textwrap
 from pathlib import Path
 
 from PIL import Image, ImageDraw, ImageFont
@@ -72,33 +69,23 @@ def make_card_image(name: str, subtitle: str, out_path: Path) -> None:
 
     sub_y = name_y + name_h + 42
     draw.text((pad_x, sub_y), subtitle, font=sub_font, fill=ACCENT)
-    sub_bbox = draw.textbbox((pad_x, sub_y), subtitle, font=sub_font)
-    sub_h = sub_bbox[3] - sub_bbox[1]
 
-    # Small waveform accent strip — same visual language as the app icon,
-    # procedurally generated rather than traced from the real logo svg so
-    # it can live at any width/position without needing an SVG renderer.
-    random.seed(7)
-    wave_y_center = sub_y + sub_h + 55
-    bar_w, gap, n_bars = 5, 4, 55
-    x = pad_x
-    for i in range(n_bars):
-        t = i / n_bars
-        env = math.sin(t * math.pi)
-        bar_h = max(6, 8 + env * 34 + random.uniform(-6, 6))
-        draw.line([(x, wave_y_center - bar_h / 2), (x, wave_y_center + bar_h / 2)],
-                   fill=ACCENT, width=bar_w)
-        x += bar_w + gap
+    # Bottom-right credit: small, subordinate to the name. "ONDA" sized
+    # ~40% larger than "REPLAY" — same proportion as the real app logo.
+    replay_size = 26
+    onda_size = round(replay_size * 1.4)
+    credit_bold = ImageFont.truetype(F_BOLD, onda_size)
+    credit_ital = ImageFont.truetype(F_BOLD_ITAL, replay_size)
 
-    # Bottom-right credit: small, subordinate to the name.
-    credit_bold = ImageFont.truetype(F_BOLD, 34)
-    credit_ital = ImageFont.truetype(F_BOLD_ITAL, 34)
-    onda_w = draw.textbbox((0, 0), "ONDA ", font=credit_bold)[2]
-    replay_w = draw.textbbox((0, 0), "REPLAY", font=credit_ital)[2]
+    onda_bbox = draw.textbbox((0, 0), "ONDA ", font=credit_bold)
+    replay_bbox = draw.textbbox((0, 0), "REPLAY", font=credit_ital)
+    onda_w, onda_h = onda_bbox[2], onda_bbox[3] - onda_bbox[1]
+    replay_w, replay_h = replay_bbox[2], replay_bbox[3] - replay_bbox[1]
+
     cx = W - 60 - (onda_w + replay_w)
-    cy = H - 70
-    draw.text((cx, cy), "ONDA ", font=credit_bold, fill=WHITE)
-    draw.text((cx + onda_w, cy), "REPLAY", font=credit_ital, fill=ACCENT)
+    baseline_y = H - 60
+    draw.text((cx, baseline_y - onda_h), "ONDA ", font=credit_bold, fill=WHITE)
+    draw.text((cx + onda_w, baseline_y - replay_h), "REPLAY", font=credit_ital, fill=ACCENT)
 
     out_path.parent.mkdir(parents=True, exist_ok=True)
     img.save(out_path)
