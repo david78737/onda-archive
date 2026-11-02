@@ -377,6 +377,18 @@
   .reaction-btn.reacted { filter: saturate(1.4); }
   .reaction-btn.inactive { opacity: .3; }
   .reaction-btn.inactive:hover { opacity: .7; }
+  .respond-btn {
+    display: inline-flex; align-items: center; gap: 5px; margin-top: 4px;
+    background: none; border: 1px solid var(--border); border-radius: 999px;
+    padding: 4px 11px; font-size: 12px; color: var(--muted); cursor: pointer;
+  }
+  .respond-btn:hover { color: var(--accent); border-color: var(--accent); }
+  .respond-btn svg { width: 13px; height: 13px; }
+
+  .card-replies { margin: 6px 0 0; padding-left: 10px; border-left: 2px solid var(--border); }
+  .reply-item { padding: 6px 0; font-size: 12px; color: var(--ink-mid); }
+  .reply-item .reply-name { font-weight: 600; }
+  .reply-item .reply-play { margin-left: 6px; color: var(--accent); text-decoration: none; }
 
   .card-body { display: none; padding: 0 14px 14px 38px; }
   .card.open .card-body { display: block; }
@@ -600,6 +612,23 @@ async function handleReactionClick(btn, s) {
   } catch (e) {
     console.error('Reaction failed to save', e);
   }
+}
+
+// ── Voice replies — phone path ──────────────────────────────────────────────────
+// "Respond to <name>" only makes sense on a phone, where the app can actually
+// open — on desktop it's hidden entirely for now; that path goes through a
+// phone-number/SMS hand-off instead, a separate build. David, 2026-11-01.
+const isMobileDevice = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+
+function respondToTile(event, tileId) {
+  event.stopPropagation();
+  const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+  const deepLink = 'ondareplay://reply?tile=' + encodeURIComponent(tileId);
+  const storeUrl = isIOS
+    ? 'https://apps.apple.com/app/onda-replay/id6448850310'
+    : 'https://play.google.com/store/apps/details?id=com.ondalist.replay';
+  window.location.href = deepLink;
+  setTimeout(() => { window.location.href = storeUrl; }, 1500);
 }
 
 // ── Read URL params ────────────────────────────────────────────────────────────
@@ -1141,6 +1170,32 @@ function render() {
     // David, 2026-11-02.
     const eventDateHtml = s.eventCode ? `<div class="card-event">${s.eventCode}</div>` : '';
 
+    // Phone-only for now — the desktop/computer path is a separate,
+    // not-yet-built SMS hand-off. David, 2026-11-01.
+    const respondHtml = isMobileDevice
+      ? `<button type="button" class="respond-btn" onclick="respondToTile(event, ${s.rawId})">
+           <svg viewBox="0 0 20 20" fill="currentColor"><path d="M2 3a1 1 0 011-1h14a1 1 0 011 1v10a1 1 0 01-1 1H7l-4 4v-4H3a1 1 0 01-1-1V3z"/></svg>
+           Respond to ${s.presenter}
+         </button>`
+      : '';
+
+    // Replies are a flat, one-level list under their root tile — never
+    // standalone in the catalog, never nested further. Looked up against
+    // the full unfiltered set so a reply still shows even if it wouldn't
+    // itself match the current search/tag filter. David, 2026-11-01.
+    const replies = allSessions
+      .filter(r => r.replyToTileId === s.rawId)
+      .sort((a, b) => (a.createdAt || 0) - (b.createdAt || 0));
+    const repliesHtml = replies.length
+      ? `<div class="section-label">Replies</div><div class="card-replies">${replies.map(r => {
+          const replyHasAudio = !!(r.onda_file && r.onda_file.size > 16);
+          const playLink = replyHasAudio
+            ? `<a class="reply-play" href="${playerUrlFor(r.onda_url)}" target="_blank" rel="noopener" onclick="event.stopPropagation()">Play</a>`
+            : '';
+          return `<div class="reply-item"><span class="reply-name">${r.presenter}</span>${playLink}</div>`;
+        }).join('')}</div>`
+      : '';
+
     const statusBadge = isPending
       ? `<span class="badge badge-${s.status}">${s.status === 'recording' ? '● Recording' : 'Coming Soon'}</span>`
       : '';
@@ -1168,6 +1223,7 @@ function render() {
           </div>
           ${eventDateHtml}
           ${reactionsHtml}
+          ${respondHtml}
           ${(s.brief || truncateWords(s.story, 200)) ? `<div class="card-brief">${s.brief || truncateWords(s.story, 200)}</div>` : ''}
           ${statusBadge ? `<div class="badges">${statusBadge}</div>` : ''}
         </div>
@@ -1181,6 +1237,7 @@ function render() {
         ${(s.headings||[]).length ? `<div class="section-label">What's Covered</div><ul class="takeaways">${s.headings.map(h=>`<li>${h}</li>`).join('')}</ul>` : ''}
         ${s.who ? `<div class="section-label">Best For</div><div class="who">${s.who}</div>` : ''}
         ${liHtml ? `<div class="brief-row">${liHtml}</div>` : ''}
+        ${repliesHtml}
       </div>`;
 
     card.querySelector('.card-header').addEventListener('click', () => {
@@ -1267,6 +1324,8 @@ function normalizePresentation(p) {
     reaction_heart_count: p.reaction_heart_count || 0,
     reaction_applause_count: p.reaction_applause_count || 0,
     reaction_thanks_count: p.reaction_thanks_count || 0,
+    replyToTileId: p.reply_to_tile_id || null,
+    createdAt: p.created_at || null,
   };
 }
 
