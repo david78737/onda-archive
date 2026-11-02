@@ -72,20 +72,22 @@ def make_card_image(name: str, subtitle: str, out_path: Path) -> None:
 
     # Bottom-right credit: small, subordinate to the name. "ONDA" sized
     # ~40% larger than "REPLAY" — same proportion as the real app logo.
-    replay_size = 26
-    onda_size = round(replay_size * 1.4)
-    credit_bold = ImageFont.truetype(F_BOLD, onda_size)
-    credit_ital = ImageFont.truetype(F_BOLD_ITAL, replay_size)
+    # "By" and "REPLAY" share the small size; "By" and "ONDA" share white.
+    small_size = 26
+    onda_size = round(small_size * 1.4)
+    credit_small = ImageFont.truetype(F_BOLD_ITAL, small_size)
+    credit_onda = ImageFont.truetype(F_BOLD, onda_size)
 
-    onda_bbox = draw.textbbox((0, 0), "ONDA ", font=credit_bold)
-    replay_bbox = draw.textbbox((0, 0), "REPLAY", font=credit_ital)
-    onda_w, onda_h = onda_bbox[2], onda_bbox[3] - onda_bbox[1]
-    replay_w, replay_h = replay_bbox[2], replay_bbox[3] - replay_bbox[1]
+    segments = [("By ", credit_small, WHITE), ("ONDA ", credit_onda, WHITE), ("REPLAY", credit_small, ACCENT)]
+    bboxes = [draw.textbbox((0, 0), text, font=font) for text, font, _ in segments]
+    widths = [b[2] for b in bboxes]
+    heights = [b[3] - b[1] for b in bboxes]
 
-    cx = W - 60 - (onda_w + replay_w)
+    cx = W - 60 - sum(widths)
     baseline_y = H - 60
-    draw.text((cx, baseline_y - onda_h), "ONDA ", font=credit_bold, fill=WHITE)
-    draw.text((cx + onda_w, baseline_y - replay_h), "REPLAY", font=credit_ital, fill=ACCENT)
+    for (text, font, color), w, h in zip(segments, widths, heights):
+        draw.text((cx, baseline_y - h), text, font=font, fill=color)
+        cx += w
 
     out_path.parent.mkdir(parents=True, exist_ok=True)
     img.save(out_path)
@@ -107,6 +109,10 @@ LANDING_PAGE_TEMPLATE = """<!DOCTYPE html>
 <meta name="twitter:title" content="{title}">
 <meta name="twitter:description" content="{description}">
 <meta name="twitter:image" content="{image_url}">
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/favicon/favicon-16x16.png">
+<link rel="apple-touch-icon" sizes="180x180" href="/favicon/apple-touch-icon.png">
+<link rel="shortcut icon" href="/favicon/favicon.ico">
 <meta http-equiv="refresh" content="0; url={redirect_url}">
 <script>location.replace({redirect_url_js});</script>
 </head>
