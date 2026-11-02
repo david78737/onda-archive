@@ -1056,7 +1056,9 @@ function render() {
     rows.sort((a, b) => b.id - a.id);
   }
   document.getElementById('dash-count').textContent =
-    `${allTiles.length} tile${allTiles.length !== 1 ? 's' : ''} total`;
+    rows.length === allTiles.length
+      ? `${allTiles.length} tile${allTiles.length !== 1 ? 's' : ''} total`
+      : `${rows.length} / ${allTiles.length} tile${allTiles.length !== 1 ? 's' : ''}`;
 
   renderTagZones(rows);
 
