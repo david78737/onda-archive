@@ -1388,7 +1388,24 @@ function render() {
     card.querySelector('.card-header').addEventListener('click', () => {
       const wasOpen = card.classList.contains('open');
       container.querySelectorAll('.card.open').forEach(c => c.classList.remove('open'));
-      if (!wasOpen) card.classList.add('open');
+      if (!wasOpen) {
+        card.classList.add('open');
+        return;
+      }
+      // Closing a tile is also how a visitor backs out of whatever
+      // filter brought them here — most often a single-tile `?ctx=`
+      // deep link — without needing a separate "Clear filters"
+      // control. David, 2026-11-02: "the user should effectively
+      // reset the search tapping away or closing a session tile."
+      const wasFiltered = state.speaker !== 'all' || state.tags.size > 0 || !!state.query;
+      if (wasFiltered) {
+        state.tags = new Set();
+        state.speaker = 'all';
+        state.query = '';
+        const searchInput = document.getElementById('search-input');
+        if (searchInput) searchInput.value = '';
+        render();
+      }
     });
     const presenterNameEl = card.querySelector('.card-presenter-name');
     if (presenterNameEl && s.presenter) {
