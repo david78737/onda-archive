@@ -535,6 +535,7 @@
   <div class="search-bar-inner">
     <input type="search" id="search-input" placeholder="Search sessions, contributors, tags…" autocomplete="off">
     <a class="share-story-btn" id="share-story-btn" href="#" hidden>Share your story</a>
+    <button type="button" class="share-story-btn" id="record-story-btn" hidden>Record it in the app</button>
     <button type="button" class="more-toggle" id="more-toggle" onclick="toggleMoreRow()" aria-label="More options" aria-expanded="false">
       <span class="toggle-chevron"><svg viewBox="0 0 16 16" fill="none"><path d="M3 6l5 5 5-5" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
     </button>
@@ -760,6 +761,88 @@ function openReplyInviteModal(event, tileId) {
   });
 }
 
+// ── "Record it in the app" — non-reply counterpart of the above ─────────────────
+// Opens the app to record a brand-new story (or build a Storyboard — the
+// app lets the visitor pick) for this station, not a reply to any specific
+// tile. Same phone + App Store fallback on mobile, same SMS hand-off on
+// desktop, as respondToTile / openReplyInviteModal above. David, 2026-11-02.
+function recordStoryInApp(event, orgL1, orgL2, orgL3, name) {
+  if (event) event.stopPropagation();
+  if (isMobileDevice) {
+    openNewStoryDeepLink(orgL1, orgL2, orgL3, name, null);
+  } else {
+    openNewStoryInviteModal(orgL1, orgL2, orgL3, name);
+  }
+}
+
+function openNewStoryDeepLink(orgL1, orgL2, orgL3, name, phone) {
+  const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+  const linkParams = new URLSearchParams({ org_l1: orgL1, org_l2: orgL2, org_l3: orgL3 });
+  if (name) linkParams.set('name', name);
+  if (phone) linkParams.set('phone', phone);
+  const deepLink = 'ondareplay://newstory?' + linkParams.toString();
+  const storeUrl = isIOS
+    ? 'https://apps.apple.com/app/onda-replay/id6448850310'
+    : 'https://play.google.com/store/apps/details?id=com.ondalist.replay';
+  window.location.href = deepLink;
+  setTimeout(() => { window.location.href = storeUrl; }, 1500);
+}
+
+function openNewStoryInviteModal(orgL1, orgL2, orgL3, name) {
+  const overlay = document.createElement('div');
+  overlay.className = 'reply-invite-overlay';
+  overlay.innerHTML = `
+    <div class="reply-invite-box">
+      <button type="button" class="reply-invite-close" aria-label="Close">&times;</button>
+      <div class="reply-invite-title">Record from your phone</div>
+      <div class="reply-invite-sub">We'll text you a link to record or build a Storyboard for ${name || 'their'} tribute.</div>
+      <input type="tel" class="reply-invite-input" placeholder="Your phone number" autofocus>
+      <div class="reply-invite-error"></div>
+      <button type="button" class="reply-invite-send">Send link</button>
+    </div>`;
+  document.body.appendChild(overlay);
+
+  const close = () => overlay.remove();
+  overlay.addEventListener('click', e => { if (e.target === overlay) close(); });
+  overlay.querySelector('.reply-invite-close').addEventListener('click', close);
+
+  overlay.querySelector('.reply-invite-send').addEventListener('click', async () => {
+    const input = overlay.querySelector('.reply-invite-input');
+    const errorEl = overlay.querySelector('.reply-invite-error');
+    const phone = input.value.trim();
+    if (!phone) return;
+
+    const link = new URL(location.href);
+    link.searchParams.set('newstory', '1');
+    link.searchParams.set('org_l1', orgL1);
+    link.searchParams.set('org_l2', orgL2);
+    link.searchParams.set('org_l3', orgL3);
+    if (name) link.searchParams.set('name', name);
+    link.searchParams.set('phone', phone);
+
+    errorEl.textContent = '';
+    const btn = overlay.querySelector('.reply-invite-send');
+    btn.disabled = true;
+    btn.textContent = 'Sending…';
+    try {
+      await fetch(REPLY_INVITE_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ phone, link: link.toString(), presenter: name || 'their' }),
+      });
+      overlay.querySelector('.reply-invite-box').innerHTML =
+        `<button type="button" class="reply-invite-close" aria-label="Close">&times;</button>
+         <div class="reply-invite-title">Check your phone</div>
+         <div class="reply-invite-sub">We texted a link to ${phone} — tap it there to record or build your Storyboard.</div>`;
+      overlay.querySelector('.reply-invite-close').addEventListener('click', close);
+    } catch (e) {
+      errorEl.textContent = 'Could not send that — check your connection and try again.';
+      btn.disabled = false;
+      btn.textContent = 'Send link';
+    }
+  });
+}
+
 // Someone returning via their SMS link lands back here with ?respond=<id>.
 // iOS Safari silently blocks (or hangs trying to resolve) a custom-scheme
 // redirect that isn't triggered by a real, synchronous tap — confirmed by
@@ -781,6 +864,29 @@ function maybeAutoRespond() {
     <button type="button" class="auto-respond-btn">Continue</button>`;
   banner.querySelector('.auto-respond-btn').addEventListener('click', e => {
     respondToTile(e, tileId, respondPhone || null);
+  });
+  document.body.prepend(banner);
+}
+
+// Non-reply counterpart of maybeAutoRespond — someone returning via the
+// "Record it in the app" SMS link lands back here with ?newstory=1. Same
+// iOS-Safari-safe-tap fix: a real banner button, not an auto-fired link.
+function maybeAutoNewStory() {
+  if (params.get('newstory') !== '1') return;
+  const orgL1 = params.get('org_l1');
+  const orgL2 = params.get('org_l2');
+  const orgL3 = params.get('org_l3');
+  const name = params.get('name') || '';
+  const phone = params.get('phone');
+  if (!orgL1 || !orgL2 || !orgL3) return;
+
+  const banner = document.createElement('div');
+  banner.className = 'auto-respond-banner';
+  banner.innerHTML = `
+    <span>Ready to tell your story.</span>
+    <button type="button" class="auto-respond-btn">Continue</button>`;
+  banner.querySelector('.auto-respond-btn').addEventListener('click', () => {
+    openNewStoryDeepLink(orgL1, orgL2, orgL3, name, phone || null);
   });
   document.body.prepend(banner);
 }
@@ -1623,6 +1729,15 @@ if (PREVIEW_MODE) {
         const firstName = (skin.station_name || '').trim().split(/\s+/)[0];
         shareBtn.textContent = firstName ? `Tell us about your ${firstName}` : 'Share your story';
         shareBtn.hidden = false;
+
+        // Second entry point: open the app itself (record, or build a
+        // Storyboard — the app lets the visitor pick) instead of typing
+        // into the web form. Reuses the exact reply deep-link/SMS hand-off
+        // mechanism built for voice-thread replies, just targeting this
+        // station instead of a tile to reply to. David, 2026-11-02.
+        const recordBtn = document.getElementById('record-story-btn');
+        recordBtn.onclick = (e) => recordStoryInApp(e, skin.org_l1, skin.org_l2, skin.org_l3, skin.station_name || '');
+        recordBtn.hidden = false;
       }
     } catch(_) {}
   }
@@ -1656,6 +1771,7 @@ if (PREVIEW_MODE) {
 
   render();
   maybeAutoRespond();
+  maybeAutoNewStory();
 })();
 </script>
 </body>
