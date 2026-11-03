@@ -47,27 +47,34 @@ def make_card_image(name: str, subtitle: str, out_path: Path) -> None:
     img = Image.new("RGB", (W, H), BG)
     draw = ImageDraw.Draw(img)
 
-    name_font = ImageFont.truetype(F_BOLD, 130)
-    sub_font = ImageFont.truetype(F_BOLD_ITAL, 60)
-    pad_x = 80
+    pad_x = 100
 
     # Shrink the name font until it fits within the card width, so a long
-    # name (or two names) doesn't run off the right edge.
+    # name (or two names) doesn't run off the right edge. Capped at 92pt —
+    # a smaller, more restrained scale than the name of an app or a headline;
+    # this is someone's name on a memorial card, not a billboard.
     max_text_w = W - pad_x * 2
-    size = 130
-    while size > 50:
+    size = 92
+    while size > 44:
         name_font = ImageFont.truetype(F_BOLD, size)
         w = draw.textbbox((0, 0), name, font=name_font)[2]
         if w <= max_text_w:
             break
-        size -= 6
+        size -= 4
+
+    sub_font = ImageFont.truetype(F_BOLD_ITAL, 38)
 
     name_bbox = draw.textbbox((0, 0), name, font=name_font)
     name_h = name_bbox[3] - name_bbox[1]
-    name_y = 155
+    sub_bbox = draw.textbbox((0, 0), subtitle, font=sub_font)
+    sub_h = sub_bbox[3] - sub_bbox[1]
+
+    gap = 26
+    block_h = name_h + gap + sub_h
+    name_y = (H - block_h) // 2 - 20
     draw.text((pad_x, name_y), name, font=name_font, fill=WHITE)
 
-    sub_y = name_y + name_h + 42
+    sub_y = name_y + name_h + gap
     draw.text((pad_x, sub_y), subtitle, font=sub_font, fill=ACCENT)
 
     # Bottom-right credit: small, subordinate to the name. "ONDA" sized
