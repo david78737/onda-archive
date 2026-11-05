@@ -266,36 +266,49 @@
      shell as Tags/Contributor/Sort but wider: this one carries real
      sentences, not short chips. David, 2026-11-04: "this is no new
      features, this is just guiding a visitor to accomplish a task
-     successfully." ── */
-  .tag-drawer.help-mode { width: min(420px, 90vw); }
+     successfully."
+     Fixed ONDA brand palette, NOT the shared --ink/--accent/etc. tokens —
+     those get overwritten per-station by applyTheme() (inline styles on
+     <html>, so they win over any selector here), and a station's own
+     colors can make this content unreadable (e.g. a pink/magenta skin
+     under pink buttons/text). David, 2026-11-05: "let's update this with
+     ONDA color palette and stick with that." Every rule below uses literal
+     hex/rgba, deliberately never var(--...), so no station skin can touch
+     it. Palette matches the standalone ONDA · Replay · Help station's own
+     skin (teal accent #008B82, white tiles, light teal border). ── */
+  .tag-drawer.help-mode { width: min(420px, 90vw); background: #ffffff; }
+  .tag-drawer.help-mode .tag-drawer-header { background: #ffffff; border-bottom-color: #c5dedd; }
+  .tag-drawer.help-mode .tag-drawer-header h2 { color: #008B82; }
+  .tag-drawer.help-mode .tag-drawer-close { color: #6b8a88; }
+  .tag-drawer.help-mode .tag-drawer-close:hover { color: #15202b; }
   .help-panel { flex: 1; display: flex; flex-direction: column; padding: 14px 18px 24px; overflow-y: auto; gap: 14px; }
-  .help-greeting { font-size: 15px; color: var(--ink); line-height: 1.5; margin: 0; }
-  .help-sub { font-size: 13.5px; color: var(--muted); margin: -6px 0 0; }
+  .help-greeting { font-size: 15px; color: #15202b; line-height: 1.5; margin: 0; }
+  .help-sub { font-size: 13.5px; color: #6b8a88; margin: -6px 0 0; }
   .help-routes { display: flex; flex-direction: column; gap: 8px; }
   .help-route-btn {
-    display: block; width: 100%; text-align: left; background: var(--surface2);
-    border: 1px solid var(--border); color: var(--ink-mid); border-radius: 7px;
+    display: block; width: 100%; text-align: left; background: #eef6f5;
+    border: 1px solid #c5dedd; color: #2f4a4d; border-radius: 7px;
     padding: 10px 14px; font-size: 14px; font-family: inherit; cursor: pointer;
     transition: background .12s, color .12s, border-color .12s;
   }
-  .help-route-btn:hover { background: var(--surface); color: var(--ink); }
-  .help-route-btn.active { border-color: var(--accent); color: var(--accent); background: var(--accent-dim); }
-  .help-detail { display: flex; flex-direction: column; gap: 10px; padding: 2px 2px 4px; border-left: 2px solid var(--border); padding-left: 12px; }
+  .help-route-btn:hover { background: #ffffff; color: #15202b; }
+  .help-route-btn.active { border-color: #008B82; color: #008B82; background: rgba(0,139,130,.12); }
+  .help-detail { display: flex; flex-direction: column; gap: 10px; padding: 2px 2px 4px; border-left: 2px solid #c5dedd; padding-left: 12px; }
   .help-detail[hidden] { display: none; }
-  .help-detail p { font-size: 13.5px; color: var(--ink-mid); line-height: 1.55; margin: 0; }
-  .help-detail .help-note { font-size: 13px; color: var(--muted); font-style: italic; }
-  .help-stage { border: 1px solid var(--border-dim); border-radius: 6px; padding: 2px 10px; background: var(--surface2); }
-  .help-stage summary { font-size: 13.5px; color: var(--ink); cursor: pointer; padding: 8px 2px; list-style: none; display: flex; justify-content: space-between; gap: 8px; }
+  .help-detail p { font-size: 13.5px; color: #2f4a4d; line-height: 1.55; margin: 0; }
+  .help-detail .help-note { font-size: 13px; color: #6b8a88; font-style: italic; }
+  .help-stage { border: 1px solid #dfeceb; border-radius: 6px; padding: 2px 10px; background: #eef6f5; }
+  .help-stage summary { font-size: 13.5px; color: #15202b; cursor: pointer; padding: 8px 2px; list-style: none; display: flex; justify-content: space-between; gap: 8px; }
   .help-stage summary::-webkit-details-marker { display: none; }
-  .help-stage[open] summary { color: var(--accent); }
-  .help-stage-time { color: var(--muted); font-size: 12px; flex-shrink: 0; white-space: nowrap; }
+  .help-stage[open] summary { color: #008B82; }
+  .help-stage-time { color: #6b8a88; font-size: 12px; flex-shrink: 0; white-space: nowrap; }
   .help-stage p { padding: 0 2px 10px; }
   .help-detail-cta {
-    display: inline-block; align-self: flex-start; background: var(--accent-dim); border: 1px solid var(--accent);
-    color: var(--accent); border-radius: 6px; padding: 8px 14px; font-size: 13.5px; font-weight: 600;
+    display: inline-block; align-self: flex-start; background: rgba(0,139,130,.12); border: 1px solid #008B82;
+    color: #008B82; border-radius: 6px; padding: 8px 14px; font-size: 13.5px; font-weight: 600;
     text-decoration: none; cursor: pointer; font-family: inherit;
   }
-  .help-detail-cta:hover { background: var(--accent); color: var(--surface2); }
+  .help-detail-cta:hover { background: #008B82; color: #ffffff; }
   .drawer-search {
     width: 100%; background: var(--surface2); border: 1px solid var(--border);
     color: var(--ink); font-size: 15px; border-radius: 5px; padding: 8px 10px;
