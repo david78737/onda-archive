@@ -162,6 +162,12 @@
     padding: 16px 24px;
   }
   .station-notice-text { font-size: 13.5px; color: var(--ink-mid); line-height: 1.6; white-space: pre-line; }
+  /* Wrapper only so .archive-heading (normally centered by .right-panel's
+     own max-width/padding) still gets edge padding and centering now that
+     it sits above the search bar as a page-level sibling, not inside
+     <main>. Brian Finley feedback via David, 2026-11-05: put the toolbar
+     immediately above the session list, not above this box. */
+  .archive-heading-wrap { padding: 0 24px; }
   @media (max-width: 600px) {
     .masthead { padding: 12px 14px; }
     .masthead-inner { padding: 16px; }
@@ -169,6 +175,7 @@
     .masthead-name { font-size: 18px; }
     .station-notice { padding: 0 14px 12px; }
     .station-notice-inner { padding: 14px 16px; }
+    .archive-heading-wrap { padding: 0 14px; }
   }
 
   @media (max-width: 600px) {
@@ -340,7 +347,7 @@
   .archive-heading {
     font-style: italic; font-size: 16px; color: var(--ink-mid); line-height: 1.4;
     background: var(--surface); border: 1px solid var(--border); border-radius: 10px;
-    padding: 14px 20px; margin: 10px 0 14px;
+    padding: 14px 20px; margin: 10px auto 14px; max-width: 650px;
     white-space: pre-line; text-align: center;
   }
   .archive-heading[hidden] { display: none; }
@@ -580,6 +587,10 @@
   </div>
 </div>
 
+<div class="archive-heading-wrap">
+  <div class="archive-heading" id="archive-heading" hidden></div>
+</div>
+
 <div class="search-bar">
   <div class="search-bar-inner">
     <input type="search" id="search-input" placeholder="Search sessions, contributors, tags…" autocomplete="off">
@@ -592,7 +603,7 @@
   <div class="search-bar-more" id="search-bar-more" hidden>
     <button type="button" class="topics-toggle" id="sort-toggle" onclick="openDrawer('sort')">
       <span aria-hidden="true">⇅</span>
-      <span id="sort-toggle-label">A–Z</span>
+      <span id="sort-toggle-label">Newest</span>
     </button>
     <button type="button" class="topics-toggle" id="contributor-toggle" onclick="openDrawer('contributor')">
       <span>Contributor</span>
@@ -608,7 +619,6 @@
 </div>
 
 <main class="right-panel">
-  <div class="archive-heading" id="archive-heading" hidden></div>
   <div id="status"></div>
   <div class="sessions" id="sessions"><div class="loading">Loading archive…</div></div>
 </main>
@@ -1065,7 +1075,7 @@ function truncateWords(s, max) {
 // ── State ─────────────────────────────────────────────────────────────────────
 let allSessions = [];
 let allTags     = [];
-const state     = { speaker: LOCKED_PRESENTER || 'all', tags: new Set(CTX ? [CTX] : []), query: Q, sort: 'author' };
+const state     = { speaker: LOCKED_PRESENTER || 'all', tags: new Set(CTX ? [CTX] : []), query: Q, sort: 'newest' };
 if (LOCKED_PRESENTER) document.getElementById('contributor-toggle').style.display = 'none';
 if (Q) document.getElementById('search-input').value = Q;
 
@@ -1387,8 +1397,9 @@ function toggleHelpRoute(route) {
 }
 
 // ── Sort panel — three choices, icon-coded so they scan without reading:
-// Aa (A–Z by author, the default), ↓ (most recent first), ↑ (first entered,
-// oldest first). David, 2026-11-02. ─────────────────────────────────────────
+// Aa (A–Z by author), ↓ (most recent first, the default), ↑ (first entered,
+// oldest first). David, 2026-11-02; default flipped to Newest per Brian
+// Finley feedback, 2026-11-05. ───────────────────────────────────────────
 const SORT_OPTIONS = [
   { key: 'author', icon: 'Aa', short: 'A–Z',    label: 'A–Z by author' },
   { key: 'newest', icon: '↓',  short: 'Newest', label: 'Most recent first' },
