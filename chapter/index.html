@@ -634,7 +634,7 @@
     </div>
 
     <div class="help-detail" id="help-detail-written" hidden>
-      <p>Type it in (or paste it from somewhere else), add a photo if you'd like, and send it in.</p>
+      <p id="help-text-written">Type it in (or paste it from somewhere else). Add up to three photos and/or videos. Then submit it.</p>
       <a class="help-detail-cta" id="help-link-written" href="#" target="_blank" rel="noopener">Open the story form</a>
     </div>
 
@@ -1343,6 +1343,14 @@ function renderHelpPanel() {
   ['written', 'photos', 'video'].forEach(route => {
     document.getElementById(`help-link-${route}`).href = tileCreateUrl;
   });
+
+  // Spell out that this is the exact same destination as the "Tell us
+  // about your [Name]" button already in the toolbar, not a second form —
+  // David, 2026-11-05: wanted a "this is the same" message here, not a
+  // silent duplicate CTA.
+  const buttonLabel = helpCtx && helpCtx.firstName ? `Tell us about your ${helpCtx.firstName}` : 'Tell us about your story';
+  document.getElementById('help-text-written').textContent =
+    `Type it in (or paste it from somewhere else). Add up to three photos and/or videos. This is the same "${buttonLabel}" button up top — then submit it.`;
 
   const recordLink = document.getElementById('help-link-record');
   recordLink.onclick = (e) => {
