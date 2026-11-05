@@ -345,13 +345,16 @@
 <div class="media-input-overlay" id="media-overlay" style="display:none;">
   <div class="media-input-box">
     <label id="media-overlay-label">Photo link</label>
-    <input id="media-overlay-input" type="url" placeholder="https://..." />
-    <div id="media-overlay-upload-wrap" style="display:none;margin:-4px 0 12px;">
-      <button class="btn btn-text" type="button" style="width:auto;padding:4px 0;margin-top:0;" onclick="document.getElementById('media-overlay-file').click()">Upload a photo instead…</button>
-      <a href="#" id="media-overlay-save-mine" style="font-size:12.5px;color:#008787;font-weight:600;text-decoration:none;margin-left:10px;" onclick="event.preventDefault();saveToMyCatalog()">+ Save to my catalog</a>
+    <div id="media-overlay-upload-wrap" style="display:none;margin:0 0 10px;">
+      <button class="btn" type="button" style="width:auto;" onclick="document.getElementById('media-overlay-file').click()">Upload a photo</button>
       <span id="media-overlay-upload-status" style="font-size:12.5px;color:#888;margin-left:8px;"></span>
     </div>
     <input type="file" id="media-overlay-file" accept="image/png,image/jpeg" style="display:none;">
+    <div id="media-overlay-link-hint" style="display:none;font-size:12.5px;color:#888;margin:0 0 4px;">or paste a link instead</div>
+    <input id="media-overlay-input" type="url" placeholder="https://..." />
+    <div id="media-overlay-save-mine-row" style="display:none;margin:6px 0 12px;">
+      <a href="#" id="media-overlay-save-mine" style="font-size:12.5px;color:#008787;font-weight:600;text-decoration:none;" onclick="event.preventDefault();saveToMyCatalog()">+ Save to my catalog</a>
+    </div>
     <div id="media-overlay-mine-wrap" style="display:none;">
       <div class="catalog-divider">your saved images</div>
       <div id="media-overlay-mine-grid" class="catalog-grid"></div>
@@ -930,21 +933,31 @@ function renderPhotoCallouts() {
 
 function openMediaOverlay(kind, index) {
   mediaOverlayTarget = { kind, index };
-  const labels = { photo: 'Photo link', video: 'YouTube video link', avatar: 'Your photo — helps people recognize you' };
+  const labels = { photo: 'Add a photo', video: 'YouTube video link', avatar: 'Your photo — helps people recognize you' };
   const current = kind === 'avatar' ? presenterPhotoUrl : (kind === 'photo' ? photos : videos)[index];
   document.getElementById('media-overlay-label').textContent = labels[kind];
   document.getElementById('media-overlay-input').value = current || '';
-  document.getElementById('media-overlay-upload-wrap').style.display = (kind === 'photo' || kind === 'avatar') ? 'block' : 'none';
+  const isUploadable = kind === 'photo' || kind === 'avatar';
+  document.getElementById('media-overlay-upload-wrap').style.display = isUploadable ? 'block' : 'none';
+  document.getElementById('media-overlay-link-hint').style.display = isUploadable ? 'block' : 'none';
+  document.getElementById('media-overlay-save-mine-row').style.display = isUploadable ? 'block' : 'none';
   document.getElementById('media-overlay-upload-status').textContent = '';
   document.getElementById('media-overlay-save-mine').textContent = '+ Save to my catalog';
-  const showCatalog = kind === 'photo' || kind === 'avatar';
-  document.getElementById('media-overlay-catalog-wrap').style.display = showCatalog ? 'block' : 'none';
+  // The Help-docs catalog (59 onda-help screenshots) only makes sense when
+  // actually building a Help File tile for the Help station — it's pure
+  // noise for a public visitor adding their own photo to any other
+  // station's contribution form. David, 2026-11-05, after seeing it show
+  // unconditionally on Pat Stone's "Tell us about your Pat" form: "Claude
+  // we need to fix this somehow."
+  const isHelpStation = L1 === 'ondareplay' && L2 === 'austin' && L3 === 'help';
+  const showHelpCatalog = isUploadable && isHelpStation;
+  document.getElementById('media-overlay-catalog-wrap').style.display = showHelpCatalog ? 'block' : 'none';
   document.getElementById('media-overlay-mine-wrap').style.display = 'none';
-  if (showCatalog) {
+  if (showHelpCatalog) {
     document.getElementById('media-overlay-catalog-filter').value = '';
     renderCatalogGrid('');
-    loadMyCatalogGrid(kind);
   }
+  if (isUploadable) loadMyCatalogGrid(kind);
   document.getElementById('media-overlay').style.display = 'flex';
   setTimeout(() => document.getElementById('media-overlay-input').focus(), 30);
 }
