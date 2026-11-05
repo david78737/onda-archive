@@ -260,7 +260,42 @@
      overrides the browser's default [hidden]{display:none} — without this,
      setting .hidden on either one stopped actually hiding it, and both
      panels rendered stacked together instead of one-at-a-time. */
-  .tag-list[hidden], .contributor-panel[hidden], .sort-panel[hidden] { display: none; }
+  .tag-list[hidden], .contributor-panel[hidden], .sort-panel[hidden], .help-panel[hidden] { display: none; }
+
+  /* ── Help panel — context-sensitive greeting + task routing, same drawer
+     shell as Tags/Contributor/Sort but wider: this one carries real
+     sentences, not short chips. David, 2026-11-04: "this is no new
+     features, this is just guiding a visitor to accomplish a task
+     successfully." ── */
+  .tag-drawer.help-mode { width: min(420px, 90vw); }
+  .help-panel { flex: 1; display: flex; flex-direction: column; padding: 14px 18px 24px; overflow-y: auto; gap: 14px; }
+  .help-greeting { font-size: 15px; color: var(--ink); line-height: 1.5; margin: 0; }
+  .help-sub { font-size: 13.5px; color: var(--muted); margin: -6px 0 0; }
+  .help-routes { display: flex; flex-direction: column; gap: 8px; }
+  .help-route-btn {
+    display: block; width: 100%; text-align: left; background: var(--surface2);
+    border: 1px solid var(--border); color: var(--ink-mid); border-radius: 7px;
+    padding: 10px 14px; font-size: 14px; font-family: inherit; cursor: pointer;
+    transition: background .12s, color .12s, border-color .12s;
+  }
+  .help-route-btn:hover { background: var(--surface); color: var(--ink); }
+  .help-route-btn.active { border-color: var(--accent); color: var(--accent); background: var(--accent-dim); }
+  .help-detail { display: flex; flex-direction: column; gap: 10px; padding: 2px 2px 4px; border-left: 2px solid var(--border); padding-left: 12px; }
+  .help-detail[hidden] { display: none; }
+  .help-detail p { font-size: 13.5px; color: var(--ink-mid); line-height: 1.55; margin: 0; }
+  .help-detail .help-note { font-size: 13px; color: var(--muted); font-style: italic; }
+  .help-stage { border: 1px solid var(--border-dim); border-radius: 6px; padding: 2px 10px; background: var(--surface2); }
+  .help-stage summary { font-size: 13.5px; color: var(--ink); cursor: pointer; padding: 8px 2px; list-style: none; display: flex; justify-content: space-between; gap: 8px; }
+  .help-stage summary::-webkit-details-marker { display: none; }
+  .help-stage[open] summary { color: var(--accent); }
+  .help-stage-time { color: var(--muted); font-size: 12px; flex-shrink: 0; white-space: nowrap; }
+  .help-stage p { padding: 0 2px 10px; }
+  .help-detail-cta {
+    display: inline-block; align-self: flex-start; background: var(--accent-dim); border: 1px solid var(--accent);
+    color: var(--accent); border-radius: 6px; padding: 8px 14px; font-size: 13.5px; font-weight: 600;
+    text-decoration: none; cursor: pointer; font-family: inherit;
+  }
+  .help-detail-cta:hover { background: var(--accent); color: var(--surface2); }
   .drawer-search {
     width: 100%; background: var(--surface2); border: 1px solid var(--border);
     color: var(--ink); font-size: 15px; border-radius: 5px; padding: 8px 10px;
@@ -552,9 +587,9 @@
       <span>Tags</span>
       <span class="count" id="topics-toggle-count" hidden></span>
     </button>
-    <a class="topics-toggle" href="/chapter/?station=onda-replay-help">
+    <button type="button" class="topics-toggle" id="help-toggle" onclick="openDrawer('help')">
       <span>Help</span>
-    </a>
+    </button>
   </div>
 </div>
 
@@ -576,6 +611,57 @@
     <div class="contributor-list" id="contributor-list"></div>
   </div>
   <div class="sort-panel" id="sort-panel" hidden></div>
+  <div class="help-panel" id="help-panel" hidden>
+    <p class="help-greeting" id="help-greeting">Hello — let's see what you'd like to do.</p>
+    <div class="help-routes">
+      <button type="button" class="help-route-btn" data-route="written" onclick="toggleHelpRoute('written')">I already have a story written</button>
+      <button type="button" class="help-route-btn" data-route="record" onclick="toggleHelpRoute('record')">I want to dictate or record it in the app</button>
+      <button type="button" class="help-route-btn" data-route="photos" onclick="toggleHelpRoute('photos')">I have pictures to include</button>
+      <button type="button" class="help-route-btn" data-route="video" onclick="toggleHelpRoute('video')">I have a video to include</button>
+    </div>
+
+    <div class="help-detail" id="help-detail-written" hidden>
+      <p>Type it in (or paste it from somewhere else), add a photo if you'd like, and send it in.</p>
+      <a class="help-detail-cta" id="help-link-written" href="#" target="_blank" rel="noopener">Open the story form</a>
+    </div>
+
+    <div class="help-detail" id="help-detail-record" hidden>
+      <p>Recording your own voice is the heart of ONDA Replay. Here's the process in a few short stages — no need to do it all in one sitting.</p>
+      <details class="help-stage">
+        <summary><span>Stage 1 — Record a first take</span><span class="help-stage-time">~2–5 min</span></summary>
+        <p>Open the app and just start talking. Feeling awkward speaking into a mic? Start small — a sentence or two at a time. Don't worry about ums, errs, or stumbles — say it rough, then stop.</p>
+      </details>
+      <details class="help-stage">
+        <summary><span>Stage 2 — Read the clean version back</span><span class="help-stage-time">~3–5 min, repeat as needed</span></summary>
+        <p>Stopping transcribes your rough take into plain text — no ums, no errs, just the words. Open a new recording and read that text back out loud. That take comes out clean — keep it and delete the rough one. Once you've got two or three sentences, that's already a paragraph. You can re-record it all together as one smooth take, but you don't have to.</p>
+      </details>
+      <details class="help-stage">
+        <summary><span>Stage 3 — Save and send</span><span class="help-stage-time">~1 min</span></summary>
+        <p>When you're happy with it, stop, confirm it's saved, and send it with "Send with a Message." It lands right here on the station.</p>
+      </details>
+      <p class="help-note">What matters most isn't a flawless take — it's that it sounds like you. Authentic and natural, like sharing something with a friend across the table.</p>
+      <button type="button" class="help-detail-cta" id="help-link-record">Open ONDA Replay to record</button>
+    </div>
+
+    <div class="help-detail" id="help-detail-photos" hidden>
+      <p>Photos work best as PNG or JPG. HEIC — the iPhone camera's default format — won't display; the upload will tell you if a file doesn't work.</p>
+      <details class="help-stage">
+        <summary><span>On iPhone or iPad</span></summary>
+        <p>Open the Photos app, find the picture, and upload it from there. If it was taken on this phone it may be HEIC — if the upload rejects it, tap Share → Save to Files to get a JPG copy first.</p>
+      </details>
+      <details class="help-stage">
+        <summary><span>On Android</span></summary>
+        <p>Open your Gallery or Photos app, find the picture, and upload it from there — most Android photos are already JPG.</p>
+      </details>
+      <a class="help-detail-cta" id="help-link-photos" href="#" target="_blank" rel="noopener">Open the story form to add pictures</a>
+    </div>
+
+    <div class="help-detail" id="help-detail-video" hidden>
+      <p>We don't host video directly — upload it to YouTube first, then paste the link into the story form.</p>
+      <p class="help-note">Make sure its privacy setting is Public or Unlisted — a Private video won't play for visitors here.</p>
+      <a class="help-detail-cta" id="help-link-video" href="#" target="_blank" rel="noopener">Open the story form to add your video</a>
+    </div>
+  </div>
 </div>
 
 <footer id="footer">
@@ -1204,16 +1290,19 @@ function openDrawer(mode) {
   const backdrop = document.getElementById('tag-drawer-backdrop');
 
   document.getElementById('drawer-title').textContent =
-    mode === 'contributor' ? 'Contributor' : mode === 'sort' ? 'Sort' : 'Tags';
+    mode === 'contributor' ? 'Contributor' : mode === 'sort' ? 'Sort' : mode === 'help' ? 'Help' : 'Tags';
   document.getElementById('tag-list').hidden = mode !== 'tags';
   document.getElementById('contributor-panel').hidden = mode !== 'contributor';
   document.getElementById('sort-panel').hidden = mode !== 'sort';
+  document.getElementById('help-panel').hidden = mode !== 'help';
+  drawer.classList.toggle('help-mode', mode === 'help');
   if (mode === 'contributor') {
     const search = document.getElementById('contributor-search');
     renderContributorList(search.value);
     search.focus();
   }
   if (mode === 'sort') renderSortList();
+  if (mode === 'help') renderHelpPanel();
 
   drawer.classList.add('open');
   backdrop.classList.add('open');
@@ -1221,6 +1310,51 @@ function openDrawer(mode) {
 function closeDrawer() {
   document.getElementById('tag-drawer').classList.remove('open');
   document.getElementById('tag-drawer-backdrop').classList.remove('open');
+}
+
+// ── Help panel content — set once the station skin/org identity loads
+// (see helpCtx assignment near the share/record button wiring below),
+// rendered fresh each time the drawer opens so the greeting always
+// reflects the current station even if that load finished late. ─────────
+let helpCtx = null;
+
+function renderHelpPanel() {
+  const greeting = document.getElementById('help-greeting');
+  if (helpCtx && helpCtx.firstName) {
+    greeting.textContent = `Hello — it sounds like you'd like to leave a message or a story about your relationship with ${helpCtx.firstName}. Let's see what you'd like to do.`;
+  } else {
+    greeting.textContent = `Hello — let's see what you'd like to do.`;
+  }
+
+  const tileCreateUrl = helpCtx ? helpCtx.tileCreateUrl : '#';
+  ['written', 'photos', 'video'].forEach(route => {
+    document.getElementById(`help-link-${route}`).href = tileCreateUrl;
+  });
+
+  const recordLink = document.getElementById('help-link-record');
+  recordLink.onclick = (e) => {
+    if (!helpCtx) return;
+    recordStoryInApp(e, helpCtx.orgL1, helpCtx.orgL2, helpCtx.orgL3, helpCtx.name);
+  };
+
+  // Default to no route expanded — the greeting + four choices is the
+  // whole first screen; nothing floods in until a choice is tapped.
+  ['written', 'record', 'photos', 'video'].forEach(route => {
+    document.getElementById(`help-detail-${route}`).hidden = true;
+    document.querySelector(`.help-route-btn[data-route="${route}"]`).classList.remove('active');
+  });
+}
+
+function toggleHelpRoute(route) {
+  const detail = document.getElementById(`help-detail-${route}`);
+  const btn = document.querySelector(`.help-route-btn[data-route="${route}"]`);
+  const willOpen = detail.hidden;
+  ['written', 'record', 'photos', 'video'].forEach(r => {
+    document.getElementById(`help-detail-${r}`).hidden = true;
+    document.querySelector(`.help-route-btn[data-route="${r}"]`).classList.remove('active');
+  });
+  detail.hidden = !willOpen;
+  btn.classList.toggle('active', willOpen);
 }
 
 // ── Sort panel — three choices, icon-coded so they scan without reading:
@@ -1738,6 +1872,12 @@ if (PREVIEW_MODE) {
         const recordBtn = document.getElementById('record-story-btn');
         recordBtn.onclick = (e) => recordStoryInApp(e, skin.org_l1, skin.org_l2, skin.org_l3, skin.station_name || '');
         recordBtn.hidden = false;
+
+        helpCtx = {
+          orgL1: skin.org_l1, orgL2: skin.org_l2, orgL3: skin.org_l3,
+          name: skin.station_name || '', firstName: firstName,
+          tileCreateUrl: shareBtn.href,
+        };
       }
     } catch(_) {}
   }
