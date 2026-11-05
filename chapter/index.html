@@ -285,6 +285,7 @@
   .help-greeting { font-size: 15px; color: #15202b; line-height: 1.5; margin: 0; }
   .help-sub { font-size: 13.5px; color: #6b8a88; margin: -6px 0 0; }
   .help-routes { display: flex; flex-direction: column; gap: 8px; }
+  .help-route { display: flex; flex-direction: column; }
   .help-route-btn {
     display: block; width: 100%; text-align: left; background: #eef6f5;
     border: 1px solid #c5dedd; color: #2f4a4d; border-radius: 7px;
@@ -293,7 +294,7 @@
   }
   .help-route-btn:hover { background: #ffffff; color: #15202b; }
   .help-route-btn.active { border-color: #008B82; color: #008B82; background: rgba(0,139,130,.12); }
-  .help-detail { display: flex; flex-direction: column; gap: 10px; padding: 2px 2px 4px; border-left: 2px solid #c5dedd; padding-left: 12px; }
+  .help-detail { display: flex; flex-direction: column; gap: 10px; padding: 2px 2px 4px; border-left: 2px solid #c5dedd; padding-left: 12px; margin-top: 10px; }
   .help-detail[hidden] { display: none; }
   .help-detail p { font-size: 13.5px; color: #2f4a4d; line-height: 1.55; margin: 0; }
   .help-detail .help-note { font-size: 13px; color: #6b8a88; font-style: italic; }
@@ -627,52 +628,59 @@
   <div class="help-panel" id="help-panel" hidden>
     <p class="help-greeting" id="help-greeting">Hello — let's see what you'd like to do.</p>
     <div class="help-routes">
-      <button type="button" class="help-route-btn" data-route="written" onclick="toggleHelpRoute('written')">I already have a story written</button>
-      <button type="button" class="help-route-btn" data-route="record" onclick="toggleHelpRoute('record')">I want to dictate or record it in the app</button>
-      <button type="button" class="help-route-btn" data-route="photos" onclick="toggleHelpRoute('photos')">I have pictures to include</button>
-      <button type="button" class="help-route-btn" data-route="video" onclick="toggleHelpRoute('video')">I have a video to include</button>
-    </div>
+      <div class="help-route">
+        <button type="button" class="help-route-btn" data-route="written" onclick="toggleHelpRoute('written')">I already have a story written</button>
+        <div class="help-detail" id="help-detail-written" hidden>
+          <p id="help-text-written">Type it in (or paste it from somewhere else). Add up to three photos and/or videos. Then submit it.</p>
+          <a class="help-detail-cta" id="help-link-written" href="#" target="_blank" rel="noopener">Open the story form</a>
+        </div>
+      </div>
 
-    <div class="help-detail" id="help-detail-written" hidden>
-      <p id="help-text-written">Type it in (or paste it from somewhere else). Add up to three photos and/or videos. Then submit it.</p>
-      <a class="help-detail-cta" id="help-link-written" href="#" target="_blank" rel="noopener">Open the story form</a>
-    </div>
+      <div class="help-route">
+        <button type="button" class="help-route-btn" data-route="record" onclick="toggleHelpRoute('record')">I want to dictate or record it in the app</button>
+        <div class="help-detail" id="help-detail-record" hidden>
+          <p>This is the same "Record it in the app" button up top — it opens ONDA Replay so you can record your voice directly. Recording your own voice is the heart of ONDA Replay, so here's the process in a few short stages — no need to do it all in one sitting.</p>
+          <details class="help-stage">
+            <summary><span>Stage 1 — Record a first take</span><span class="help-stage-time">~2–5 min</span></summary>
+            <p>Open the app and just start talking. Feeling awkward speaking into a mic? Start small — a sentence or two at a time. Don't worry about ums, errs, or stumbles — say it rough, then stop.</p>
+          </details>
+          <details class="help-stage">
+            <summary><span>Stage 2 — Read the clean version back</span><span class="help-stage-time">~3–5 min, repeat as needed</span></summary>
+            <p>Stopping transcribes your rough take into plain text — no ums, no errs, just the words. Open a new recording and read that text back out loud. That take comes out clean — keep it and delete the rough one. Once you've got two or three sentences, that's already a paragraph. You can re-record it all together as one smooth take, but you don't have to.</p>
+          </details>
+          <details class="help-stage">
+            <summary><span>Stage 3 — Save and send</span><span class="help-stage-time">~1 min</span></summary>
+            <p>When you're happy with it, stop, confirm it's saved, and send it with "Send with a Message." It lands right here on the station.</p>
+          </details>
+          <p class="help-note">What matters most isn't a flawless take — it's that it sounds like you. Authentic and natural, like sharing something with a friend across the table.</p>
+          <button type="button" class="help-detail-cta" id="help-link-record">Open ONDA Replay to record</button>
+        </div>
+      </div>
 
-    <div class="help-detail" id="help-detail-record" hidden>
-      <p>This is the same "Record it in the app" button up top — it opens ONDA Replay so you can record your voice directly. Recording your own voice is the heart of ONDA Replay, so here's the process in a few short stages — no need to do it all in one sitting.</p>
-      <details class="help-stage">
-        <summary><span>Stage 1 — Record a first take</span><span class="help-stage-time">~2–5 min</span></summary>
-        <p>Open the app and just start talking. Feeling awkward speaking into a mic? Start small — a sentence or two at a time. Don't worry about ums, errs, or stumbles — say it rough, then stop.</p>
-      </details>
-      <details class="help-stage">
-        <summary><span>Stage 2 — Read the clean version back</span><span class="help-stage-time">~3–5 min, repeat as needed</span></summary>
-        <p>Stopping transcribes your rough take into plain text — no ums, no errs, just the words. Open a new recording and read that text back out loud. That take comes out clean — keep it and delete the rough one. Once you've got two or three sentences, that's already a paragraph. You can re-record it all together as one smooth take, but you don't have to.</p>
-      </details>
-      <details class="help-stage">
-        <summary><span>Stage 3 — Save and send</span><span class="help-stage-time">~1 min</span></summary>
-        <p>When you're happy with it, stop, confirm it's saved, and send it with "Send with a Message." It lands right here on the station.</p>
-      </details>
-      <p class="help-note">What matters most isn't a flawless take — it's that it sounds like you. Authentic and natural, like sharing something with a friend across the table.</p>
-      <button type="button" class="help-detail-cta" id="help-link-record">Open ONDA Replay to record</button>
-    </div>
+      <div class="help-route">
+        <button type="button" class="help-route-btn" data-route="photos" onclick="toggleHelpRoute('photos')">I have pictures to include</button>
+        <div class="help-detail" id="help-detail-photos" hidden>
+          <p>On the story form, tap "Upload a photo" — that opens your phone's own picker so you can browse straight to the photo, no link or typing needed. PNG or JPG work best.</p>
+          <details class="help-stage">
+            <summary><span>On iPhone or iPad</span></summary>
+            <p>Tapping "Upload a photo" opens your Photos library right there — scroll or search for the picture and tap it. If it was taken on this phone it may be HEIC, which won't display here; if the upload is rejected, open the photo in Photos, tap Share → Save to Files, and upload that JPG copy instead.</p>
+          </details>
+          <details class="help-stage">
+            <summary><span>On Android</span></summary>
+            <p>Tapping "Upload a photo" opens your phone's own photo picker — browse to the picture in Gallery, Photos, or Recent and tap it. Most Android photos are already JPG.</p>
+          </details>
+          <a class="help-detail-cta" id="help-link-photos" href="#" target="_blank" rel="noopener">Open the story form to add pictures</a>
+        </div>
+      </div>
 
-    <div class="help-detail" id="help-detail-photos" hidden>
-      <p>On the story form, tap "Upload a photo" — that opens your phone's own picker so you can browse straight to the photo, no link or typing needed. PNG or JPG work best.</p>
-      <details class="help-stage">
-        <summary><span>On iPhone or iPad</span></summary>
-        <p>Tapping "Upload a photo" opens your Photos library right there — scroll or search for the picture and tap it. If it was taken on this phone it may be HEIC, which won't display here; if the upload is rejected, open the photo in Photos, tap Share → Save to Files, and upload that JPG copy instead.</p>
-      </details>
-      <details class="help-stage">
-        <summary><span>On Android</span></summary>
-        <p>Tapping "Upload a photo" opens your phone's own photo picker — browse to the picture in Gallery, Photos, or Recent and tap it. Most Android photos are already JPG.</p>
-      </details>
-      <a class="help-detail-cta" id="help-link-photos" href="#" target="_blank" rel="noopener">Open the story form to add pictures</a>
-    </div>
-
-    <div class="help-detail" id="help-detail-video" hidden>
-      <p>We don't host video directly — upload it to YouTube first, then paste the link into the story form.</p>
-      <p class="help-note">Make sure its privacy setting is Public or Unlisted — a Private video won't play for visitors here.</p>
-      <a class="help-detail-cta" id="help-link-video" href="#" target="_blank" rel="noopener">Open the story form to add your video</a>
+      <div class="help-route">
+        <button type="button" class="help-route-btn" data-route="video" onclick="toggleHelpRoute('video')">I have a video to include</button>
+        <div class="help-detail" id="help-detail-video" hidden>
+          <p>We don't host video directly — upload it to YouTube first, then paste the link into the story form.</p>
+          <p class="help-note">Make sure its privacy setting is Public or Unlisted — a Private video won't play for visitors here.</p>
+          <a class="help-detail-cta" id="help-link-video" href="#" target="_blank" rel="noopener">Open the story form to add your video</a>
+        </div>
+      </div>
     </div>
   </div>
 </div>
