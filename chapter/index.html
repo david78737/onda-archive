@@ -519,14 +519,10 @@
   }
   .reply-invite-send:disabled { opacity: .6; cursor: default; }
 
-  .auto-respond-banner {
-    position: sticky; top: 0; z-index: 900; display: flex; align-items: center;
-    justify-content: center; gap: 14px; flex-wrap: wrap;
-    background: var(--accent); color: #fff; padding: 12px 16px; font-size: 14px;
-  }
-  .auto-respond-btn {
-    background: #fff; color: var(--accent); border: none; border-radius: 999px;
-    padding: 7px 18px; font-size: 14px; font-weight: 600; cursor: pointer;
+  .auto-continue-title { font-size: 17px; font-weight: 600; color: #15202b; margin-bottom: 16px; }
+  .auto-continue-btn {
+    width: 100%; padding: 10px; font-size: 14px; font-weight: 600;
+    background: #008B82; color: #fff; border: none; border-radius: 8px; cursor: pointer;
   }
   .reply-item .reply-name { font-weight: 600; }
   .reply-item .reply-play { margin-left: 6px; color: var(--accent); text-decoration: none; }
@@ -1010,15 +1006,18 @@ function maybeAutoRespond() {
   const tileId = parseInt(respondId, 10);
   if (Number.isNaN(tileId)) return;
 
-  const banner = document.createElement('div');
-  banner.className = 'auto-respond-banner';
-  banner.innerHTML = `
-    <span>Ready to record your reply.</span>
-    <button type="button" class="auto-respond-btn">Continue</button>`;
-  banner.querySelector('.auto-respond-btn').addEventListener('click', e => {
+  const overlay = document.createElement('div');
+  overlay.className = 'reply-invite-overlay';
+  overlay.innerHTML = `
+    <div class="reply-invite-box">
+      <div class="auto-continue-title">Ready to record your reply.</div>
+      <button type="button" class="auto-continue-btn">Continue</button>
+    </div>`;
+  overlay.querySelector('.auto-continue-btn').addEventListener('click', e => {
+    overlay.remove();
     respondToTile(e, tileId, respondPhone || null);
   });
-  document.body.prepend(banner);
+  document.body.appendChild(overlay);
 }
 
 // Non-reply counterpart of maybeAutoRespond — someone returning via the
@@ -1033,15 +1032,18 @@ function maybeAutoNewStory() {
   const phone = params.get('phone');
   if (!orgL1 || !orgL2 || !orgL3) return;
 
-  const banner = document.createElement('div');
-  banner.className = 'auto-respond-banner';
-  banner.innerHTML = `
-    <span>Ready to tell your story.</span>
-    <button type="button" class="auto-respond-btn">Continue</button>`;
-  banner.querySelector('.auto-respond-btn').addEventListener('click', () => {
+  const overlay = document.createElement('div');
+  overlay.className = 'reply-invite-overlay';
+  overlay.innerHTML = `
+    <div class="reply-invite-box">
+      <div class="auto-continue-title">Ready to tell your story.</div>
+      <button type="button" class="auto-continue-btn">Continue</button>
+    </div>`;
+  overlay.querySelector('.auto-continue-btn').addEventListener('click', () => {
+    overlay.remove();
     openNewStoryDeepLink(orgL1, orgL2, orgL3, name, phone || null);
   });
-  document.body.prepend(banner);
+  document.body.appendChild(overlay);
 }
 
 // ── Read URL params ────────────────────────────────────────────────────────────
