@@ -177,6 +177,21 @@
     .station-notice-inner { padding: 14px 16px; }
     .archive-heading-wrap { padding: 0 14px; }
     .right-panel { padding: 10px 14px 48px; }
+
+    /* On a phone, the search input, two full-text buttons ("Tell us
+       about your Pat" / "Record it in the app"), and the toggle chevron
+       don't fit on one row — the input (the only flexible one) got
+       squeezed down to a sliver, reading as "the search bar disappeared"
+       (Swan Banks, via David, 2026-11-07). Wrap instead: input + chevron
+       share the top row (input gets the room), the two buttons share
+       their own row below, each full width if there's not room for both. */
+    .search-bar-inner { flex-wrap: wrap; }
+    .search-bar input { flex: 1 1 auto; order: 1; }
+    .more-toggle { order: 2; }
+    /* flex-basis:100% (not auto) is what actually forces each button onto
+       its own row — a basis big enough that nothing else can share the
+       line, regardless of how short its text is or how wide the phone. */
+    .share-story-btn { order: 3; flex: 1 1 100%; text-align: center; white-space: normal; }
   }
 
   @media (max-width: 600px) {
