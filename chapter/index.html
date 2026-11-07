@@ -490,30 +490,32 @@
   /* Hardcoded ONDA brand colors, not the var(--...) station-theme tokens —
      this is ONDA Replay's own system dialog (same one the app itself
      would show), not station content, so it should look the same on
-     every station regardless of that station's custom skin. David,
-     2026-11-07: "reflects the station palette not the ONDA palette." */
+     every station regardless of that station's custom skin. Same white/
+     teal palette as the Help drawer (.tag-drawer.help-mode below) rather
+     than a dark scheme — David, 2026-11-07: "WHOA Nellie... use the same
+     pattern as the drawer on the left, better contrast than this choice." */
   .reply-invite-box {
     position: relative; width: 100%; max-width: 360px;
-    background: #1a1d27; border: 1px solid #252838;
+    background: #ffffff; border: 1px solid #c5dedd;
     border-radius: 12px; padding: 24px 20px; box-shadow: 0 8px 30px rgba(0,0,0,.4);
   }
   .reply-invite-close {
     position: absolute; top: 10px; right: 10px; width: 28px; height: 28px;
-    background: none; border: none; color: #8890b8; font-size: 20px;
+    background: none; border: none; color: #6b8a88; font-size: 20px;
     line-height: 1; cursor: pointer;
   }
-  .reply-invite-close:hover { color: #e8eaf0; }
-  .reply-invite-title { font-size: 17px; font-weight: 600; color: #e8eaf0; margin-bottom: 8px; }
-  .reply-invite-sub { font-size: 13px; color: #8890b8; line-height: 1.5; margin-bottom: 16px; }
+  .reply-invite-close:hover { color: #15202b; }
+  .reply-invite-title { font-size: 17px; font-weight: 600; color: #15202b; margin-bottom: 8px; }
+  .reply-invite-sub { font-size: 13px; color: #2f4a4d; line-height: 1.5; margin-bottom: 16px; }
   .reply-invite-input {
     width: 100%; box-sizing: border-box; padding: 10px 12px; font-size: 14px;
-    background: #141720; border: 1px solid #252838; border-radius: 8px;
-    color: #e8eaf0; margin-bottom: 8px;
+    background: #eef6f5; border: 1px solid #c5dedd; border-radius: 8px;
+    color: #15202b; margin-bottom: 8px;
   }
-  .reply-invite-error { font-size: 12px; color: #e06464; min-height: 16px; margin-bottom: 4px; }
+  .reply-invite-error { font-size: 12px; color: #c0392b; min-height: 16px; margin-bottom: 4px; }
   .reply-invite-send {
     width: 100%; padding: 10px; font-size: 14px; font-weight: 600;
-    background: #00C9BC; color: #fff; border: none; border-radius: 8px; cursor: pointer;
+    background: #008B82; color: #fff; border: none; border-radius: 8px; cursor: pointer;
   }
   .reply-invite-send:disabled { opacity: .6; cursor: default; }
 
@@ -868,7 +870,7 @@ function openReplyInviteModal(event, tileId) {
     <div class="reply-invite-box">
       <button type="button" class="reply-invite-close" aria-label="Close">&times;</button>
       <div class="reply-invite-title">Reply from your phone</div>
-      <div class="reply-invite-sub">We'll text you a link to record a voice reply to ${presenterName}'s tribute — your number ties your reply back to your name here on the memorial.</div>
+      <div class="reply-invite-sub">We'll text you a link to record a voice reply to ${presenterName}'s tribute. Your phone number ties your reply back to your name here on the memorial, and you can update it in the future.</div>
       <input type="tel" class="reply-invite-input" placeholder="Your phone number" autofocus>
       <div class="reply-invite-error"></div>
       <button type="button" class="reply-invite-send">Send link</button>
@@ -946,7 +948,7 @@ function openNewStoryInviteModal(orgL1, orgL2, orgL3, name) {
     <div class="reply-invite-box">
       <button type="button" class="reply-invite-close" aria-label="Close">&times;</button>
       <div class="reply-invite-title">Record from your phone</div>
-      <div class="reply-invite-sub">We'll text you a link to record or build a Storyboard for ${name || 'their'} tribute — your number ties what you record there back to your name here on the memorial.</div>
+      <div class="reply-invite-sub">We'll text you a link to record or build a Storyboard for ${name || 'their'} tribute. Your phone number ties what you record back to your name here on the memorial, and you can update it in the future.</div>
       <input type="tel" class="reply-invite-input" placeholder="Your phone number" autofocus>
       <div class="reply-invite-error"></div>
       <button type="button" class="reply-invite-send">Send link</button>
