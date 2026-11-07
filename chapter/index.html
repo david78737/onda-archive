@@ -305,7 +305,8 @@
   .tag-drawer.help-mode .tag-drawer-close { color: #6b8a88; }
   .tag-drawer.help-mode .tag-drawer-close:hover { color: #15202b; }
   .help-panel { flex: 1; display: flex; flex-direction: column; padding: 14px 18px 24px; overflow-y: auto; gap: 14px; }
-  .help-greeting { font-size: 15px; color: #15202b; line-height: 1.5; margin: 0; }
+  .help-greeting { display: flex; flex-direction: column; gap: 10px; font-size: 15px; color: #15202b; line-height: 1.5; margin: 0; }
+  .help-greeting p { margin: 0; }
   .help-sub { font-size: 13.5px; color: #6b8a88; margin: -6px 0 0; }
   .help-routes { display: flex; flex-direction: column; gap: 8px; }
   .help-route { display: flex; flex-direction: column; }
@@ -656,7 +657,7 @@
   </div>
   <div class="sort-panel" id="sort-panel" hidden></div>
   <div class="help-panel" id="help-panel" hidden>
-    <p class="help-greeting" id="help-greeting">Hello — let's see what you'd like to do.</p>
+    <div class="help-greeting" id="help-greeting"></div>
     <div class="help-routes">
       <div class="help-route">
         <button type="button" class="help-route-btn" data-route="written" onclick="toggleHelpRoute('written')">I already have a story written</button>
@@ -667,7 +668,7 @@
       </div>
 
       <div class="help-route">
-        <button type="button" class="help-route-btn" data-route="record" onclick="toggleHelpRoute('record')">I want to dictate or record it in the app</button>
+        <button type="button" class="help-route-btn" data-route="record" onclick="toggleHelpRoute('record')">I want to dictate or record it in ONDA Replay</button>
         <div class="help-detail" id="help-detail-record" hidden>
           <p>This is the same "Record it in the app" button up top — it opens ONDA Replay so you can record your voice directly. Recording your own voice is the heart of ONDA Replay, so here's the process in a few short stages — no need to do it all in one sitting.</p>
           <details class="help-stage">
@@ -1369,13 +1370,24 @@ function closeDrawer() {
 // reflects the current station even if that load finished late. ─────────
 let helpCtx = null;
 
+// Hardcoded for Pat Stone's station specifically (the email address is
+// hers) — chapter/index.html is a shared template every station uses, so
+// this should become a per-station field (like .station-notice and the
+// archive heading already are) before any other station goes live with
+// its own Help panel. David, 2026-11-07: hardcode for now, generalize later.
+const HELP_GREETING_HTML = `
+  <p>Welcome — add your story to the archive. Your story appears first, after a family review.</p>
+  <p>Add your story three ways:</p>
+  <p>1) Send an email to patstonememorial@gmail.com. A family member reviews your email and will place it in the archive. Include pictures and videos if you have any.</p>
+  <p>2) Tap an option below. The first lets you dictate a story on your phone or copy and paste it from a different source. Set a title and add your name.</p>
+  <p>3) Use ONDA Replay. ONDA Replay lets you dictate your story. Add images and videos. Your story is uploaded for review and will be added to the top of the archive.</p>
+  <p>When you send it with "Send with a Message" (an ONDA Replay option), the app emails you a short link to your story immediately.</p>
+  <p>That link shows exactly what others will see. Any changes you make are reflected in your story immediately — send the link to your friends.</p>
+`;
+
 function renderHelpPanel() {
   const greeting = document.getElementById('help-greeting');
-  if (helpCtx && helpCtx.firstName) {
-    greeting.textContent = `Hello — it sounds like you'd like to leave a message or a story about your relationship with ${helpCtx.firstName}. Let's see what you'd like to do.`;
-  } else {
-    greeting.textContent = `Hello — let's see what you'd like to do.`;
-  }
+  greeting.innerHTML = HELP_GREETING_HTML;
 
   const tileCreateUrl = helpCtx ? helpCtx.tileCreateUrl : '#';
   ['written', 'photos', 'video'].forEach(route => {
