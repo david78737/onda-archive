@@ -684,6 +684,7 @@
 </div>
 
 <script src="../nile-auth.js"></script>
+<script src="jszip.min.js"></script>
 <script>
 const NILE_API = 'https://xrxm-29on-xlyt.n7e.xano.io/api:onda-nile';
 const IDENTITY_API = 'https://xrxm-29on-xlyt.n7e.xano.io/api:nile/org/identity';
@@ -1503,6 +1504,51 @@ function saveTakeaways(tileId) {
 // transcript, writes synopsis/who/takeaways/headings/tags back onto the
 // same row. Was previously a manual run in Xano's own debug panel; this is
 // the real button that was always the intended way to trigger it.
+// Storyboard tiles (several independent boxcars — text, image, music, not
+// one continuous take) never populate nile_presentations.story: that text
+// only ever existed inside the uploaded .onda bundle itself, assembled
+// client-side at playback time. generate-draft reads $presentation.story
+// directly and has no way to unpack a bundle, so it throws "Unable to
+// locate var: presentation.story" on any Storyboard tile. Xano investigation
+// 2026-11-07 confirmed there's no boxcars table to read from either — this
+// is the only place that text exists outside the zip. Fix: unzip it here,
+// client-side, same JSZip + boxcars.json pattern web_player/index.html
+// already uses to render a Storyboard's sequence, and PATCH the assembled
+// text onto `story` before calling generate-draft.
+async function assembleStoryFromOnda(ondaUrl) {
+  try {
+    const resp = await fetch(ondaUrl);
+    if (!resp.ok) return null;
+    const bytes = await resp.arrayBuffer();
+    const zip = await JSZip.loadAsync(bytes);
+
+    const boxcarsFile = zip.file('boxcars.json');
+    if (boxcarsFile) {
+      const manifest = JSON.parse(await boxcarsFile.async('string'));
+      const parts = [];
+      for (const b of manifest) {
+        if (b.type === 'heading' && b.label) parts.push('## ' + b.label);
+        else if (b.type === 'text' && b.transcript && b.transcript.trim()) parts.push(b.transcript.trim());
+        else if ((b.type === 'music' || b.type === 'link' || b.type === 'image') && b.label) parts.push('[' + b.label + ']');
+      }
+      return parts.join('\n\n').trim() || null;
+    }
+
+    // Fallback for a plain (non-Storyboard) recording somehow missing
+    // `story` too — the continuous-take bundle shape web_player also reads.
+    const txtFile = zip.file('transcript.txt');
+    if (txtFile) {
+      const text = (await txtFile.async('string')).trim();
+      return text || null;
+    }
+
+    return null;
+  } catch (e) {
+    console.error('[generateDraft] .onda unzip failed:', e);
+    return null;
+  }
+}
+
 async function generateDraft(id) {
   const btn = document.getElementById('draft-btn-' + id);
   if (!btn) return;
@@ -1510,6 +1556,17 @@ async function generateDraft(id) {
   btn.textContent = 'Generating…';
   btn.style.pointerEvents = 'none';
   try {
+    let tile = allTiles.find(t => t.id === id);
+    if (tile && (!tile.story || !tile.story.trim()) && tile.onda_url) {
+      const assembled = await assembleStoryFromOnda(tile.onda_url);
+      if (assembled) {
+        await patchTile(id, { story: assembled });
+        tile = allTiles.find(t => t.id === id);
+      }
+    }
+    if (tile && (!tile.story || !tile.story.trim())) {
+      throw new Error('No text content found in this recording to draft from.');
+    }
     const r = await fetch(`${NILE_API}/nile/tile/generate-draft`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
