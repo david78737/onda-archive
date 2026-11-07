@@ -660,14 +660,6 @@
     <div class="help-greeting" id="help-greeting"></div>
     <div class="help-routes">
       <div class="help-route">
-        <button type="button" class="help-route-btn" data-route="written" onclick="toggleHelpRoute('written')">I already have a story written</button>
-        <div class="help-detail" id="help-detail-written" hidden>
-          <p id="help-text-written">Type it in (or paste it from somewhere else). Add up to three photos and/or videos. Then submit it.</p>
-          <a class="help-detail-cta" id="help-link-written" href="#" target="_blank" rel="noopener">Open the story form</a>
-        </div>
-      </div>
-
-      <div class="help-route">
         <button type="button" class="help-route-btn" data-route="record" onclick="toggleHelpRoute('record')">I want to dictate or record it in ONDA Replay</button>
         <div class="help-detail" id="help-detail-record" hidden>
           <p>This is the same "Record it in the app" button up top — it opens ONDA Replay so you can record your voice directly. Recording your own voice is the heart of ONDA Replay, so here's the process in a few short stages — no need to do it all in one sitting.</p>
@@ -685,6 +677,14 @@
           </details>
           <p class="help-note">What matters most isn't a flawless take — it's that it sounds like you. Authentic and natural, like sharing something with a friend across the table.</p>
           <button type="button" class="help-detail-cta" id="help-link-record">Open ONDA Replay to record</button>
+        </div>
+      </div>
+
+      <div class="help-route">
+        <button type="button" class="help-route-btn" data-route="written" onclick="toggleHelpRoute('written')">I already have a story written</button>
+        <div class="help-detail" id="help-detail-written" hidden>
+          <p id="help-text-written">Dictate it on your phone, or copy and paste it from somewhere else. Set a title and add your name. Add up to three photos and/or videos. Then submit it.</p>
+          <a class="help-detail-cta" id="help-link-written" href="#" target="_blank" rel="noopener">Open the story form</a>
         </div>
       </div>
 
@@ -710,6 +710,14 @@
           <p>We don't host video directly — upload it to YouTube first, then paste the link into the story form.</p>
           <p class="help-note">Make sure its privacy setting is Public or Unlisted — a Private video won't play for visitors here.</p>
           <a class="help-detail-cta" id="help-link-video" href="#" target="_blank" rel="noopener">Open the story form to add your video</a>
+        </div>
+      </div>
+
+      <div class="help-route">
+        <button type="button" class="help-route-btn" data-route="email" onclick="toggleHelpRoute('email')">Send an email instead</button>
+        <div class="help-detail" id="help-detail-email" hidden>
+          <p>Prefer email? Send your story straight to a family member, who reviews it and places it in the archive. Include pictures and videos if you have any.</p>
+          <a class="help-detail-cta" id="help-link-email" href="mailto:patstonememorial@gmail.com">patstonememorial@gmail.com</a>
         </div>
       </div>
     </div>
@@ -1377,12 +1385,6 @@ let helpCtx = null;
 // its own Help panel. David, 2026-11-07: hardcode for now, generalize later.
 const HELP_GREETING_HTML = `
   <p>Welcome — add your story to the archive. Your story appears first, after a family review.</p>
-  <p>Add your story three ways:</p>
-  <p>1) Send an email to patstonememorial@gmail.com. A family member reviews your email and will place it in the archive. Include pictures and videos if you have any.</p>
-  <p>2) Tap an option below. The first lets you dictate a story on your phone or copy and paste it from a different source. Set a title and add your name.</p>
-  <p>3) Use ONDA Replay. ONDA Replay lets you dictate your story. Add images and videos. Your story is uploaded for review and will be added to the top of the archive.</p>
-  <p>When you send it with "Send with a Message" (an ONDA Replay option), the app emails you a short link to your story immediately.</p>
-  <p>That link shows exactly what others will see. Any changes you make are reflected in your story immediately — send the link to your friends.</p>
 `;
 
 function renderHelpPanel() {
@@ -1400,7 +1402,7 @@ function renderHelpPanel() {
   // silent duplicate CTA.
   const buttonLabel = helpCtx && helpCtx.firstName ? `Tell us about your ${helpCtx.firstName}` : 'Tell us about your story';
   document.getElementById('help-text-written').textContent =
-    `Type it in (or paste it from somewhere else). Add up to three photos and/or videos. This is the same "${buttonLabel}" button up top — then submit it.`;
+    `Dictate it on your phone, or copy and paste it from somewhere else. Set a title and add your name. Add up to three photos and/or videos. This is the same "${buttonLabel}" button up top — then submit it.`;
 
   const recordLink = document.getElementById('help-link-record');
   recordLink.onclick = (e) => {
@@ -1420,7 +1422,7 @@ function toggleHelpRoute(route) {
   const detail = document.getElementById(`help-detail-${route}`);
   const btn = document.querySelector(`.help-route-btn[data-route="${route}"]`);
   const willOpen = detail.hidden;
-  ['written', 'record', 'photos', 'video'].forEach(r => {
+  ['written', 'record', 'photos', 'video', 'email'].forEach(r => {
     document.getElementById(`help-detail-${r}`).hidden = true;
     document.querySelector(`.help-route-btn[data-route="${r}"]`).classList.remove('active');
   });
