@@ -351,7 +351,7 @@
     white-space: pre-line; text-align: center;
   }
   .archive-heading[hidden] { display: none; }
-  #status { font-size: 12px; color: var(--muted); padding: 6px 0 8px; }
+  #status { font-size: 12px; color: var(--muted); margin-right: auto; }
 
   /* ── Cards — full-width stacked list, better for phones than a
      multi-column grid or a sideways-scrolling strip ── */
@@ -601,6 +601,7 @@
     </button>
   </div>
   <div class="search-bar-more" id="search-bar-more" hidden>
+    <span id="status"></span>
     <button type="button" class="topics-toggle" id="sort-toggle" onclick="openDrawer('sort')">
       <span aria-hidden="true">⇅</span>
       <span id="sort-toggle-label">Newest</span>
@@ -619,7 +620,6 @@
 </div>
 
 <main class="right-panel">
-  <div id="status"></div>
   <div class="sessions" id="sessions"><div class="loading">Loading archive…</div></div>
 </main>
 
