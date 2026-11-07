@@ -176,6 +176,7 @@
     .station-notice { padding: 0 14px 12px; }
     .station-notice-inner { padding: 14px 16px; }
     .archive-heading-wrap { padding: 0 14px; }
+    .right-panel { padding: 10px 14px 48px; }
   }
 
   @media (max-width: 600px) {
@@ -331,10 +332,14 @@
   .az-heading:first-child { padding-top: 2px; }
   .drawer-empty { padding: 16px 2px; color: var(--muted); font-size: 13px; }
 
-  /* ── Right panel — full width, no sidebar to share space with ── */
+  /* ── Right panel — full width, no sidebar to share space with.
+     Wrapper-only, same pattern as .archive-heading-wrap: side padding
+     here, max-width+centering on the inner .sessions list itself — so
+     session cards line up with the masthead/notice/heading boxes above
+     instead of being inset an extra 20px by their own padding eating
+     into a shared max-width box. David, 2026-11-07: "why different?" ── */
   .right-panel {
-    max-width: 650px; margin: 0 auto;
-    padding: 16px 20px 48px;
+    padding: 10px 24px 48px;
   }
 
   /* Needs its own card background, same as the masthead quote and station
@@ -355,7 +360,7 @@
 
   /* ── Cards — full-width stacked list, better for phones than a
      multi-column grid or a sideways-scrolling strip ── */
-  .sessions { display: flex; flex-direction: column; gap: 14px; }
+  .sessions { display: flex; flex-direction: column; gap: 10px; max-width: 650px; margin: 0 auto; }
   .card {
     background: var(--surface); border: 1px solid var(--border);
     border-radius: 10px; overflow: hidden; transition: border-color .15s, box-shadow .15s;
