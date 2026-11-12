@@ -200,6 +200,11 @@
     <a id="signin-link" href="../nile-admin/signin.html" style="color:#008787;font-weight:600;text-decoration:none;">← Sign in</a>
   </div>
 
+  <div id="step-load-error" style="display:none;padding:40px 0;text-align:center;">
+    <p style="color:#c0392b;font-size:15px;margin-bottom:16px;">Couldn’t load this tile for editing — your session may have timed out. Try going back and opening it again.</p>
+    <a id="load-error-back-link" href="#" style="color:#008787;font-weight:600;text-decoration:none;">← Back to the station</a>
+  </div>
+
   <div id="step-verify" style="display:none;">
     <h2 style="color:#008787;margin-bottom:6px;">Verify your phone</h2>
     <p class="sub">Before this goes to the Curator, we need to know who it's really from. One quick code, then straight to your card.</p>
@@ -730,7 +735,21 @@ async function proceedToForm() {
       const dParams = new URLSearchParams({ id: TILE_ID, phone: PHONE || '', magic_auth_token: TOKEN || '' });
       const r = await fetch(`${NILE_API}/nile/tile/detail?${dParams}`);
       if (r.ok) loaded = await r.json();
-    } catch (e) { /* fall through — a failed load just leaves a blank form, same as a fresh tile */ }
+    } catch (e) { /* loaded stays null — handled below */ }
+    // A failed load used to silently fall through to the blank "new tile"
+    // form — indistinguishable from actually creating a fresh tile, so a
+    // Curator tapping the pencil on a real tile could end up looking at
+    // an empty form with no indication anything went wrong. Found 2026-11-12
+    // (David: tapped the pencil on tile #454, got a blank form instead of
+    // that tile's content). Show an explicit error instead — whatever the
+    // real cause (expired session, a bad tile_id, a network hiccup), it's
+    // never correct to treat "couldn't load tile X" the same as "creating
+    // a new tile."
+    if (!loaded) {
+      document.getElementById('load-error-back-link').href = dashboardUrl();
+      document.getElementById('step-load-error').style.display = 'block';
+      return;
+    }
   }
 
   if (loaded) {
