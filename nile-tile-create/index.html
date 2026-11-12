@@ -349,7 +349,7 @@
       <button class="btn" type="button" style="width:auto;" onclick="document.getElementById('media-overlay-file').click()">Upload a photo</button>
       <span id="media-overlay-upload-status" style="font-size:12.5px;color:#888;margin-left:8px;"></span>
     </div>
-    <input type="file" id="media-overlay-file" accept="image/png,image/jpeg" style="display:none;">
+    <input type="file" id="media-overlay-file" accept="image/png,image/jpeg,image/heic,image/heif,.heic,.heif" style="display:none;">
     <div id="media-overlay-link-hint" style="display:none;font-size:12.5px;color:#888;margin:0 0 4px;">or paste a link instead</div>
     <input id="media-overlay-input" type="url" placeholder="https://..." />
     <div id="media-overlay-save-mine-row" style="display:none;margin:6px 0 12px;">
@@ -372,6 +372,7 @@
 </div>
 
 <script src="../nile-auth.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/heic2any@0.0.4/dist/heic2any.min.js"></script>
 <script>
 const NILE_API  = 'https://xrxm-29on-xlyt.n7e.xano.io/api:onda-nile';
 const NILE_AUTH = 'https://xrxm-29on-xlyt.n7e.xano.io/api:nile';
@@ -973,15 +974,33 @@ function closeMediaOverlay() {
 const UPLOAD_PHOTO_URL    = 'https://xrxm-29on-xlyt.n7e.xano.io/api:nile/upload-photo';
 const UPLOAD_HEADSHOT_URL = 'https://xrxm-29on-xlyt.n7e.xano.io/api:nile/upload-headshot';
 document.getElementById('media-overlay-file').addEventListener('change', async (e) => {
-  const file = e.target.files[0];
+  let file = e.target.files[0];
   if (!file) return;
   const statusEl = document.getElementById('media-overlay-upload-status');
   // iPhone photos default to HEIC, which the "image/*" file picker lets
   // through but almost no browser can actually render in an <img> tag —
   // the upload itself succeeds, so it silently becomes a broken image link
-  // instead of an upfront error. Catching it here means a clear message
-  // instead of that confusing "uploaded, then broken" sequence.
-  if (file.type && file.type !== 'image/png' && file.type !== 'image/jpeg') {
+  // instead of an upfront error. Converting HEIC to JPEG here, before
+  // upload, means a Curator (or anyone adding a photo) never hits that
+  // confusing "uploaded, then broken" sequence — their photo just shows
+  // up like normal. David, 2026-11-12: this needs to work from a desktop
+  // browser, not just a phone picker, since synced/AirDropped/emailed
+  // HEIC photos on a Mac or PC are the more common real-world case.
+  const isHeic = (file.type === 'image/heic' || file.type === 'image/heif')
+    || /\.hei[cf]$/i.test(file.name || '');
+  if (isHeic) {
+    statusEl.textContent = 'Converting…';
+    try {
+      const converted = await heic2any({ blob: file, toType: 'image/jpeg', quality: 0.85 });
+      const jpegBlob = Array.isArray(converted) ? converted[0] : converted;
+      const newName = (file.name || 'photo').replace(/\.hei[cf]$/i, '') + '.jpg';
+      file = new File([jpegBlob], newName, { type: 'image/jpeg' });
+    } catch (err) {
+      statusEl.textContent = 'Couldn’t convert that HEIC photo — try a PNG or JPG instead.';
+      e.target.value = '';
+      return;
+    }
+  } else if (file.type && file.type !== 'image/png' && file.type !== 'image/jpeg') {
     statusEl.textContent = 'Please use a PNG or JPG — HEIC photos (the iPhone default) won’t display.';
     e.target.value = '';
     return;
