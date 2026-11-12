@@ -155,6 +155,11 @@
   .tc-body-text { font-size: 14px; color: var(--body); line-height: 1.5; white-space: pre-wrap; }
   .tc-body-list { font-size: 14px; color: var(--body); line-height: 1.5; padding-left: 20px; }
   .tc-body-list li { margin-bottom: 3px; }
+  .tc-photos { display: flex; flex-wrap: wrap; gap: 8px; }
+  .tc-photo {
+    width: 96px; height: 96px; object-fit: cover; border-radius: 8px;
+    border: 1px solid var(--border); display: block;
+  }
   .status-pill {
     font-size: 10px; font-weight: 700; letter-spacing: .06em;
     text-transform: uppercase; padding: 3px 9px; border-radius: 20px;
@@ -1142,6 +1147,7 @@ function render() {
         return `<div class="tc-takeaway-row${checked ? '' : ' unchecked'}"><input type="checkbox" ${checked ? 'checked' : ''} onclick="event.stopPropagation()" onchange="toggleTakeawayChecked(${t.id}, ${idx}, this.checked)"><span>${x}</span></div>`;
       }).join('')}${st.uncheckedTakeaways.size ? `<button class="tc-edit-save" onclick="event.stopPropagation();saveTakeaways(${t.id})">Save Takeaways</button>` : ''}</div>` : '',
       headings.length ? `<div class="tc-body-section"><div class="tc-body-label">Section Headings — tap to use, × to reject</div><div class="tc-tags">${headings.map((h, idx) => reviewPill(h, idx, 'headings', true)).join('')}</div></div>` : '',
+      (Array.isArray(t.photos) && t.photos.filter(Boolean).length) ? `<div class="tc-body-section"><div class="tc-body-label">Photos</div><div class="tc-photos">${t.photos.filter(Boolean).map(url => `<a href="${url}" target="_blank" rel="noopener" onclick="event.stopPropagation()"><img class="tc-photo" loading="lazy" src="${url}"></a>`).join('')}</div></div>` : '',
     ].filter(Boolean).join('');
 
     const sleeveImg = t.photo_url || t.photo;
