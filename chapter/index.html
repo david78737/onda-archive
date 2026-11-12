@@ -846,7 +846,7 @@ function respondToTile(event, tileId, phone) {
   let deepLink = 'ondareplay://reply?tile=' + encodeURIComponent(tileId);
   if (phone) deepLink += '&phone=' + encodeURIComponent(phone);
   const storeUrl = isIOS
-    ? 'https://apps.apple.com/app/onda-replay/id6448850310'
+    ? 'https://apps.apple.com/app/onda-replay/id6759813764'
     : 'https://play.google.com/store/apps/details?id=com.ondalist.replay';
   window.location.href = deepLink;
   setTimeout(() => { window.location.href = storeUrl; }, 1500);
@@ -931,7 +931,7 @@ function openNewStoryDeepLink(orgL1, orgL2, orgL3, name, phone) {
   if (phone) linkParams.set('phone', phone);
   const deepLink = 'ondareplay://newstory?' + linkParams.toString();
   const storeUrl = isIOS
-    ? 'https://apps.apple.com/app/onda-replay/id6448850310'
+    ? 'https://apps.apple.com/app/onda-replay/id6759813764'
     : 'https://play.google.com/store/apps/details?id=com.ondalist.replay';
   window.location.href = deepLink;
   setTimeout(() => { window.location.href = storeUrl; }, 1500);
