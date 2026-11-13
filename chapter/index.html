@@ -620,6 +620,7 @@
     <input type="search" id="search-input" placeholder="Search sessions, contributors, tags…" autocomplete="off">
     <a class="share-story-btn" id="share-story-btn" href="#" hidden>Share your story</a>
     <button type="button" class="share-story-btn" id="record-story-btn" hidden>Record it in the app</button>
+    <a class="share-story-btn" id="livestream-btn" href="#" target="_blank" rel="noopener" hidden>Watch the Livestream</a>
     <button type="button" class="more-toggle" id="more-toggle" onclick="toggleMoreRow()" aria-label="More options" aria-expanded="false">
       <span class="toggle-chevron"><svg viewBox="0 0 16 16" fill="none"><path d="M3 6l5 5 5-5" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
     </button>
@@ -1936,6 +1937,16 @@ if (PREVIEW_MODE) {
         font_family:     skin.font_family,
       });
       applyMasthead(skin);
+
+      // Hardcoded for Pat Stone's station specifically — a one-time live
+      // event, not a generic per-station field (same pattern as
+      // HELP_GREETING_HTML above). David, 2026-11-14.
+      if (resolvedStationId === 'pat-stone-memorium') {
+        const liveBtn = document.getElementById('livestream-btn');
+        liveBtn.href = 'https://vimeo.com/event/6348757/f9348542d7';
+        liveBtn.hidden = false;
+      }
+
       if (skin.org_l1 && skin.org_l2 && skin.org_l3) {
         const shareParams = new URLSearchParams({ org_l1: skin.org_l1, org_l2: skin.org_l2, org_l3: skin.org_l3 });
         const shareBtn = document.getElementById('share-story-btn');
