@@ -257,12 +257,13 @@
     width: 16px; height: 16px; accent-color: var(--success); cursor: pointer; margin: 0;
   }
   .tc-approve-check:has(input:checked) { color: var(--success); font-weight: 700; }
-  /* Contributor's half of the same approval — read-only here on purpose:
-     only the Contributor's own portal can change it. A disabled checkbox
-     is the standard way to show "this is informational, not yours to
-     click" — distinct from the Curator's own interactive one. */
-  .tc-approve-check.readonly, .tc-approve-check.readonly input { cursor: default; }
-  .tc-approve-check.readonly input[type="checkbox"] { accent-color: var(--muted); opacity: .7; }
+  /* Contributor's half of the same approval — normally cast from their own
+     portal (nile-presentation/index.html). It's interactive here too, but
+     styled as an override (warn color, not success) so checking it reads
+     as "I'm doing this on their behalf," never confused with the Curator's
+     own ordinary approval. Gated behind a confirm() in overrideContributorApproval. */
+  .tc-approve-check.override input[type="checkbox"] { accent-color: var(--warn); }
+  .tc-approve-check.override:has(input:checked) { color: var(--warn); font-weight: 700; }
   /* Two grouped columns next to Status/Visibility, by role — not by level —
      per David's own annotated mockup: everyone reads "who approved what"
      faster grouped this way than scattered across one row. */
@@ -1173,9 +1174,9 @@ function render() {
               <div class="tc-approval-grid" onclick="event.stopPropagation()">
                 ${isSelfAuthored ? '' : `
                 <div class="tc-approval-box">
-                  <div class="tc-approval-col-label">Contributor</div>
-                  <label class="tc-approve-check readonly"><input type="checkbox" disabled ${contributorNileApproved ? 'checked' : ''}>Nile</label>
-                  <label class="tc-approve-check readonly"><input type="checkbox" disabled ${contributorStationApproved ? 'checked' : ''}>Station</label>
+                  <div class="tc-approval-col-label" title="Normally only the Contributor's own portal sets this. Checking it here overrides their sign-off.">Contributor</div>
+                  <label class="tc-approve-check override"><input type="checkbox" ${contributorNileApproved ? 'checked' : ''} onchange="overrideContributorApproval(${t.id}, 'nile', ${contributorNileApproved})">Nile</label>
+                  <label class="tc-approve-check override"><input type="checkbox" ${contributorStationApproved ? 'checked' : ''} onchange="overrideContributorApproval(${t.id}, 'station', ${contributorStationApproved})">Station</label>
                 </div>
                 `}
                 <div class="tc-approval-box">
@@ -1405,6 +1406,25 @@ function toggleApprovalSelf(id, level, isCurrentlyActive) {
   const curatorField = level === 'station' ? 'curator_approved_station' : 'curator_approved_nile';
   const contributorField = level === 'station' ? 'contributor_approved_station' : 'contributor_approved_nile';
   patchTile(id, { [curatorField]: !isCurrentlyActive, [contributorField]: !isCurrentlyActive });
+}
+
+// Curator override of the Contributor's own approval half. Two-key sign-off
+// exists so a Contributor can protect their own IP (they cast this from
+// their own portal, nile-presentation/index.html) — this exists for the
+// case where they can't or won't: never saw the option, lost access,
+// unresponsive, etc. (built 2026-11-14 after exactly this happened with a
+// Brandon Gonzales tile). Gated behind confirm() so it's never an
+// accidental click, and styled amber in the UI (not green, like the
+// Curator's own ordinary approval) so it always reads as acting on
+// someone else's behalf.
+function overrideContributorApproval(id, level, isCurrentlyActive) {
+  const field = level === 'station' ? 'contributor_approved_station' : 'contributor_approved_nile';
+  if (!isCurrentlyActive) {
+    const tile = allTiles.find(t => t.id === id);
+    const name = (tile && (tile.presenter_name || tile.presenter)) || 'the Contributor';
+    if (!confirm(`This checks ${name}'s own approval box for them, as a Curator override — they haven't done this themselves. Continue?`)) return;
+  }
+  patchTile(id, { [field]: !isCurrentlyActive });
 }
 
 // Soft hide/restore — the tag is never removed from the real tags array,
