@@ -1133,12 +1133,16 @@ function render() {
       return `<div class="tc-body-section"><div class="tc-body-label">${label}<span class="tc-edit-btn" onclick="event.stopPropagation();startEditField(${t.id}, '${field}')">Edit</span></div><div class="tc-body-text">${value}</div></div>`;
     };
 
+    // Photos live in the always-visible top section now, alongside Synopsis
+    // (David, 2026-11-15 — same "gist before deep-dive" ordering already
+    // applied to the public chapter page). Computed here, used below.
+    const photosSection = (Array.isArray(t.photos) && t.photos.filter(Boolean).length) ? `<div class="tc-body-section"><div class="tc-body-label">Photos</div><div class="tc-photos">${t.photos.filter(Boolean).map(url => `<a href="${url}" target="_blank" rel="noopener" onclick="event.stopPropagation()"><img class="tc-photo" loading="lazy" src="${url}"></a>`).join('')}</div></div>` : '';
+
     const bodySections = [
       // Titles: narrow a batch of AI suggestions down to a short list fast —
       // reject the bad ones with ×, tap a survivor to make it the real title.
       titleSuggestions.length ? `<div class="tc-body-section"><div class="tc-body-label">Suggested Titles — tap to use, × to reject</div><div class="tc-tags">${titleSuggestions.map((s, idx) => reviewPill(s, idx, 'title_suggestions', true)).join('')}</div></div>` : '',
       editableField("Who it's for", 'who', t.who),
-      editableField('Synopsis', 'synopsis', t.synopsis),
       takeaways.length ? `<div class="tc-body-section"><div class="tc-body-label">${
         st.editingTakeawaysLabel
           ? `<input type="text" id="edit-takeaways_label-${t.id}" value="${t.takeaways_label || ''}" placeholder="Key Takeaways (shown to visitors as this, or blank for none)" onclick="event.stopPropagation()" style="font-size:12px;padding:4px 7px;border:1px solid var(--border);border-radius:5px;width:260px;max-width:60%"><span class="tc-edit-btn" onclick="event.stopPropagation();saveTakeawaysLabel(${t.id})">Save</span><span class="tc-edit-btn" onclick="event.stopPropagation();cancelTakeawaysLabelEdit(${t.id})">Cancel</span>`
@@ -1148,7 +1152,9 @@ function render() {
         return `<div class="tc-takeaway-row${checked ? '' : ' unchecked'}"><input type="checkbox" ${checked ? 'checked' : ''} onclick="event.stopPropagation()" onchange="toggleTakeawayChecked(${t.id}, ${idx}, this.checked)"><span>${x}</span></div>`;
       }).join('')}${st.uncheckedTakeaways.size ? `<button class="tc-edit-save" onclick="event.stopPropagation();saveTakeaways(${t.id})">Save Takeaways</button>` : ''}</div>` : '',
       headings.length ? `<div class="tc-body-section"><div class="tc-body-label">Section Headings — tap to use, × to reject</div><div class="tc-tags">${headings.map((h, idx) => reviewPill(h, idx, 'headings', true)).join('')}</div></div>` : '',
-      (Array.isArray(t.photos) && t.photos.filter(Boolean).length) ? `<div class="tc-body-section"><div class="tc-body-label">Photos</div><div class="tc-photos">${t.photos.filter(Boolean).map(url => `<a href="${url}" target="_blank" rel="noopener" onclick="event.stopPropagation()"><img class="tc-photo" loading="lazy" src="${url}"></a>`).join('')}</div></div>` : '',
+      // Story (the full transcript) is the deep-dive — opened on demand,
+      // last in the list, not the first thing a Curator sees. David, 2026-11-15.
+      editableField('Story', 'story', t.story),
     ].filter(Boolean).join('');
 
     const sleeveImg = t.photo_url || t.photo;
@@ -1186,7 +1192,7 @@ function render() {
                 </div>
               </div>
             </div>
-            ${t.story ? `<div style="grid-row:2;grid-column:1 / span 3" onclick="event.stopPropagation()">${editableField('Story', 'story', t.story)}</div>` : ''}
+            ${(t.synopsis || photosSection) ? `<div style="grid-row:2;grid-column:1 / span 3" onclick="event.stopPropagation()">${editableField('Synopsis', 'synopsis', t.synopsis)}${photosSection}</div>` : ''}
           </div>
         </div>
         ${presenterDisplay || sleeveImg ? `<div class="tc-identity">${sleeveImg ? `<img class="tc-sleeve-img" src="${sleeveImg}">` : (presenterDisplay ? `<span class="tc-sleeve-placeholder">${presenterDisplay.trim().charAt(0).toUpperCase()}</span>` : '')}<span class="tc-identity-name">${presenterDisplay}</span><span class="tc-edit-btn" onclick="event.stopPropagation();startThumbnailUpload(${t.id})">Change thumbnail</span></div>` : ''}
