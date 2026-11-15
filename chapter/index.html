@@ -616,7 +616,7 @@
   <div class="search-bar-inner">
     <input type="search" id="search-input" placeholder="Search sessions, contributors, tags…" autocomplete="off">
     <a class="share-story-btn" id="share-story-btn" href="#" hidden>Share your story</a>
-    <button type="button" class="share-story-btn" id="record-story-btn" hidden>Record it in the app</button>
+    <button type="button" class="share-story-btn" id="record-story-btn" hidden>Share with ONDA</button>
     <a class="share-story-btn" id="livestream-btn" href="#" target="_blank" rel="noopener" hidden>Watch the Livestream</a>
     <button type="button" class="more-toggle" id="more-toggle" onclick="toggleMoreRow()" aria-label="More options" aria-expanded="false">
       <span class="toggle-chevron"><svg viewBox="0 0 16 16" fill="none"><path d="M3 6l5 5 5-5" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
@@ -663,7 +663,7 @@
       <div class="help-route">
         <button type="button" class="help-route-btn" data-route="record" onclick="toggleHelpRoute('record')">I want to dictate or record it in ONDA Replay</button>
         <div class="help-detail" id="help-detail-record" hidden>
-          <p>This is the same "Record it in the app" button — it opens ONDA Replay so you can record your voice directly. Recording your own voice is the heart of ONDA Replay, so here's the process in a few short stages — no need to do it all in one sitting.</p>
+          <p>This is the same "Share with ONDA" button — it opens ONDA Replay so you can record your voice directly. Recording your own voice is the heart of ONDA Replay, so here's the process in a few short stages — no need to do it all in one sitting.</p>
           <details class="help-stage">
             <summary><span>Stage 1 — Dictate a first take</span></summary>
             <p>Open the app and just start talking. Feeling awkward speaking into a mic? Start small — a sentence or two at a time. Don't worry about ums, errs, or stumbles — say it rough, then stop.</p>
@@ -1423,11 +1423,11 @@ function renderHelpPanel() {
     document.getElementById(`help-link-${route}`).href = tileCreateUrl;
   });
 
-  // Spell out that this is the exact same destination as the "Tell us
-  // about your [Name]" button already in the toolbar, not a second form —
-  // David, 2026-11-05: wanted a "this is the same" message here, not a
-  // silent duplicate CTA.
-  const buttonLabel = helpCtx && helpCtx.firstName ? `Tell us about your ${helpCtx.firstName}` : 'Tell us about your story';
+  // Spell out that this is the exact same destination as the "Share your
+  // stories" button already in the toolbar, not a second form — David,
+  // 2026-11-05: wanted a "this is the same" message here, not a silent
+  // duplicate CTA.
+  const buttonLabel = 'Share your stories';
   document.getElementById('help-text-written').textContent =
     `Dictate it on your phone, or copy and paste it from somewhere else. Set a title and add your name. Add up to three photos and/or videos. This is the same "${buttonLabel}" button up top — then submit it.`;
 
@@ -1968,21 +1968,27 @@ if (PREVIEW_MODE) {
       // Hardcoded for Pat Stone's station specifically — a one-time live
       // event, not a generic per-station field (same pattern as
       // HELP_GREETING_HTML above). David, 2026-11-14.
-      if (resolvedStationId === 'pat-stone-memorium') {
-        const liveBtn = document.getElementById('livestream-btn');
-        liveBtn.href = 'https://vimeo.com/event/6348757/f9348542d7';
-        liveBtn.hidden = false;
-      }
+      // Disabled 2026-11-15 — the event already happened (Nov 14) and
+      // that Vimeo link now just shows "not currently live." Button
+      // stays hidden (its default) until David has a real replay link
+      // to swap in here.
+      // if (resolvedStationId === 'pat-stone-memorium') {
+      //   const liveBtn = document.getElementById('livestream-btn');
+      //   liveBtn.href = 'https://vimeo.com/event/6348757/f9348542d7';
+      //   liveBtn.hidden = false;
+      // }
 
       if (skin.org_l1 && skin.org_l2 && skin.org_l3) {
         const shareParams = new URLSearchParams({ org_l1: skin.org_l1, org_l2: skin.org_l2, org_l3: skin.org_l3 });
         const shareBtn = document.getElementById('share-story-btn');
         shareBtn.href = `https://archive.ondareplay.com/nile-tile-create/?${shareParams}`;
-        // station_name is "[First name] [Last name] Memorial/Memorium" by
-        // convention — first word stands in for the person's first name so
-        // this button reads right on every memorial, not just Pat's.
+        // Was personalized ("Tell us about your [Name]") — David,
+        // 2026-11-15: flattened to one static label across every station.
+        // firstName itself is unused for copy now, kept only because it's
+        // still stored on helpCtx below (harmless, nothing reads it there
+        // either at the moment).
         const firstName = (skin.station_name || '').trim().split(/\s+/)[0];
-        shareBtn.textContent = firstName ? `Tell us about your ${firstName}` : 'Share your story';
+        shareBtn.textContent = 'Share your stories';
         shareBtn.hidden = false;
 
         // Second entry point: open the app itself (record, or build a
