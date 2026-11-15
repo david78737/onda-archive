@@ -356,6 +356,12 @@
         <textarea id="station-desc" placeholder="What you curate and why. Who your listeners are. What makes this station worth following."></textarea>
         <div class="hint">Shown on your station archive page. 2–4 sentences is plenty.</div>
       </div>
+
+      <div class="field">
+        <label for="station-livestream">Livestream URL <span class="opt">optional</span></label>
+        <input type="url" id="station-livestream" placeholder="https://vimeo.com/event/...">
+        <div class="hint">A "Watch the Livestream" button appears on your station page automatically when this is set, and disappears when it's blank — clear it once the event's over, or replace it with a replay link.</div>
+      </div>
     </div>
 
     <!-- Curator Identity -->
@@ -730,6 +736,7 @@
       if (d.city)         document.getElementById('station-city').value = d.city;
       if (d.region)       document.getElementById('station-region').value = d.region;
       if (d.description)  document.getElementById('station-desc').value = d.description;
+      if (d.livestream_url) document.getElementById('station-livestream').value = d.livestream_url;
       if (d.curator_name) document.getElementById('curator-name').value = d.curator_name;
       if (d.linkedin_url) document.getElementById('curator-linkedin').value = d.linkedin_url;
       if (d.photo_url)    document.getElementById('curator-photo').value = d.photo_url;
@@ -782,6 +789,7 @@
     const city        = document.getElementById('station-city').value.trim();
     const region      = document.getElementById('station-region').value.trim();
     const description = document.getElementById('station-desc').value.trim();
+    const livestreamUrl = document.getElementById('station-livestream').value.trim();
     const curatorName = document.getElementById('curator-name').value.trim();
     const linkedin    = document.getElementById('curator-linkedin').value.trim();
     const photo       = document.getElementById('curator-photo').value.trim();
@@ -808,6 +816,7 @@
       city,
       region,
       description:    description || null,
+      livestream_url: livestreamUrl || null,
       curator_name:   curatorName,
       linkedin_url:   linkedin,
       photo_url:      photo || null,

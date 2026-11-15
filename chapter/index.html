@@ -1965,18 +1965,20 @@ if (PREVIEW_MODE) {
       });
       applyMasthead(skin);
 
-      // Hardcoded for Pat Stone's station specifically — a one-time live
-      // event, not a generic per-station field (same pattern as
-      // HELP_GREETING_HTML above). David, 2026-11-14.
-      // Disabled 2026-11-15 — the event already happened (Nov 14) and
-      // that Vimeo link now just shows "not currently live." Button
-      // stays hidden (its default) until David has a real replay link
-      // to swap in here.
-      // if (resolvedStationId === 'pat-stone-memorium') {
-      //   const liveBtn = document.getElementById('livestream-btn');
-      //   liveBtn.href = 'https://vimeo.com/event/6348757/f9348542d7';
-      //   liveBtn.hidden = false;
-      // }
+      // Was hardcoded for Pat Stone's station specifically with a
+      // one-time Vimeo link baked into this file. David, 2026-11-15:
+      // made it a real Station Profile field instead (nile-admin/
+      // station.html's "Livestream URL") — any curator can set one, the
+      // button appears automatically when it's present and stays hidden
+      // (its default) when it's blank, same as every other optional
+      // skin field on this page.
+      const liveBtn = document.getElementById('livestream-btn');
+      if (skin.livestream_url) {
+        liveBtn.href = skin.livestream_url;
+        liveBtn.hidden = false;
+      } else {
+        liveBtn.hidden = true;
+      }
 
       if (skin.org_l1 && skin.org_l2 && skin.org_l3) {
         const shareParams = new URLSearchParams({ org_l1: skin.org_l1, org_l2: skin.org_l2, org_l3: skin.org_l3 });
