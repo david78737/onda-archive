@@ -764,10 +764,10 @@ function render() {
       </div>
       <div class="card-body">
         ${s.synopsis ? `<div class="section-label">Synopsis</div><div class="synopsis">${s.synopsis}</div>` : ''}
+        ${s.story ? `<div class="section-label">Story</div><div class="synopsis">${s.story}</div>` : ''}
         ${Array.isArray(s.takeaways) && s.takeaways.length
           ? `<div class="section-label">Key Takeaways</div><ul class="takeaways">${s.takeaways.map(t => `<li>${t}</li>`).join('')}</ul>`
           : ''}
-        ${s.story ? `<div class="section-label">Story</div><div class="synopsis">${s.story}</div>` : ''}
         ${Array.isArray(s.headings) && s.headings.length
           ? `<div class="section-label">What's Covered</div><ul class="takeaways">${s.headings.map(h => `<li>${h}</li>`).join('')}</ul>`
           : ''}

@@ -1751,8 +1751,8 @@ function render() {
       <div class="card-body">
         ${(s.photos && s.photos.length) ? `<div class="section-label">Photos</div><div class="card-photos">${s.photos.map(url => `<a href="${url}" target="_blank" rel="noopener" onclick="event.stopPropagation()"><img class="card-photo" loading="lazy" src="${url}"></a>`).join('')}</div>` : ''}
         ${s.synopsis ? `<div class="section-label">Synopsis</div><div class="synopsis">${s.synopsis}</div>` : ''}
-        ${(s.takeaways||[]).length ? `${s.takeaways_label === '' ? '' : `<div class="section-label">${s.takeaways_label ?? 'Key Takeaways'}</div>`}<ul class="takeaways">${s.takeaways.map(t=>`<li>${t}</li>`).join('')}</ul>` : ''}
         ${(s.story && !storyAlreadyShown) ? `<div class="section-label">Story</div><div class="synopsis">${s.story}</div>` : ''}
+        ${(s.takeaways||[]).length ? `${s.takeaways_label === '' ? '' : `<div class="section-label">${s.takeaways_label ?? 'Key Takeaways'}</div>`}<ul class="takeaways">${s.takeaways.map(t=>`<li>${t}</li>`).join('')}</ul>` : ''}
         ${(s.headings||[]).length ? `<div class="section-label">What's Covered</div><ul class="takeaways">${s.headings.map(h=>`<li>${h}</li>`).join('')}</ul>` : ''}
         <div class="card-tags">${tags}</div>
         ${s.who ? `<div class="section-label">Best For</div><div class="who">${s.who}</div>` : ''}
