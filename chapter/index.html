@@ -1137,6 +1137,26 @@ function playerUrlFor(url) {
   return 'https://default-dev-51573d-xrxm-29on-xlyt.n7e.xano.io/index.html?src=' + encodeURIComponent(url);
 }
 
+// The video field is whatever the submitter actually pasted — found
+// 2026-11-15 storing a full https://youtu.be/... URL, not a bare 11-char
+// ID, which broke a naive `?v=${raw}` link (it tried to watch a video
+// whose "id" was itself a full URL). Handles watch?v=, youtu.be/,
+// /embed/, /shorts/, and an already-bare ID.
+function youtubeId(raw) {
+  if (!raw) return null;
+  const val = String(raw).trim();
+  if (/^[\w-]{11}$/.test(val)) return val;
+  try {
+    const url = new URL(val);
+    const v = url.searchParams.get('v');
+    if (v) return v;
+    const parts = url.pathname.split('/').filter(Boolean);
+    return parts[parts.length - 1] || null;
+  } catch (e) {
+    return null;
+  }
+}
+
 
 // ── Color math: derive text/chip colors instead of storing them ────────────────
 function hexToRgbArr(hex) {
@@ -1645,8 +1665,9 @@ function render() {
     // rendered anywhere on this page — found 2026-11-15 on a tile whose
     // brief described a YouTube video that never showed up. Same
     // thumbnail+button pattern already used on ondanile/index.html.
-    const ytBtn = s.youtube
-      ? `<a class="yt-btn" href="https://www.youtube.com/watch?v=${s.youtube}" target="_blank" rel="noopener" aria-label="Watch on YouTube" onclick="event.stopPropagation()">
+    const ytId = youtubeId(s.youtube);
+    const ytBtn = ytId
+      ? `<a class="yt-btn" href="https://www.youtube.com/watch?v=${ytId}" target="_blank" rel="noopener" aria-label="Watch on YouTube" onclick="event.stopPropagation()">
            <img src="../img/yt-logo.svg" alt="Watch on YouTube">
          </a>`
       : '';
