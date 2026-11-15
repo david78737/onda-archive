@@ -1321,24 +1321,31 @@ async function swapTitle(id, field, suggestionIndex) {
 async function patchTile(id, fields) {
   // Confirmed 2026-09-17: tapping ONLY an approval pill (no takeaways in
   // the request at all) wiped a tile's real takeaways to empty — Xano's
-  // optional JSON inputs don't reliably stay untouched just because a key
-  // was left out of the request, the way text/bool fields do. Rather than
-  // trust that behavior, always resend the tile's current array fields on
-  // every save unless this specific call means to actually change one —
-  // nothing is ever "omitted" from Xano's point of view, so there's no
-  // ambiguity left for it to get wrong.
+  // optional inputs don't reliably stay untouched just because a key was
+  // left out of the request. Originally thought this only hit JSON/array
+  // fields, not booleans — disproven 2026-11-15, when the new Curator-
+  // override call (which only sent one contributor field) silently reset
+  // a tile's status back to "submitted" and cleared its own already-true
+  // curator_approved_station in the same save. So boolean/status fields
+  // get the same treatment as the array ones: always resend the tile's
+  // current values on every save unless this specific call means to
+  // actually change one — nothing is ever "omitted" from Xano's point of
+  // view, so there's no ambiguity left for it to get wrong.
   const tile = allTiles.find(t => t.id === id) || {};
-  const arrayGuard = {
+  const fieldGuard = {
     takeaways: tile.takeaways,
     headings: tile.headings,
     tags: tile.tags,
     tags_hidden: tile.tags_hidden,
+    status: tile.status,
+    curator_approved_station: !!tile.curator_approved_station,
+    curator_approved_nile: !!tile.curator_approved_nile,
   };
   try {
     const r = await fetch(`${NILE_API}/nile/tile/update`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ id, phone: authedPhone, magic_auth_token: authToken, ...arrayGuard, ...fields }),
+      body: JSON.stringify({ id, phone: authedPhone, magic_auth_token: authToken, ...fieldGuard, ...fields }),
     });
     if (!r.ok) {
       const e = await r.json().catch(() => ({}));
