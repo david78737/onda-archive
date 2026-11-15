@@ -1691,15 +1691,16 @@ function render() {
     // the reader nothing the chevron didn't already say. Pending items
     // still get their own real status; everything else gets nothing here
     // — the corner chevron alone signals "tap to expand."
-    // Badge built 2026-11-15 (img/onda-badge.svg) — same circle+notched-
-    // arrow glyph as the old assets/tap-arrow.png (deliberately not a
-    // plain triangle, to stay visually distinct from YouTube's play
-    // button), now paired with the ONDA wordmark so it reads clearly as
-    // this site's own player, same idea as the YouTube badge beside it.
+    // Badge finalized 2026-11-15 as img/onda-badge.png — David's own
+    // play_onda.png asset (onda-replay/assets/image_assets/), copied in
+    // directly rather than hand-redrawn as SVG, after several rounds of
+    // SVG attempts (circle vs. ellipse, ring vs. no ring, arrow shape)
+    // converged on exactly what this file already was: a vertical
+    // ellipse, no outline, a flat-backed white arrow, bold black ONDA.
     const ondaBtn = (!isPending && hasRealAudio)
       ? `<a class="onda-btn" href="${playerUrlFor(s.onda_url)}" target="_blank" rel="noopener"
              onclick="event.stopPropagation()" title="Play recording">
-           <img class="onda-badge-img" src="../img/onda-badge.svg" alt="Play on ONDA">
+           <img class="onda-badge-img" src="../img/onda-badge.png" alt="Play on ONDA">
          </a>`
       : (isPending ? `<span class="buy-soon">⏳ Coming soon</span>` : '');
 

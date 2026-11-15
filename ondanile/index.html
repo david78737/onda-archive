@@ -739,12 +739,14 @@ function render() {
     // 2026-10-26: "the play button should ALWAYS open the player. Never
     // attempt to open Replay. There is a different protocol for that."
     const playerUrl = 'https://default-dev-51573d-xrxm-29on-xlyt.n7e.xano.io/index.html?src=' + encodeURIComponent(s.onda_url || '');
-    // Badge built 2026-11-15 (img/onda-badge.svg), same one chapter/index.html
-    // now uses — was this page's own different "Download ONDA" image
-    // before (img/onda-download.png); unified for brand consistency.
+    // Badge finalized 2026-11-15 as img/onda-badge.png (David's own
+    // play_onda.png asset, see chapter/index.html's longer comment on
+    // this) — same file chapter/index.html uses. Was this page's own
+    // different "Download ONDA" image before (img/onda-download.png);
+    // unified for brand consistency.
     const ondaBtn = (s.onda_url && s.status !== 'pending')
       ? `<a class="onda-btn" href="${playerUrl}" target="_blank" rel="noopener" title="Play recording">
-           <img src="../img/onda-badge.svg" alt="Play on ONDA">
+           <img src="../img/onda-badge.png" alt="Play on ONDA">
          </a>`
       : (s.status === 'pending' ? `<span class="buy-soon">Recording coming soon</span>` : '');
 
