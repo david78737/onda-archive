@@ -560,12 +560,6 @@
     font-size: 11px; color: var(--muted); border: 1px solid var(--border);
     border-radius: 4px; padding: 6px 10px;
   }
-  .more-badge {
-    display: inline-flex; align-items: center; gap: 2px;
-    font-size: 11px; font-weight: 600; color: var(--accent);
-    border: 1px solid var(--accent); border-radius: 4px; padding: 6px 8px;
-  }
-  .more-badge svg { width: 13px; height: 13px; }
 
   .loading, .empty {
     text-align: center; padding: 4rem 2rem;
@@ -1656,22 +1650,19 @@ function render() {
     // bulk-loaded TDIF/Facebook tributes) showed a "Play" arrow that opened
     // a recording that didn't exist. David, 2026-11-01.
     const hasRealAudio = !!(s.onda_file && s.onda_file.size > 16);
-    // A generic "More" badge replaces the old always-blank/always-"Play"
-    // split for anything that isn't a real recording — it doesn't claim a
-    // specific content type (tags, photos, replies), just that opening the
-    // tile has more to it. Not a separate tap target: it sits inside the
-    // card-header, which already expands the tile on click, so it's a
-    // visual cue, not a second control. David, 2026-11-01: "turn the arrow
-    // into a 'More' button indicating that expanding the tile has more to
-    // offer: Tags, images, videos, and potentially audio comments."
+    // The "More" badge (removed 2026-11-15) used to sit here for anything
+    // that wasn't a real recording — but it wasn't a real control (it
+    // wasn't even its own tap target) and it used the exact same chevron
+    // glyph as the corner indicator every card already has, so it told
+    // the reader nothing the chevron didn't already say. Pending items
+    // still get their own real status; everything else gets nothing here
+    // — the corner chevron alone signals "tap to expand."
     const ondaBtn = (!isPending && hasRealAudio)
       ? `<a class="onda-btn" href="${playerUrlFor(s.onda_url)}" target="_blank" rel="noopener"
              onclick="event.stopPropagation()" title="Play recording">
            <img class="onda-btn-tap-icon" src="../assets/tap-arrow.png" alt="Play" width="25" height="28">
          </a>`
-      : (isPending
-          ? `<span class="buy-soon">⏳ Coming soon</span>`
-          : `<span class="more-badge" title="Tap to see more">More<svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M7.293 4.293a1 1 0 011.414 0L14 9.586l-5.293 5.293a1 1 0 01-1.414-1.414L11.586 10 6.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"/></svg></span>`);
+      : (isPending ? `<span class="buy-soon">⏳ Coming soon</span>` : '');
 
     const reactionsHtml = `<div class="card-reactions">${REACTION_TYPES.map(r => {
       const count = s[r.field] || 0;
