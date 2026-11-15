@@ -1383,6 +1383,13 @@ function showReviewOnCard(d) {
   renderVisibilityBadge();
   renderMediaRow('photo');
   renderMediaRow('video');
+  // This is a review of the whole record, not another fill-out step —
+  // nothing should sit behind a collapsed "+ More details" toggle here.
+  // David, 2026-11-15: seeing that toggle on the review screen (after
+  // already submitting) read as "this didn't actually go through, there's
+  // still more to do," which is why people were resubmitting from scratch.
+  document.getElementById('more-details').classList.add('open');
+  document.getElementById('more-details-toggle').style.display = 'none';
   document.getElementById('form-sub').textContent =
     `Here's what we picked up from your story — nothing is final. Tap anything below to change it before it goes to the curator.`;
   const reviewBtn = document.getElementById('btn-submit');
