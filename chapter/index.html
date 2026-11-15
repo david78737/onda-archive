@@ -556,6 +556,9 @@
     display: inline-flex; align-items: center; text-decoration: none;
   }
   .onda-btn-tap-icon { display: block; flex-shrink: 0; border-radius: 3px; }
+  .yt-btn { display: inline-block; text-decoration: none; line-height: 0; transition: opacity .15s; }
+  .yt-btn:hover { opacity: .8; }
+  .yt-btn img { display: block; height: 32px; width: auto; }
   .buy-soon {
     font-size: 11px; color: var(--muted); border: 1px solid var(--border);
     border-radius: 4px; padding: 6px 10px;
@@ -1638,6 +1641,16 @@ function render() {
       ? `<img class="card-avatar card-avatar-photo" loading="lazy" src="${s.photo}" alt="${s.presenter}" data-name="${s.presenter}" onerror="window._thumbErr(this)">`
       : `<div class="card-avatar" style="background:${avatarColor(s.presenter||'')}">${initials(s.presenter||'')}</div>`;
 
+    // Was in the data (p.youtube, mapped into s.youtube) but never
+    // rendered anywhere on this page — found 2026-11-15 on a tile whose
+    // brief described a YouTube video that never showed up. Same
+    // thumbnail+button pattern already used on ondanile/index.html.
+    const ytBtn = s.youtube
+      ? `<a class="yt-btn" href="https://www.youtube.com/watch?v=${s.youtube}" target="_blank" rel="noopener" aria-label="Watch on YouTube" onclick="event.stopPropagation()">
+           <img src="../img/yt-logo.svg" alt="Watch on YouTube">
+         </a>`
+      : '';
+
     // Always the web player — never the ondareplay:// app deep link. David,
     // 2026-10-26: "the play button should ALWAYS open the player. Never
     // attempt to open Replay. There is a different protocol for that."
@@ -1741,6 +1754,7 @@ function render() {
       </div>
       <div class="card-body">
         ${(s.photos && s.photos.length) ? `<div class="section-label">Photos</div><div class="card-photos">${s.photos.map(url => `<a href="${url}" target="_blank" rel="noopener" onclick="event.stopPropagation()"><img class="card-photo" loading="lazy" src="${url}"></a>`).join('')}</div>` : ''}
+        ${ytBtn ? `<div class="section-label">Video</div><div class="action-row">${ytBtn}</div>` : ''}
         ${s.synopsis ? `<div class="section-label">Synopsis</div><div class="synopsis">${s.synopsis}</div>` : ''}
         ${(s.story && !storyAlreadyShown) ? `<div class="section-label">Story</div><div class="synopsis">${s.story}</div>` : ''}
         ${(s.takeaways||[]).length ? `${s.takeaways_label === '' ? '' : `<div class="section-label">${s.takeaways_label ?? 'Key Takeaways'}</div>`}<ul class="takeaways">${s.takeaways.map(t=>`<li>${t}</li>`).join('')}</ul>` : ''}
@@ -1845,6 +1859,7 @@ function normalizePresentation(p) {
     takeaways_label: p.takeaways_label ?? null,
     photo: p.photo_url || p.photo || null,
     photos: Array.isArray(p.photos) ? p.photos.filter(Boolean) : [],
+    youtube: p.youtube || null,
     onda_url: p.onda_url || null,
     onda_file: p.onda_file || null,
     status: p.status || null,
